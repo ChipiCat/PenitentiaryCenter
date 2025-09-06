@@ -14,7 +14,7 @@ import classes from "../login/styles/AuthenticationTitle.module.css";
 const LoginPage = () => {
   return (
 
-    <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh'}}>
+    <div className="min-h-screen flex flex-col justify-center items-center">
       <Title ta="center" className={classes.title}>
         Welcome back!
       </Title>
