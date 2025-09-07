@@ -7,10 +7,29 @@ on:
       - main
 
 jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      front: ${{ steps.filter.outputs.front }}
+      back: ${{ steps.filter.outputs.back }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Filter paths
+        id: filter
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            front:
+              - 'PenyFront/**'
+            back:
+              - 'peny-back/**'
+
   front-ci:
     name: Frontend CI Check
+    needs: changes
+    if: needs.changes.outputs.front == 'true'
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.changed_files && contains(github.event.pull_request.changed_files, 'PenyFront/') }}
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js
@@ -31,8 +50,9 @@ jobs:
 
   back-ci:
     name: Backend CI Check
+    needs: changes
+    if: needs.changes.outputs.back == 'true'
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.changed_files && contains(github.event.pull_request.changed_files, 'peny-back/') }}
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js
