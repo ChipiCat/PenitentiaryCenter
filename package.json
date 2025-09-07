@@ -4,7 +4,10 @@
   "scripts": {
     "dev": "npm-run-all --parallel dev:back dev:front",
     "dev:back": "cd peny-back && npm run dev",
-    "dev:front": "cd PenyFront && npm run dev"
+    "dev:front": "cd PenyFront && npm run dev",
+    "front:ci-check": "cd PenyFront && npm run ci-check",
+    "back:ci-check": "cd peny-back && npm run ci-check",
+    "ci-check": "npm run front:ci-check && npm run back:ci-check"
   },
   "devDependencies": {
     "npm-run-all": "^4.1.5"
