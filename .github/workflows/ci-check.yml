@@ -1,0 +1,52 @@
+name: CI Checks
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+
+jobs:
+  front-ci:
+    name: Frontend CI Check
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.changed_files && contains(github.event.pull_request.changed_files, 'PenyFront/') }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        with:
+          path: PenyFront/node_modules
+          key: ${{ runner.os }}-PenyFront-${{ hashFiles('PenyFront/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-PenyFront-
+      - name: Install dependencies
+        run: cd PenyFront && npm install
+      - name: Run Frontend CI Check
+        run: npm run ci-check --prefix PenyFront
+
+  back-ci:
+    name: Backend CI Check
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.changed_files && contains(github.event.pull_request.changed_files, 'peny-back/') }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        with:
+          path: peny-back/node_modules
+          key: ${{ runner.os }}-peny-back-${{ hashFiles('peny-back/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-peny-back-
+      - name: Install dependencies
+        run: cd peny-back && npm install
+      - name: Run Backend CI Check
+        run: npm run ci-check --prefix peny-back
