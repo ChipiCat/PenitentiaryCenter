@@ -15,7 +15,7 @@ const LoginPage = () => {
 
     <div className="min-h-screen flex flex-col justify-center items-center">
       <Title ta="center" className={classes.title}>
-        Welcome back!
+        Holiwi
       </Title>
 
       <Paper withBorder shadow="sm" p={22} mt={30} radius="md">
