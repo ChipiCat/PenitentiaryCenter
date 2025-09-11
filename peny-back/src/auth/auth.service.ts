@@ -1,7 +1,17 @@
-import { Injectable, UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
-import { RegisterDto, LoginDto, RefreshTokenDto, AuthResponseDto } from './dto/auth.dto';
+import {
+  RegisterDto,
+  LoginDto,
+  RefreshTokenDto,
+  AuthResponseDto,
+} from './dto/auth.dto';
 import * as bcrypt from 'bcryptjs';
 import { UserRole } from '../../generated/prisma';
 
@@ -42,11 +52,10 @@ export class AuthService {
       return user;
     });
 
-
-    const tokens = await this.generateTokens(result.id);
+    const tokens = this.generateTokens(result.id);
     await this.prisma.userAuth.update({
       where: { userId: result.id },
-      data: { 
+      data: {
         refreshToken: tokens.refreshToken,
         tokenExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       },
@@ -76,16 +85,19 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.userAuth.passwordHash);
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      user.userAuth.passwordHash,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const tokens = await this.generateTokens(user.id);
-    
+    const tokens = this.generateTokens(user.id);
+
     await this.prisma.userAuth.update({
       where: { userId: user.id },
-      data: { 
+      data: {
         refreshToken: tokens.refreshToken,
         tokenExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       },
@@ -99,7 +111,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
-        photoUrl: user.photoUrl || "hola",
+        photoUrl: user.photoUrl || 'hola',
       },
     };
   }
@@ -108,8 +120,7 @@ export class AuthService {
     const { refreshToken } = refreshDto;
 
     try {
- 
-      const payload = this.jwtService.verify(refreshToken, {
+      this.jwtService.verify(refreshToken, {
         secret: process.env.JWT_REFRESH_SECRET,
       });
       const userAuth = await this.prisma.userAuth.findFirst({
@@ -124,11 +135,11 @@ export class AuthService {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-      const tokens = await this.generateTokens(userAuth.userId);
-      
+      const tokens = this.generateTokens(userAuth.userId);
+
       await this.prisma.userAuth.update({
         where: { userId: userAuth.userId },
-        data: { 
+        data: {
           refreshToken: tokens.refreshToken,
           tokenExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
         },
@@ -145,16 +156,15 @@ export class AuthService {
           photoUrl: userAuth.user.photoUrl || undefined,
         },
       };
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
 
   async logout(refreshToken: string): Promise<{ message: string }> {
-   
     await this.prisma.userAuth.updateMany({
       where: { refreshToken },
-      data: { 
+      data: {
         refreshToken: null,
         tokenExpiry: null,
       },
@@ -163,19 +173,16 @@ export class AuthService {
     return { message: 'Logged out successfully' };
   }
 
-  private async generateTokens(userId: string) {
+  private generateTokens(userId: string) {
     const payload = { sub: userId };
-
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET,
       expiresIn: process.env.JWT_EXPIRES_IN || '15m',
     });
-
     const refreshToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_REFRESH_SECRET,
       expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     });
-
     return { accessToken, refreshToken };
   }
 

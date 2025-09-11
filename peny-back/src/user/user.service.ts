@@ -1,6 +1,14 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateUserDto, UpdateUserDto, PaginationQueryDto } from './dto/user.dto';
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  PaginationQueryDto,
+} from './dto/user.dto';
 import { IPaginatedResponse } from '../common/interfaces/entity.interface';
 import { User, UserRole } from '../../generated/prisma';
 import * as bcrypt from 'bcryptjs';
@@ -9,7 +17,10 @@ import * as bcrypt from 'bcryptjs';
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createUserDto: CreateUserDto, createdBy?: string): Promise<User> {
+  async create(
+    createUserDto: CreateUserDto,
+    createdBy?: string,
+  ): Promise<User> {
     const { email, password, name, role, photoUrl } = createUserDto;
 
     // Check if user already exists
@@ -54,9 +65,15 @@ export class UserService {
     const { page = 1, size = 10, search, role } = query;
     const skip = (page - 1) * size;
 
-    const where: any = {
-      isDeleted: false,
+    type UserWhere = {
+      isDeleted: boolean;
+      OR?: Array<
+        | { name: { contains: string; mode: 'insensitive' } }
+        | { email: { contains: string; mode: 'insensitive' } }
+      >;
+      role?: UserRole;
     };
+    const where: UserWhere = { isDeleted: false };
 
     if (search) {
       where.OR = [
@@ -104,7 +121,11 @@ export class UserService {
     return user;
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto, updatedBy?: string): Promise<User> {
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+    updatedBy?: string,
+  ): Promise<User> {
     const { email, name, role, photoUrl } = updateUserDto;
 
     // Check if user exists
