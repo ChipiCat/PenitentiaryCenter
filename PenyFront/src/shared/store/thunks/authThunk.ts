@@ -19,8 +19,11 @@ export const loginThunk = createAsyncThunk<User, LoginRequest, { rejectValue: st
       const userData = await getUserById(userId);
       if (!userData) return rejectWithValue("Usuario no encontrado");
       return userData;
-    } catch (err: any) {
-      return rejectWithValue(err?.message ?? "Error al iniciar sesión");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message ?? "Error al iniciar sesión");
+      }
+      return rejectWithValue("Error al iniciar sesión");
     }
   }
 );
@@ -35,8 +38,11 @@ export const logoutThunk = createAsyncThunk<void, void, { rejectValue: string }>
       const success = await logout();
       if (!success) return rejectWithValue("Error al cerrar sesión");
       return;
-    } catch (err: any) {
-      return rejectWithValue(err?.message ?? "Error al cerrar sesión");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        return rejectWithValue(err.message ?? "Error al cerrar sesión");
+      }
+      return rejectWithValue("Error al cerrar sesión");
     }
   }
 );

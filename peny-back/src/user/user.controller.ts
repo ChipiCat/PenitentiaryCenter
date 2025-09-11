@@ -1,7 +1,35 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Request } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiBody, ApiQuery, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiBody,
+  ApiQuery,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { UserService } from './user.service';
-import { CreateUserDto, UpdateUserDto, PaginationQueryDto } from './dto/user.dto';
+import { Request as ExpressRequest } from 'express';
+
+interface AuthenticatedRequest extends ExpressRequest {
+  user?: { id: string };
+}
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  PaginationQueryDto,
+} from './dto/user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiBearerAuth()
@@ -15,8 +43,11 @@ export class UserController {
   @ApiOperation({ summary: 'Create a new user' })
   @ApiBody({ type: CreateUserDto })
   @ApiResponse({ status: 201, description: 'User created successfully.' })
-  create(@Body() createUserDto: CreateUserDto, @Request() req) {
-    return this.userService.create(createUserDto, req.user.id);
+  create(
+    @Body() createUserDto: CreateUserDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.userService.create(createUserDto, req.user?.id);
   }
 
   @Get()
@@ -43,8 +74,12 @@ export class UserController {
   @ApiBody({ type: UpdateUserDto })
   @ApiResponse({ status: 200, description: 'User updated.' })
   @ApiResponse({ status: 404, description: 'User not found.' })
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Request() req) {
-    return this.userService.update(id, updateUserDto, req.user.id);
+  update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.userService.update(id, updateUserDto, req.user?.id);
   }
 
   @Delete(':id')
@@ -52,7 +87,7 @@ export class UserController {
   @ApiParam({ name: 'id', type: String, description: 'User ID' })
   @ApiResponse({ status: 200, description: 'User deleted.' })
   @ApiResponse({ status: 404, description: 'User not found.' })
-  remove(@Param('id') id: string, @Request() req) {
-    return this.userService.remove(id, req.user.id);
+  remove(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
+    return this.userService.remove(id, req.user?.id);
   }
 }

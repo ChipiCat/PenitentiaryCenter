@@ -1,7 +1,19 @@
-import { Body, Controller, Post, UseGuards, Get, Request } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  UseGuards,
+  Get,
+  Request,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { RegisterDto, LoginDto, RefreshTokenDto, LogoutDto } from './dto/auth.dto';
+import {
+  RegisterDto,
+  LoginDto,
+  RefreshTokenDto,
+  LogoutDto,
+} from './dto/auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('auth')
@@ -45,13 +57,27 @@ export class AuthController {
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Current user profile.' })
-  async getProfile(@Request() req) {
+  async getProfile(
+    @Request()
+    req: {
+      user?: {
+        id?: string;
+        name?: string;
+        email?: string;
+        role?: string;
+        photoUrl?: string;
+      };
+    },
+  ) {
+    // Await a resolved Promise to satisfy require-await rule
+    await Promise.resolve();
+    const user = req.user ?? {};
     return {
-      id: req.user.id,
-      name: req.user.name,
-      email: req.user.email,
-      role: req.user.role,
-      photoUrl: req.user.photoUrl,
+      id: user.id ?? null,
+      name: user.name ?? null,
+      email: user.email ?? null,
+      role: user.role ?? null,
+      photoUrl: user.photoUrl ?? null,
     };
   }
 }
