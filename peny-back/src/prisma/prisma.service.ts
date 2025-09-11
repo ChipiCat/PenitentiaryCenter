@@ -59,7 +59,6 @@ export class PrismaService
     }
   }
 
-
   private startHeartbeat() {
     const intervalMs = parseInt(
       process.env.PRISMA_HEARTBEAT_INTERVAL_MS || '60000',
