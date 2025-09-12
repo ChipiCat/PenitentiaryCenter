@@ -1,0 +1,95 @@
+### Variables
+@baseUrl = http://localhost:3000
+@accessToken = 
+
+### 1. Login con usuario admin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@penitentiary.com",
+  "password": "admin123456"
+}
+
+### 2. Login con usuario secretary
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "secretary@penitentiary.com",
+  "password": "secretary123456"
+}
+
+### 3. Register nuevo usuario
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "test@example.com",
+  "password": "password123",
+  "role": "SECRETARY",
+  "photoUrl": "https://via.placeholder.com/150"
+}
+
+### 4. Obtener perfil del usuario autenticado
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{accessToken}}
+
+### 5. Refresh token
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "PUT_REFRESH_TOKEN_HERE"
+}
+
+### 6. Logout
+POST {{baseUrl}}/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "PUT_REFRESH_TOKEN_HERE"
+}
+
+### 7. Listar usuarios (paginado)
+GET {{baseUrl}}/users?page=1&size=10
+Authorization: Bearer {{accessToken}}
+
+### 8. Buscar usuarios por nombre
+GET {{baseUrl}}/users?page=1&size=10&search=admin
+Authorization: Bearer {{accessToken}}
+
+### 9. Filtrar usuarios por rol
+GET {{baseUrl}}/users?page=1&size=10&role=ADMIN
+Authorization: Bearer {{accessToken}}
+
+### 10. Obtener usuario por ID
+GET {{baseUrl}}/users/PUT_USER_ID_HERE
+Authorization: Bearer {{accessToken}}
+
+### 11. Crear nuevo usuario
+POST {{baseUrl}}/users
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Nuevo Usuario",
+  "email": "nuevo@example.com",
+  "password": "password123",
+  "role": "SECRETARY"
+}
+
+### 12. Actualizar usuario
+PATCH {{baseUrl}}/users/PUT_USER_ID_HERE
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Nombre Actualizado",
+  "role": "ADMIN"
+}
+
+### 13. Eliminar usuario (soft delete)
+DELETE {{baseUrl}}/users/PUT_USER_ID_HERE
+Authorization: Bearer {{accessToken}}
