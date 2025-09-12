@@ -13,3 +13,59 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// Base fields for all entities
+// isDeleted: soft delete flag
+// createdAt: creation timestamp
+// updatedAt: last update timestamp
+// createdBy: ID of user who created the record
+// updatedBy: ID of user who last updated the record
+
+enum UserRole {
+  ADMIN
+  SECRETARY
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      UserRole @default(SECRETARY)
+  photoUrl  String?
+
+  // Base entity fields
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  // Relations
+  userAuth     UserAuth?
+  createdUsers User[]    @relation("UserCreatedBy")
+  updatedUsers User[]    @relation("UserUpdatedBy")
+  createdByUser User?    @relation("UserCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User?    @relation("UserUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@map("users")
+}
+
+model UserAuth {
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  passwordHash String
+  refreshToken String?
+  tokenExpiry  DateTime?
+
+  // Base entity fields
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_auth")
+}
