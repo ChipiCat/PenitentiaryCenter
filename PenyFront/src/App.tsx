@@ -7,6 +7,9 @@ import { LoginPage } from "./features/login";
 import HomePage from "./features/home/HomePage";
 import ProtectedRoute from "./shared/components/ProtectedRoute";
 import PublicRoute from "./shared/components/PublicRoute";
+import MainLayout from "./shared/layouts/MainLayout";
+import ReportsPage from "./features/reports";
+import PrisonersPage from "./features/prisoners";
 
 function App() {
   const theme = createTheme({
@@ -38,7 +41,23 @@ function App() {
           } />
           <Route path="/home" element={
             <ProtectedRoute>
-              <HomePage />
+              <MainLayout>
+                <HomePage />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/prisoners" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <PrisonersPage />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/reports" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ReportsPage />
+              </MainLayout>
             </ProtectedRoute>
           } />
         </Routes>

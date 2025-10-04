@@ -52,8 +52,6 @@ const LoginPage = () => {
     }
 
     setValidationErrors({});
-
-    // Solo despachamos la acción, la redirección se maneja automáticamente por PublicRoute
     await dispatch(loginThunk({ email, password }));
   };
 
