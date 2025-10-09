@@ -1,6 +1,5 @@
 import { Container, Stack } from '@mantine/core';
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
 import type { ViewMode } from './utils/types';
 import { usePrisoners } from './hooks/usePrisoners';
 import { PrisonersHeader } from './components/PrisonersHeader';
@@ -10,7 +9,6 @@ import { PrisonersCards } from './components/PrisonersCards';
 import { EmptyState } from './components/EmptyState';
 
 const PrisonersPage = () => {
-  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   
   const {

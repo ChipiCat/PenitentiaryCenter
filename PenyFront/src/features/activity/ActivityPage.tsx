@@ -16,7 +16,6 @@ import {
   Users, 
   FileText, 
   UserPlus,
-  Calendar,
   Clock
 } from 'lucide-react';
 import { useState } from 'react';
