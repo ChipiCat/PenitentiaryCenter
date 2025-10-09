@@ -81,7 +81,9 @@ export const UserModal = ({ opened, onClose, onSubmit, user, isLoading = false }
         form.reset();
       }
     }
-  }, [user, opened]);
+    // Suprimir la advertencia de ESLint porque form.setValues y form.reset son estables
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opened, user]);
 
   const handleSubmit = (values: UserFormData) => {
     onSubmit(values);
