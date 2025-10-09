@@ -10,6 +10,10 @@ import PublicRoute from "./shared/components/PublicRoute";
 import MainLayout from "./shared/layouts/MainLayout";
 import ReportsPage from "./features/reports";
 import PrisonersPage from "./features/prisoners";
+import ProfilePage from "./features/profile";
+import UsersPage from "./features/users";
+import ActivityPage from "./features/activity";
+import { ROUTES } from "./shared/config/routes";
 
 function App() {
   const theme = createTheme({
@@ -34,29 +38,50 @@ function App() {
     <MantineProvider theme={theme} defaultColorScheme="light">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={
+          <Route path={ROUTES.LOGIN} element={
             <PublicRoute>
               <LoginPage />
             </PublicRoute>
           } />
-          <Route path="/home" element={
+          <Route path={ROUTES.HOME} element={
             <ProtectedRoute>
               <MainLayout>
                 <HomePage />
               </MainLayout>
             </ProtectedRoute>
           } />
-          <Route path="/prisoners" element={
+          <Route path={ROUTES.PRISONERS} element={
             <ProtectedRoute>
               <MainLayout>
                 <PrisonersPage />
               </MainLayout>
             </ProtectedRoute>
           } />
-          <Route path="/reports" element={
+          <Route path={ROUTES.REPORTS} element={
             <ProtectedRoute>
               <MainLayout>
                 <ReportsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+        <Route path={ROUTES.PROFILE} element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ProfilePage />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          <Route path={ROUTES.USERS} element={
+            <ProtectedRoute>
+              <MainLayout>
+                <UsersPage />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          <Route path={ROUTES.ACTIVITY} element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ActivityPage />
               </MainLayout>
             </ProtectedRoute>
           } />
