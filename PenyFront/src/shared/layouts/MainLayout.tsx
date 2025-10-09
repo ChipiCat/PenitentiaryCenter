@@ -10,7 +10,6 @@ const MainLayout = ({ children }: MainLayoutProps) => (
     {/* Aquí puedes poner tu header, sidebar, etc */}
     <CustomHeaders />
     <main>{children}</main>
-    <footer>Footer</footer>
   </div>
 );
 
