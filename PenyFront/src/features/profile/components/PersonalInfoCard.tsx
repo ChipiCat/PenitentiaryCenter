@@ -1,0 +1,129 @@
+import {
+  Paper,
+  Title,
+  Text,
+  Group,
+  Avatar,
+  Button,
+  Grid,
+  Stack
+} from '@mantine/core';
+import { useGlobalContext } from '../../../shared/hooks/useGlobalContext';
+import { getRoleLabel } from '../../../shared/utils/userUtils';
+import { Edit } from 'lucide-react';
+
+const PersonalInfoCard = () => {
+  const { user } = useGlobalContext();
+
+  // Función para formatear fechas
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'No disponible';
+    try {
+      return new Date(dateString).toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+    } catch {
+      return 'Fecha inválida';
+    }
+  };
+
+  // Función para formatear fecha y hora
+  const formatDateTime = (dateString: string | undefined) => {
+    if (!dateString) return 'No disponible';
+    try {
+      return new Date(dateString).toLocaleString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    } catch {
+      return 'Fecha inválida';
+    }
+  };
+
+  // Obtener iniciales del nombre
+  const getInitials = (name: string | undefined) => {
+    if (!name) return 'U';
+    return name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // Generar username desde email
+  const generateUsername = (email: string | undefined) => {
+    if (!email) return '@usuario';
+    return `@${email.split('@')[0]}`;
+  };
+
+  return (
+    <Paper shadow="sm" p="lg" radius="md" h="100%">
+      <Group justify="space-between" align="flex-start" mb="lg">
+        <Title order={3} c="dark">Información Personal</Title>
+        <Button variant="filled" color="dark" size="sm" leftSection={<Edit size={16} />}>
+          Editar
+        </Button>
+      </Group>
+
+      <Group gap="lg" align="flex-start" mb="xl">
+        <Avatar
+          src={user?.photoUrl}
+          size={80}
+          radius="md"
+          color="blue"
+        >
+          {getInitials(user?.name)}
+        </Avatar>
+        
+        <Stack gap="xs">
+          <Title order={2} c="dark">{user?.name || 'Usuario'}</Title>
+          <Text c="dimmed" size="sm">{getRoleLabel(user?.role ?? "")}</Text>
+          <Text c="dimmed" size="sm">{generateUsername(user?.email)}</Text>
+        </Stack>
+      </Group>
+
+      <Grid gutter="md">
+        <Grid.Col span={6}>
+          <Text size="sm" fw={500} c="dimmed" mb={4}>Nombre Completo</Text>
+          <Text size="sm">{user?.name || 'No disponible'}</Text>
+        </Grid.Col>
+        
+        <Grid.Col span={6}>
+          <Text size="sm" fw={500} c="dimmed" mb={4}>Correo Electrónico</Text>
+          <Text size="sm">{user?.email || 'No disponible'}</Text>
+        </Grid.Col>
+
+        <Grid.Col span={6}>
+          <Text size="sm" fw={500} c="dimmed" mb={4}>Rol del Usuario</Text>
+          <Text size="sm">{getRoleLabel(user?.role ?? "")}</Text>
+        </Grid.Col>
+
+        <Grid.Col span={6}>
+          <Text size="sm" fw={500} c="dimmed" mb={4}>ID de Usuario</Text>
+          <Text size="sm" style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
+            {user?.id ? user.id.slice(0, 8) + '...' : 'No disponible'}
+          </Text>
+        </Grid.Col>
+
+        <Grid.Col span={6}>
+          <Text size="sm" fw={500} c="dimmed" mb={4}>Fecha de Registro</Text>
+          <Text size="sm">{formatDate(user?.createdAt)}</Text>
+        </Grid.Col>
+
+        <Grid.Col span={6}>
+          <Text size="sm" fw={500} c="dimmed" mb={4}>Última Actualización</Text>
+          <Text size="sm">{formatDateTime(user?.updatedAt)}</Text>
+        </Grid.Col>
+      </Grid>
+    </Paper>
+  );
+};
+
+export default PersonalInfoCard;

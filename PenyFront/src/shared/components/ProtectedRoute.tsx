@@ -1,6 +1,7 @@
 import { useSelector } from "react-redux";
 import { Navigate } from "react-router";
 import type { RootState } from "../store/store";
+import { DEFAULT_PUBLIC_ROUTE } from "../config/routes";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -16,7 +17,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={DEFAULT_PUBLIC_ROUTE} replace />;
   }
   
   return <>{children}</>;

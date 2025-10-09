@@ -1,0 +1,68 @@
+{
+  "prisoners": [
+    {
+      "id": "1",
+      "fullName": "Juan Carlos Pérez Rodríguez",
+      "idNumber": "12345678",
+      "status": "Activo",
+      "createdAt": "2024-01-15",
+      "updatedAt": "2024-01-20"
+    },
+    {
+      "id": "2",
+      "fullName": "María Elena González Silva",
+      "idNumber": "87654321",
+      "status": "En Proceso",
+      "createdAt": "2024-01-18",
+      "updatedAt": "2024-01-22"
+    },
+    {
+      "id": "3",
+      "fullName": "Carlos Alberto López Martínez",
+      "idNumber": "11223344",
+      "status": "Liberado",
+      "createdAt": "2024-01-10",
+      "updatedAt": "2024-01-25"
+    },
+    {
+      "id": "4",
+      "fullName": "Ana Sofía Ramírez Torres",
+      "idNumber": "55667788",
+      "status": "Activo",
+      "createdAt": "2024-01-12",
+      "updatedAt": "2024-01-19"
+    },
+    {
+      "id": "5",
+      "fullName": "Roberto Miguel Fernández Castro",
+      "idNumber": "99887766",
+      "status": "En Proceso",
+      "createdAt": "2024-01-20",
+      "updatedAt": "2024-01-23"
+    },
+    {
+      "id": "6",
+      "fullName": "Lucía Patricia Vargas Morales",
+      "idNumber": "44332211",
+      "status": "Activo",
+      "createdAt": "2024-01-08",
+      "updatedAt": "2024-01-21"
+    },
+    {
+      "id": "7",
+      "fullName": "Diego Alejandro Ruiz Herrera",
+      "idNumber": "66778899",
+      "status": "Liberado",
+      "createdAt": "2024-01-05",
+      "updatedAt": "2024-01-24"
+    },
+    {
+      "id": "8",
+      "fullName": "Carmen Rosa Jiménez Aguirre",
+      "idNumber": "33445566",
+      "status": "Activo",
+      "createdAt": "2024-01-16",
+      "updatedAt": "2024-01-18"
+    }
+  ]
+}
