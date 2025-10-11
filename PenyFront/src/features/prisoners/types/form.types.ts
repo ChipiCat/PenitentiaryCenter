@@ -42,18 +42,16 @@ export interface FormData {
   documents: Documents;
 }
 
-// 🔧 Tipo genérico para props de pasos del formulario
+// Tipo genérico para props de pasos del formulario
 export interface FormStepProps<T = Record<string, unknown>> {
   data: T;
   onUpdate: (data: Partial<T>) => void;
 }
 
-// Props para componentes de pasos (usando el tipo genérico)
-export interface BasicInfoStepProps extends FormStepProps<BasicInfo> {}
-
-export interface ContactInfoStepProps extends FormStepProps<ContactInfo> {}
-
-export interface DocumentsStepProps extends FormStepProps<Documents> {}
+// 🔧 Usar type aliases en lugar de interfaces vacías para evitar el error de ESLint
+export type BasicInfoStepProps = FormStepProps<BasicInfo>;
+export type ContactInfoStepProps = FormStepProps<ContactInfo>;
+export type DocumentsStepProps = FormStepProps<Documents>;
 
 // Tipos específicos para actualizaciones
 export type BasicInfoUpdate = Partial<BasicInfo>;
@@ -77,9 +75,8 @@ export interface FormState {
 
 // Props para el stepper completo
 export interface FormStepperProps {
-  onSubmit: (data: FormData) => Promise<boolean>;
-  onCancel: () => void;
-  initialData?: Partial<FormData>;
+  activeStep: number;
+  steps: StepInfo[];
 }
 
 // Tipos adicionales para pasos del stepper
@@ -99,4 +96,27 @@ export interface FormNavigationProps {
   onNext: () => void;
   onCancel: () => void;
   onFinish: () => Promise<void>;
+}
+
+// Tipos para manejo de archivos
+export interface FileUploadState {
+  isUploading: boolean;
+  progress: number;
+  error?: string;
+}
+
+// Tipos para validación de archivos
+export interface FileValidationRules {
+  maxSize: number; // en bytes
+  allowedTypes: string[];
+  maxFiles: number;
+}
+
+// Tipos para el estado de validación del formulario
+export interface StepValidation {
+  step: number;
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  requiredFields: string[];
 }
