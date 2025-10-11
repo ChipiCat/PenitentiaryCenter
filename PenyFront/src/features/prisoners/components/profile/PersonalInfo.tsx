@@ -37,32 +37,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { notifications } from '@mantine/notifications';
-
-interface Prisoner {
-  id: string;
-  fullName: string;
-  age: number;
-  gender: string;
-  identification?: string;
-  idNumber?: string;
-  cellBlock: string;
-  admissionDate: string;
-  lastUpdate: string;
-  emergencyContact?: {
-    name?: string;
-    phone?: string;
-    relationship?: string;
-    address?: string;
-  };
-  photo?: string;
-  birthDate?: string;
-  nationality?: string;
-  maritalStatus?: string;
-  education?: string;
-  profession?: string;
-  bloodType?: string;
-  status?: string;
-}
+import type { Prisoner } from '../../types';
 
 interface PersonalInfoProps {
   prisoner: Prisoner;
@@ -71,14 +46,21 @@ interface PersonalInfoProps {
 export const PersonalInfo = ({ prisoner }: PersonalInfoProps) => {
   const [showFullAddress, setShowFullAddress] = useState(false);
 
-  // Calcular tiempo en prisión
-  const admissionDate = new Date(prisoner.admissionDate);
+  // 🔧 Función segura para manejar fechas
+  const safeDate = (dateValue: string | undefined, fallback: string = '2024-01-01'): Date => {
+    if (!dateValue) return new Date(fallback);
+    const date = new Date(dateValue);
+    return isNaN(date.getTime()) ? new Date(fallback) : date;
+  };
+
+  // Calcular tiempo en prisión con validación
+  const admissionDate = safeDate(prisoner.admissionDate);
   const today = new Date();
   const timeInPrison = Math.floor((today.getTime() - admissionDate.getTime()) / (1000 * 60 * 60 * 24));
   const monthsInPrison = Math.floor(timeInPrison / 30);
   const daysInPrison = timeInPrison % 30;
 
-  // 🆕 Función para copiar al portapapeles con validación
+  // 🔧 Función para copiar al portapapeles con validación
   const copyToClipboard = (text: string | undefined, label: string) => {
     const safeTxt = text || 'No disponible';
     navigator.clipboard.writeText(safeTxt);
@@ -93,7 +75,7 @@ export const PersonalInfo = ({ prisoner }: PersonalInfoProps) => {
   // Datos adicionales del mock
   const additionalData = {
     birthDate: '1990-03-15',
-    nationality: 'Boliviana',
+    nationality: prisoner.nationality || 'Boliviana',
     maritalStatus: 'Soltero',
     education: 'Secundaria Completa',
     profession: 'Carpintero',
@@ -101,20 +83,20 @@ export const PersonalInfo = ({ prisoner }: PersonalInfoProps) => {
     birthPlace: 'La Paz, Bolivia'
   };
 
-  // 🆕 Validar datos del contacto de emergencia con valores por defecto
+  // 🔧 Datos del contacto de emergencia corregidos
   const emergencyContact = {
-    name: prisoner.emergencyContact?.name || 'No especificado',
-    phone: prisoner.emergencyContact?.phone || 'No especificado',
-    relationship: prisoner.emergencyContact?.relationship || 'No especificado',
-    address: prisoner.emergencyContact?.address || 'No especificado'
+    name: prisoner.emergencyContact || 'No especificado',
+    phone: prisoner.emergencyPhone || 'No especificado',
+    relationship: prisoner.relationship || 'No especificado',
+    address: prisoner.location?.address || 'No especificado'
   };
 
-  // 🆕 Función segura para obtener ID
+  // 🔧 Función segura para obtener ID
   const getPrisonerId = () => {
     return prisoner.identification || prisoner.idNumber || 'No especificado';
   };
 
-  // 🆕 Función segura para manejar direcciones
+  // 🔧 Función segura para manejar direcciones
   const getSafeAddress = (address: string) => {
     if (!address || address === 'No especificado') return address;
     return address.length > 50 ? address.substring(0, 50) + '...' : address;
@@ -122,6 +104,12 @@ export const PersonalInfo = ({ prisoner }: PersonalInfoProps) => {
 
   const shouldShowMoreButton = (address: string) => {
     return address && address !== 'No especificado' && address.length > 50;
+  };
+
+  // 🔧 Función segura para formato de género
+  const getGenderDisplay = (gender: string | undefined) => {
+    if (!gender) return 'No especificado';
+    return gender === 'M' ? 'Masculino' : gender === 'F' ? 'Femenino' : gender;
   };
 
   return (
@@ -167,7 +155,7 @@ export const PersonalInfo = ({ prisoner }: PersonalInfoProps) => {
                   </Group>
                   <Group gap="xs">
                     <Home size={16} />
-                    <Text size="sm">{prisoner.cellBlock}</Text>
+                    <Text size="sm">{prisoner.cellBlock || 'Sin asignar'}</Text>
                   </Group>
                   <Group gap="xs">
                     <Clock size={16} />
@@ -271,7 +259,7 @@ export const PersonalInfo = ({ prisoner }: PersonalInfoProps) => {
               <Grid.Col span={{ base: 12, sm: 6 }}>
                 <Stack gap="xs">
                   <Text size="sm" c="dimmed" fw={500}>Fecha de Nacimiento</Text>
-                  <Text fw={600}>{new Date(additionalData.birthDate).toLocaleDateString('es-ES', {
+                  <Text fw={600}>{safeDate(additionalData.birthDate).toLocaleDateString('es-ES', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
@@ -291,7 +279,7 @@ export const PersonalInfo = ({ prisoner }: PersonalInfoProps) => {
               <Grid.Col span={{ base: 12, sm: 6 }}>
                 <Stack gap="xs">
                   <Text size="sm" c="dimmed" fw={500}>Género</Text>
-                  <Text fw={600}>{prisoner.gender}</Text>
+                  <Text fw={600}>{getGenderDisplay(prisoner.gender)}</Text>
                 </Stack>
               </Grid.Col>
 
@@ -357,7 +345,7 @@ export const PersonalInfo = ({ prisoner }: PersonalInfoProps) => {
                 <Box>
                   <Text size="sm" c="dimmed" mb="xs">Celda/Pabellón</Text>
                   <Badge size="xl" variant="light" color="orange" fullWidth>
-                    {prisoner.cellBlock}
+                    {prisoner.cellBlock || 'Sin asignar'}
                   </Badge>
                 </Box>
 
@@ -366,7 +354,8 @@ export const PersonalInfo = ({ prisoner }: PersonalInfoProps) => {
                 <Group justify="space-between">
                   <Text size="sm" c="dimmed">Fecha de Ingreso</Text>
                   <Text fw={500} size="sm">
-                    {new Date(prisoner.admissionDate).toLocaleDateString()}
+                    {/* 🔧 Usar función segura para fechas */}
+                    {safeDate(prisoner.admissionDate).toLocaleDateString()}
                   </Text>
                 </Group>
 
@@ -424,7 +413,8 @@ export const PersonalInfo = ({ prisoner }: PersonalInfoProps) => {
                   color="blue"
                 >
                   <Text c="dimmed" size="sm">
-                    {new Date(prisoner.admissionDate).toLocaleDateString()}
+                    {/* 🔧 Usar función segura para fechas */}
+                    {safeDate(prisoner.admissionDate).toLocaleDateString()}
                   </Text>
                 </Timeline.Item>
                 
@@ -434,7 +424,8 @@ export const PersonalInfo = ({ prisoner }: PersonalInfoProps) => {
                   color="green"
                 >
                   <Text c="dimmed" size="sm">
-                    {new Date(prisoner.lastUpdate).toLocaleDateString()}
+                    {/* 🔧 Usar función segura para fechas */}
+                    {safeDate(prisoner.lastUpdate).toLocaleDateString()}
                   </Text>
                 </Timeline.Item>
               </Timeline>
@@ -558,7 +549,7 @@ export const PersonalInfo = ({ prisoner }: PersonalInfoProps) => {
           <Group gap="xs">
             <Shield size={16} color="var(--mantine-color-dimmed)" />
             <Text size="sm" c="dimmed">
-              Última actualización: {new Date(prisoner.lastUpdate).toLocaleDateString('es-ES', {
+              Última actualización: {safeDate(prisoner.lastUpdate).toLocaleDateString('es-ES', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',

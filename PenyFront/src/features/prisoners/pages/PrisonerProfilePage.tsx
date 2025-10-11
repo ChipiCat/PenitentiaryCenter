@@ -1,9 +1,9 @@
-import { 
-  Container, 
-  Paper, 
-  Title, 
-  Text, 
-  Button, 
+import {
+  Container,
+  Paper,
+  Title,
+  Text,
+  Button,
   Group,
   Stack,
   Avatar,
@@ -14,43 +14,44 @@ import {
   LoadingOverlay,
   Menu,
   ActionIcon,
-  Alert
-} from '@mantine/core';
-import { 
-  ArrowLeft, 
-  Download, 
-  Edit, 
+  Alert,
+} from "@mantine/core";
+import {
+  ArrowLeft,
+  Download,
+  Edit,
   MoreVertical,
   User,
   FileText,
   Activity,
   Trash,
-  AlertCircle
-} from 'lucide-react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { modals } from '@mantine/modals';
-import { ROUTES } from '../../../shared/config/routes';
-import { usePrisoners } from '../hooks/usePrisoners'; // 🆕 Usar el mismo hook
-import { PersonalInfo } from '../components/profile/PersonalInfo';
-import { MedicalInfo } from '../components/profile/MedicalInfo';
-import { LegalStatus } from '../components/profile/LegalStatus';
-import { ActivityHistory } from '../components/profile/ActivityHistory';
+  AlertCircle,
+} from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { modals } from "@mantine/modals";
+import { ROUTES } from "../../../shared/config/routes";
+import { usePrisoners } from "../hooks/usePrisoners"; // 🆕 Usar el mismo hook
+import { PersonalInfo } from "../components/profile/PersonalInfo";
+import { MedicalInfo } from "../components/profile/MedicalInfo";
+import { LegalStatus } from "../components/profile/LegalStatus";
+import { ActivityHistory } from "../components/profile/ActivityHistory";
+import type { Prisoner } from "../types";
 
 const PrisonerProfilePage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  
+
   // 🆕 Usar usePrisoners y obtener el recluso por ID
-  const { 
-    getPrisonerById, 
-    handleEditPrisoner, 
-    handleDeletePrisoner, 
-    handleDownloadPrisoner 
+  const {
+    getPrisonerById,
+    handleEditPrisoner,
+    handleDeletePrisoner,
+    handleDownloadPrisoner,
   } = usePrisoners();
-  
-  const [prisoner, setPrisoner] = useState<any>(null);
+
+  const [prisoner, setPrisoner] = useState<Prisoner | null>(null);
 
   useEffect(() => {
     const loadPrisoner = async () => {
@@ -60,17 +61,17 @@ const PrisonerProfilePage = () => {
       }
 
       setLoading(true);
-      
+
       // Simular delay de carga
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       const foundPrisoner = getPrisonerById(id);
-      
+
       if (!foundPrisoner) {
         navigate(ROUTES.PRISONERS);
         return;
       }
-      
+
       setPrisoner(foundPrisoner);
       setLoading(false);
     };
@@ -80,17 +81,17 @@ const PrisonerProfilePage = () => {
 
   const openDeleteModal = () => {
     if (!prisoner) return;
-    
+
     modals.openConfirmModal({
-      title: 'Confirmar eliminación',
+      title: "Confirmar eliminación",
       children: (
         <Text size="sm">
-          ¿Está seguro de que desea dar de baja a {prisoner.fullName}? 
-          Esta acción no se puede deshacer.
+          ¿Está seguro de que desea dar de baja a {prisoner.fullName}? Esta
+          acción no se puede deshacer.
         </Text>
       ),
-      labels: { confirm: 'Eliminar', cancel: 'Cancelar' },
-      confirmProps: { color: 'red' },
+      labels: { confirm: "Eliminar", cancel: "Cancelar" },
+      confirmProps: { color: "red" },
       onConfirm: () => {
         handleDeletePrisoner(prisoner.id);
         navigate(ROUTES.PRISONERS);
@@ -115,8 +116,8 @@ const PrisonerProfilePage = () => {
           color="red"
         >
           <Text mb="md">No se encontró el recluso especificado.</Text>
-          <Button 
-            variant="light" 
+          <Button
+            variant="light"
             onClick={() => navigate(ROUTES.PRISONERS)}
             leftSection={<ArrowLeft size={16} />}
           >
@@ -128,9 +129,9 @@ const PrisonerProfilePage = () => {
   }
 
   const breadcrumbItems = [
-    { title: 'Panel Principal', href: ROUTES.HOME },
-    { title: 'Reclusos', href: ROUTES.PRISONERS },
-    { title: prisoner.fullName, href: '#' }
+    { title: "Panel Principal", href: ROUTES.HOME },
+    { title: "Reclusos", href: ROUTES.PRISONERS },
+    { title: prisoner.fullName, href: "#" },
   ];
 
   return (
@@ -139,11 +140,11 @@ const PrisonerProfilePage = () => {
         {/* Breadcrumbs */}
         <Breadcrumbs>
           {breadcrumbItems.map((item, index) => (
-            <Anchor 
+            <Anchor
               key={index}
-              onClick={() => item.href !== '#' && navigate(item.href)}
-              style={{ cursor: item.href !== '#' ? 'pointer' : 'default' }}
-              c={item.href === '#' ? 'dimmed' : undefined}
+              onClick={() => item.href !== "#" && navigate(item.href)}
+              style={{ cursor: item.href !== "#" ? "pointer" : "default" }}
+              c={item.href === "#" ? "dimmed" : undefined}
             >
               {item.title}
             </Anchor>
@@ -191,8 +192,8 @@ const PrisonerProfilePage = () => {
                     Ver historial completo
                   </Menu.Item>
                   <Menu.Divider />
-                  <Menu.Item 
-                    leftSection={<Trash size={14} />} 
+                  <Menu.Item
+                    leftSection={<Trash size={14} />}
                     color="red"
                     onClick={openDeleteModal}
                   >
@@ -217,8 +218,8 @@ const PrisonerProfilePage = () => {
             <Stack gap="xs" style={{ flex: 1 }}>
               <Group gap="md" align="center">
                 <Title order={2}>{prisoner.fullName}</Title>
-                <Badge 
-                  color={prisoner.status === 'Activo' ? 'green' : 'gray'}
+                <Badge
+                  color={prisoner.status === "Activo" ? "green" : "gray"}
                   variant="light"
                   size="sm"
                 >
