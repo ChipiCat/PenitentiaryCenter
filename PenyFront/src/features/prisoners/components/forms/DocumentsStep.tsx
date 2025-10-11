@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   Stack,
   Group,
@@ -33,35 +33,51 @@ import type { FormStepProps, Documents, DocumentType } from '../../types';
 // Type para FileWithPath alternativo
 type FileWithPath = File & { path?: string };
 
-// 🔧 Tipos para Dropzone (evitar JSX.Element)
-interface DropzoneComponent {
-  (props: {
-    onDrop: (files: FileWithPath[]) => void;
-    accept: string[];
-    maxSize: number;
-    maxFiles: number;
-    children: React.ReactNode;
-  }): React.ReactElement;
+// 🔧 Tipos para Dropzone
+interface DropzoneProps {
+  onDrop: (files: FileWithPath[]) => void;
+  accept: string[];
+  maxSize: number;
+  maxFiles: number;
+  children: React.ReactNode;
 }
 
-// 🔧 Imports condicionales para Dropzone
-let Dropzone: DropzoneComponent | null = null;
-let IMAGE_MIME_TYPE: string[] = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
-let PDF_MIME_TYPE: string[] = ['application/pdf'];
-let MS_WORD_MIME_TYPE: string[] = ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+type DropzoneComponent = React.ComponentType<DropzoneProps>;
 
-// 🔧 Intentar importar Dropzone dinámicamente
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const dropzoneModule = require('@mantine/dropzone');
-  Dropzone = dropzoneModule.Dropzone as DropzoneComponent;
-  IMAGE_MIME_TYPE = dropzoneModule.IMAGE_MIME_TYPE as string[];
-  PDF_MIME_TYPE = dropzoneModule.PDF_MIME_TYPE as string[];
-  MS_WORD_MIME_TYPE = dropzoneModule.MS_WORD_MIME_TYPE as string[];
-} catch {
-  // Usar fallback silencioso sin variable error
-  console.warn('@mantine/dropzone no está instalado, usando FileInput como fallback');
+interface DropzoneModule {
+  Dropzone: DropzoneComponent;
+  IMAGE_MIME_TYPE: string[];
+  PDF_MIME_TYPE: string[];
+  MS_WORD_MIME_TYPE: string[];
 }
+
+// 🔧 Hook para cargar Dropzone dinámicamente
+const useDropzone = () => {
+  const [dropzoneModule, setDropzoneModule] = useState<DropzoneModule | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    const loadDropzone = async () => {
+      try {
+        const module = await import('@mantine/dropzone');
+        setDropzoneModule({
+          Dropzone: module.Dropzone,
+          IMAGE_MIME_TYPE: module.IMAGE_MIME_TYPE,
+          PDF_MIME_TYPE: module.PDF_MIME_TYPE,
+          MS_WORD_MIME_TYPE: module.MS_WORD_MIME_TYPE
+        });
+      } catch {
+        console.warn('@mantine/dropzone no está disponible, usando FileInput como fallback');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadDropzone();
+  }, []);
+  
+  return { dropzoneModule, isLoading };
+};
 
 // Tipo más flexible para configuración de documentos
 interface DocumentConfig {
@@ -74,38 +90,44 @@ interface DocumentConfig {
   required: boolean;
 }
 
-const DOCUMENT_CONFIGS: DocumentConfig[] = [
-  {
-    type: 'photo',
-    label: 'Fotografía del Recluso',
-    description: 'Foto reciente y clara del rostro',
-    accept: IMAGE_MIME_TYPE.join(','),
-    maxSize: 5 * 1024 * 1024, // 5MB
-    maxFiles: 1,
-    required: true
-  },
-  {
-    type: 'identificationDoc',
-    label: 'Documento de Identificación',
-    description: 'Cédula de identidad o pasaporte',
-    accept: [...IMAGE_MIME_TYPE, ...PDF_MIME_TYPE].join(','),
-    maxSize: 5 * 1024 * 1024, // 5MB
-    maxFiles: 1,
-    required: true
-  },
-  {
-    type: 'medicalRecord',
-    label: 'Registro Médico Principal',
-    description: 'Examen médico de ingreso',
-    accept: [...PDF_MIME_TYPE, ...MS_WORD_MIME_TYPE].join(','),
-    maxSize: 10 * 1024 * 1024, // 10MB
-    maxFiles: 1,
-    required: false
-  }
-];
-
 export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
+  const { dropzoneModule, isLoading } = useDropzone();
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+
+  // Usar valores del módulo si está disponible, sino fallback
+  const IMAGE_MIME_TYPE = dropzoneModule?.IMAGE_MIME_TYPE || ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+  const PDF_MIME_TYPE = dropzoneModule?.PDF_MIME_TYPE || ['application/pdf'];
+  const MS_WORD_MIME_TYPE = dropzoneModule?.MS_WORD_MIME_TYPE || ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+
+  const DOCUMENT_CONFIGS: DocumentConfig[] = [
+    {
+      type: 'photo',
+      label: 'Fotografía del Recluso',
+      description: 'Foto reciente y clara del rostro',
+      accept: IMAGE_MIME_TYPE.join(','),
+      maxSize: 5 * 1024 * 1024, // 5MB
+      maxFiles: 1,
+      required: true
+    },
+    {
+      type: 'identificationDoc',
+      label: 'Documento de Identificación',
+      description: 'Cédula de identidad o pasaporte',
+      accept: [...IMAGE_MIME_TYPE, ...PDF_MIME_TYPE].join(','),
+      maxSize: 5 * 1024 * 1024, // 5MB
+      maxFiles: 1,
+      required: true
+    },
+    {
+      type: 'medicalRecord',
+      label: 'Registro Médico Principal',
+      description: 'Examen médico de ingreso',
+      accept: [...PDF_MIME_TYPE, ...MS_WORD_MIME_TYPE].join(','),
+      maxSize: 10 * 1024 * 1024, // 10MB
+      maxFiles: 1,
+      required: false
+    }
+  ];
 
   // Función tipada para manejar la subida de archivos
   const handleFileUpload = useCallback(async (files: FileWithPath[], type: DocumentType) => {
@@ -158,7 +180,7 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
 
       setUploadProgress(prev => ({ ...prev, [type]: 100 }));
     }, 1200);
-  }, [data.legalDocuments, onUpdate]);
+  }, [data.legalDocuments, onUpdate, DOCUMENT_CONFIGS]);
 
   // Función tipada para remover archivos
   const handleFileRemove = useCallback((type: DocumentType, index?: number) => {
@@ -199,7 +221,8 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
     config: DocumentConfig; 
     onDrop: (files: FileWithPath[]) => void;
   }): React.ReactElement => {
-    if (Dropzone) {
+    if (dropzoneModule?.Dropzone) {
+      const { Dropzone } = dropzoneModule;
       return (
         <Dropzone
           onDrop={onDrop}
@@ -224,7 +247,11 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
 
     // Fallback usando FileInput
     return (
-      <Card withBorder p="lg" style={{ minHeight: 100, border: '2px dashed var(--mantine-color-gray-4)' }}>
+      <Card withBorder p="lg" style={{ 
+        minHeight: 100, 
+        border: '2px dashed var(--mantine-color-gray-4)',
+        cursor: 'pointer'
+      }}>
         <Stack gap="md" align="center">
           <Upload size={50} />
           <FileInput
@@ -266,11 +293,17 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
           {config.required && <Badge color="red" size="sm">Requerido</Badge>}
         </Group>
 
-        {!file && !isUploading && (
+        {!file && !isUploading && !isLoading && (
           <UploadZone 
             config={config}
             onDrop={(files) => handleFileUpload(files, config.type)}
           />
+        )}
+
+        {isLoading && (
+          <Stack gap="sm" align="center" py="xl">
+            <Text size="sm" c="dimmed">Cargando componente de subida...</Text>
+          </Stack>
         )}
 
         {isUploading && (
@@ -281,7 +314,10 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
         )}
 
         {file && !isUploading && (
-          <Group justify="space-between" p="md" style={{ backgroundColor: 'var(--mantine-color-gray-0)', borderRadius: 'var(--mantine-radius-sm)' }}>
+          <Group justify="space-between" p="md" style={{ 
+            backgroundColor: 'var(--mantine-color-gray-0)', 
+            borderRadius: 'var(--mantine-radius-sm)' 
+          }}>
             <Group gap="sm">
               {config.type === 'photo' && file.type.startsWith('image/') && (
                 <Image
@@ -352,11 +388,17 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
           <Badge color="blue" size="sm">Opcional</Badge>
         </Group>
 
-        {!isUploading && (
+        {!isUploading && !isLoading && (
           <UploadZone 
             config={legalConfig}
             onDrop={(files) => handleFileUpload(files, 'legalDocuments')}
           />
+        )}
+
+        {isLoading && (
+          <Stack gap="sm" align="center" py="xl">
+            <Text size="sm" c="dimmed">Cargando componente de subida...</Text>
+          </Stack>
         )}
 
         {isUploading && (
@@ -369,7 +411,10 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
         {files.length > 0 && (
           <Stack gap="xs" mt="md">
             {files.map((file: File, index: number) => (
-              <Group key={index} justify="space-between" p="sm" style={{ backgroundColor: 'var(--mantine-color-gray-0)', borderRadius: 'var(--mantine-radius-sm)' }}>
+              <Group key={index} justify="space-between" p="sm" style={{ 
+                backgroundColor: 'var(--mantine-color-gray-0)', 
+                borderRadius: 'var(--mantine-radius-sm)' 
+              }}>
                 <Group gap="sm">
                   <ThemeIcon size="sm" variant="light">
                     <FileText size={14} />
