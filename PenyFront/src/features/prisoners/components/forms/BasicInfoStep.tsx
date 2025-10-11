@@ -1,36 +1,13 @@
 import React from 'react';
 import { TextInput, Select, NumberInput, Group, Stack } from '@mantine/core';
-
-interface BasicInfoStepProps {
-  data: {
-    firstName?: string;
-    lastName?: string;
-    age?: number;
-    identification?: string;
-    passport?: string;
-    fullName?: string;
-    idNumber?: string;
-    birthDate?: string;
-    gender?: string;
-    nationality?: string;
-    crime?: string;
-    sentence?: string;
-    cellBlock?: string;
-    legalStatus?: string;
-    behavior?: string;
-    workAssignment?: string;
-  };
-  onUpdate: (data: any) => void;
-}
+import type { BasicInfoStepProps, BasicInfo } from '../../types'; // 🔧 Importar tipos específicos
 
 export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ data, onUpdate }) => {
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: keyof BasicInfo, value: string | null) => { // 🔧 Tipo específico
     onUpdate({ [field]: value });
   };
 
-  // 🔧 Función específica para manejar NumberInput
-  const handleNumberChange = (field: string, value: string | number) => {
-    // Convertir string a number, o undefined si está vacío
+  const handleNumberChange = (field: keyof BasicInfo, value: string | number | undefined) => { // 🔧 Tipo específico
     const numericValue = typeof value === 'string' 
       ? (value === '' ? undefined : parseInt(value, 10))
       : value;
@@ -65,7 +42,6 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ data, onUpdate }) 
           onChange={(e) => handleChange('identification', e.target.value)}
           required
         />
-        {/* 🔧 Manejar NumberInput correctamente */}
         <NumberInput
           label="Edad"
           placeholder="Ingrese la edad"

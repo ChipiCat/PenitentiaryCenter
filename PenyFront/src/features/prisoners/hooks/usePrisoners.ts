@@ -3,6 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import mockData from '../utils/mockData.json';
 import { ROUTES } from '../../../shared/config/routes';
+import type { Prisoner, PrisonerStats, PrisonerStatus } from '../types';
+
+// Tipo para datos raw del JSON
+interface RawPrisonerData {
+  id: string;
+  fullName?: string;
+  firstName?: string;
+  lastName?: string;
+  idNumber?: string;
+  identification?: string;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  lastUpdate?: string;
+  photo?: string;
+  age?: number;
+  [key: string]: unknown;
+}
 
 export const usePrisoners = () => {
   const navigate = useNavigate();
@@ -12,14 +30,52 @@ export const usePrisoners = () => {
   const [activePage, setActivePage] = useState(1);
   const itemsPerPage = 10;
 
-  // Simular carga
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 300);
     return () => clearTimeout(timer);
   }, []);
 
-  // Datos directos del JSON
-  const allPrisoners = useMemo(() => mockData.prisoners as any[], []);
+  // 🔧 Función para normalizar el status
+  const normalizeStatus = (status: string | undefined): PrisonerStatus => {
+    if (!status) return 'Activo';
+    
+    // Mapear diferentes variaciones al tipo correcto
+    const statusMap: Record<string, PrisonerStatus> = {
+      'activo': 'Activo',
+      'Activo': 'Activo',
+      'inactivo': 'Inactivo',
+      'Inactivo': 'Inactivo',
+      'en proceso': 'En Proceso',
+      'En proceso': 'En Proceso',
+      'En Proceso': 'En Proceso',
+      'liberado': 'Liberado',
+      'Liberado': 'Liberado',
+      'transferido': 'Transferido',
+      'Transferido': 'Transferido'
+    };
+    
+    return statusMap[status] || 'Activo';
+  };
+
+  // 🔧 Datos con transformación para asegurar campos requeridos
+  const allPrisoners = useMemo(() => {
+    return (mockData.prisoners as RawPrisonerData[]).map((prisoner): Prisoner => {
+      const currentDate = new Date().toISOString();
+      
+      return {
+        ...prisoner,
+        id: prisoner.id,
+        fullName: prisoner.fullName || `${prisoner.firstName || ''} ${prisoner.lastName || ''}`.trim(),
+        idNumber: prisoner.idNumber || prisoner.identification || '',
+        age: prisoner.age || 0, // 🔧 Asegurar que age tenga un valor
+        status: normalizeStatus(prisoner.status), // 🔧 Normalizar status
+        createdAt: prisoner.createdAt || currentDate,
+        updatedAt: prisoner.updatedAt || currentDate,
+        lastUpdate: prisoner.lastUpdate || prisoner.updatedAt || currentDate,
+        photo: prisoner.photo || undefined,
+      };
+    });
+  }, []);
 
   // Filtros
   const filteredPrisoners = useMemo(() => {
@@ -48,14 +104,14 @@ export const usePrisoners = () => {
   const totalPages = Math.ceil(filteredPrisoners.length / itemsPerPage);
 
   // Estadísticas
-  const stats = useMemo(() => ({
+  const stats: PrisonerStats = useMemo(() => ({
     total: allPrisoners.length,
     active: allPrisoners.filter(p => p.status === 'Activo').length,
     inProcess: allPrisoners.filter(p => p.status === 'En Proceso').length,
     released: allPrisoners.filter(p => p.status === 'Liberado').length
   }), [allPrisoners]);
 
-  // 🆕 Funciones de navegación y acciones
+  // Funciones
   const handleNewPrisoner = useCallback(() => {
     navigate(ROUTES.PRISONERS_NEW);
   }, [navigate]);
@@ -79,7 +135,7 @@ export const usePrisoners = () => {
       });
 
       console.log(`Eliminar recluso con ID: ${id}`);
-    } catch (error) {
+    } catch {
       notifications.show({
         title: 'Error al eliminar',
         message: 'No se pudo eliminar el expediente',
@@ -102,7 +158,7 @@ export const usePrisoners = () => {
       });
 
       console.log(`Descargar recluso ${id} en formato ${format}`);
-    } catch (error) {
+    } catch {
       notifications.show({
         title: 'Error en la descarga',
         message: 'No se pudo descargar el expediente',
@@ -111,13 +167,11 @@ export const usePrisoners = () => {
     }
   }, [allPrisoners]);
 
-  // 🆕 Función para obtener un recluso por ID
-  const getPrisonerById = useCallback((id: string) => {
+  const getPrisonerById = useCallback((id: string): Prisoner | null => {
     return allPrisoners.find(p => p.id === id) || null;
   }, [allPrisoners]);
 
   return {
-    // Estados de filtro
     searchTerm, 
     setSearchTerm,
     statusFilter, 
@@ -125,21 +179,19 @@ export const usePrisoners = () => {
     activePage, 
     setActivePage,
     
-    // 🔧 Datos (incluir filteredPrisoners)
     prisoners: paginatedPrisoners,
     allPrisoners,
-    filteredPrisoners, // 🆕 Agregar esta propiedad
+    filteredPrisoners,
     paginatedPrisoners,
     totalPages,
     stats,
     loading,
 
-    // 🔧 Funciones de acción (incluir getPrisonerById)
     handleNewPrisoner,
     handleViewPrisoner,
     handleEditPrisoner,
     handleDeletePrisoner,
     handleDownloadPrisoner,
-    getPrisonerById // 🆕 Agregar esta función
+    getPrisonerById
   };
 };
