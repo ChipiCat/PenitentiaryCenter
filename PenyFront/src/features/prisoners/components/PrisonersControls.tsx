@@ -72,7 +72,7 @@ export const PrisonersControls = ({
             leftSection={<Plus size={16} />}
             onClick={onNewPrisoner}
           >
-            Nuevo Interno
+            Nuevo Recluso
           </Button>
         </Group>
       </Group>

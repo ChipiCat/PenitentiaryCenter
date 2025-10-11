@@ -1,0 +1,92 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: var(--navbar-width, 260px);
+  width: calc(100vw - var(--navbar-width, 260px));
+  height: 78px; 
+  z-index: 50;
+  background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-7));
+  border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-left: none;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.headerContent {
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
+  height: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.pageTitle {
+  flex: 1;
+  min-width: 0;
+  max-width: 50%;
+  overflow: hidden;
+}
+
+.actionButton {
+  
+  &:hover {
+    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-5));
+  }
+}
+
+.userButton {
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-md);
+  transition: all 0.2s ease;
+  max-width: 200px;
+  min-width: 140px;
+
+  &:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* 🆕 Responsive mejorado */
+@media (max-width: 1024px) {
+  .headerContent {
+    padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  }
+  
+  .pageTitle {
+    max-width: 40%;
+  }
+  
+  .userButton {
+    min-width: 120px;
+    max-width: 160px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    left: 0;
+    width: 100vw;
+    height: 56px; /* 🆕 Altura más compacta en móvil */
+  }
+  
+  .headerContent {
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  }
+  
+  .pageTitle {
+    display: none; /* Ocultar título en móvil */
+  }
+  
+  .userButton {
+    min-width: 100px;
+    max-width: 120px;
+  }
+  
+  .actionButton {
+    display: none; /* Ocultar algunos botones en móvil */
+  }
+  
+  /* Mantener solo notificaciones en móvil */
+  .actionButton:has([data-bell]) {
+    display: flex;
+  }
+}
