@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   Stack,
   Group,
@@ -59,13 +59,16 @@ const useDropzone = () => {
   useEffect(() => {
     const loadDropzone = async () => {
       try {
-        const module = await import('@mantine/dropzone');
-        setDropzoneModule({
-          Dropzone: module.Dropzone,
-          IMAGE_MIME_TYPE: module.IMAGE_MIME_TYPE,
-          PDF_MIME_TYPE: module.PDF_MIME_TYPE,
-          MS_WORD_MIME_TYPE: module.MS_WORD_MIME_TYPE
-        });
+        // 🔧 Usar dynamic import con verificación de existencia
+        const module = await import('@mantine/dropzone').catch(() => null);
+        if (module) {
+          setDropzoneModule({
+            Dropzone: module.Dropzone,
+            IMAGE_MIME_TYPE: module.IMAGE_MIME_TYPE,
+            PDF_MIME_TYPE: module.PDF_MIME_TYPE,
+            MS_WORD_MIME_TYPE: module.MS_WORD_MIME_TYPE
+          });
+        }
       } catch {
         console.warn('@mantine/dropzone no está disponible, usando FileInput como fallback');
       } finally {
@@ -94,17 +97,23 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
   const { dropzoneModule, isLoading } = useDropzone();
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
 
-  // Usar valores del módulo si está disponible, sino fallback
-  const IMAGE_MIME_TYPE = dropzoneModule?.IMAGE_MIME_TYPE || ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
-  const PDF_MIME_TYPE = dropzoneModule?.PDF_MIME_TYPE || ['application/pdf'];
-  const MS_WORD_MIME_TYPE = dropzoneModule?.MS_WORD_MIME_TYPE || ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  // 🔧 Memoizar valores de MIME types para evitar recreación
+  const mimeTypes = useMemo(() => ({
+    IMAGE_MIME_TYPE: dropzoneModule?.IMAGE_MIME_TYPE || ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
+    PDF_MIME_TYPE: dropzoneModule?.PDF_MIME_TYPE || ['application/pdf'],
+    MS_WORD_MIME_TYPE: dropzoneModule?.MS_WORD_MIME_TYPE || [
+      'application/msword', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ]
+  }), [dropzoneModule]);
 
-  const DOCUMENT_CONFIGS: DocumentConfig[] = [
+  // 🔧 Memoizar DOCUMENT_CONFIGS para evitar recreación en cada render
+  const DOCUMENT_CONFIGS = useMemo((): DocumentConfig[] => [
     {
       type: 'photo',
       label: 'Fotografía del Recluso',
       description: 'Foto reciente y clara del rostro',
-      accept: IMAGE_MIME_TYPE.join(','),
+      accept: mimeTypes.IMAGE_MIME_TYPE.join(','),
       maxSize: 5 * 1024 * 1024, // 5MB
       maxFiles: 1,
       required: true
@@ -113,7 +122,7 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
       type: 'identificationDoc',
       label: 'Documento de Identificación',
       description: 'Cédula de identidad o pasaporte',
-      accept: [...IMAGE_MIME_TYPE, ...PDF_MIME_TYPE].join(','),
+      accept: [...mimeTypes.IMAGE_MIME_TYPE, ...mimeTypes.PDF_MIME_TYPE].join(','),
       maxSize: 5 * 1024 * 1024, // 5MB
       maxFiles: 1,
       required: true
@@ -122,14 +131,14 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
       type: 'medicalRecord',
       label: 'Registro Médico Principal',
       description: 'Examen médico de ingreso',
-      accept: [...PDF_MIME_TYPE, ...MS_WORD_MIME_TYPE].join(','),
+      accept: [...mimeTypes.PDF_MIME_TYPE, ...mimeTypes.MS_WORD_MIME_TYPE].join(','),
       maxSize: 10 * 1024 * 1024, // 10MB
       maxFiles: 1,
       required: false
     }
-  ];
+  ], [mimeTypes]);
 
-  // Función tipada para manejar la subida de archivos
+  // 🔧 Función tipada para manejar la subida de archivos con dependencias correctas
   const handleFileUpload = useCallback(async (files: FileWithPath[], type: DocumentType) => {
     if (files.length === 0) return;
 
@@ -180,7 +189,7 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
 
       setUploadProgress(prev => ({ ...prev, [type]: 100 }));
     }, 1200);
-  }, [data.legalDocuments, onUpdate, DOCUMENT_CONFIGS]);
+  }, [data.legalDocuments, onUpdate, DOCUMENT_CONFIGS]); // 🔧 Dependencias correctas
 
   // Función tipada para remover archivos
   const handleFileRemove = useCallback((type: DocumentType, index?: number) => {
@@ -216,8 +225,8 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
     }
   }, []);
 
-  // 🔧 Componente de upload con fallback
-  const UploadZone = ({ config, onDrop }: { 
+  // 🔧 Componente de upload con fallback memoizado
+  const UploadZone = useCallback(({ config, onDrop }: { 
     config: DocumentConfig; 
     onDrop: (files: FileWithPath[]) => void;
   }): React.ReactElement => {
@@ -271,9 +280,9 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
         </Stack>
       </Card>
     );
-  };
+  }, [dropzoneModule]);
 
-  const renderSingleFileUpload = (config: DocumentConfig) => {
+  const renderSingleFileUpload = useCallback((config: DocumentConfig) => {
     const file = data[config.type as keyof Documents] as File | undefined;
     const progress = uploadProgress[config.type];
     const isUploading = progress !== undefined && progress < 100;
@@ -354,10 +363,10 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
         )}
       </Card>
     );
-  };
+  }, [data, uploadProgress, isLoading, UploadZone, handleFileUpload, getFileIcon, getFilePreview, handleFileRemove]);
 
-  // Documentos legales (múltiples archivos)
-  const renderLegalDocuments = () => {
+  // 🔧 Documentos legales memoizado
+  const renderLegalDocuments = useCallback(() => {
     const files = data.legalDocuments || [];
     const progress = uploadProgress.legalDocuments;
     const isUploading = progress !== undefined && progress < 100;
@@ -367,7 +376,7 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
       type: 'legalDocuments',
       label: 'Documentos Legales',
       description: 'Sentencias, actas, documentos del proceso legal',
-      accept: [...PDF_MIME_TYPE, ...MS_WORD_MIME_TYPE].join(','),
+      accept: [...mimeTypes.PDF_MIME_TYPE, ...mimeTypes.MS_WORD_MIME_TYPE].join(','),
       maxSize: 10 * 1024 * 1024,
       maxFiles: 10,
       required: false
@@ -440,9 +449,10 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
         )}
       </Card>
     );
-  };
+  }, [data.legalDocuments, uploadProgress.legalDocuments, isLoading, mimeTypes, UploadZone, handleFileUpload, handleFileRemove]);
 
-  const validateStep = () => {
+  // 🔧 Validación memoizada
+  const validation = useMemo(() => {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -463,9 +473,7 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
     }
 
     return { errors, warnings, isValid: errors.length === 0 };
-  };
-
-  const { errors, warnings, isValid } = validateStep();
+  }, [DOCUMENT_CONFIGS, data]);
 
   return (
     <Stack gap="lg">
@@ -484,7 +492,7 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
       </Group>
 
       {/* Errores */}
-      {errors.length > 0 && (
+      {validation.errors.length > 0 && (
         <Alert
           icon={<AlertCircle size={16} />}
           title="Documentos requeridos faltantes"
@@ -492,7 +500,7 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
           variant="light"
         >
           <Stack gap="xs">
-            {errors.map((error, index) => (
+            {validation.errors.map((error, index) => (
               <Text key={index} size="sm">• {error}</Text>
             ))}
           </Stack>
@@ -500,7 +508,7 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
       )}
 
       {/* Warnings */}
-      {warnings.length > 0 && (
+      {validation.warnings.length > 0 && (
         <Alert
           icon={<AlertCircle size={16} />}
           title="Recomendaciones"
@@ -508,7 +516,7 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
           variant="light"
         >
           <Stack gap="xs">
-            {warnings.map((warning, index) => (
+            {validation.warnings.map((warning, index) => (
               <Text key={index} size="sm">• {warning}</Text>
             ))}
           </Stack>
@@ -516,7 +524,7 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
       )}
 
       {/* Status si todo está bien */}
-      {isValid && (
+      {validation.isValid && (
         <Alert
           icon={<CheckCircle size={16} />}
           title="Documentos listos"
