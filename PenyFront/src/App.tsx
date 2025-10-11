@@ -10,10 +10,12 @@ import PublicRoute from "./shared/components/PublicRoute";
 import MainLayout from "./shared/layouts/MainLayout";
 import ReportsPage from "./features/reports";
 import PrisonersPage from "./features/prisoners";
+import NewPrisonerPage from "./features/prisoners/pages/NewPrisonerPage"; 
 import ProfilePage from "./features/profile";
 import UsersPage from "./features/users";
 import ActivityPage from "./features/activity";
 import { ROUTES } from "./shared/config/routes";
+import PrisonerProfilePage from "./features/prisoners/pages/PrisonerProfilePage"; // 🆕
 
 function App() {
   const theme = createTheme({
@@ -54,6 +56,20 @@ function App() {
             <ProtectedRoute>
               <MainLayout>
                 <PrisonersPage />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          <Route path={ROUTES.PRISONERS_NEW} element={
+            <ProtectedRoute>
+              <MainLayout>
+                <NewPrisonerPage />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          <Route path={`${ROUTES.PRISONERS}/:id`} element={
+            <ProtectedRoute>
+              <MainLayout>
+                <PrisonerProfilePage />
               </MainLayout>
             </ProtectedRoute>
           } />

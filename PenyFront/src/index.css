@@ -3,9 +3,36 @@
 
 @import "tailwindcss/utilities.css" layer(utilities);
 
-html, body, #root {
-  height: 100%;
-  width: 100%;
+/* 🆕 Reset completo para eliminar scrolls no deseados */
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  width: 100vw;
+  overflow-x: hidden; /* Eliminar scroll horizontal */
+  overflow-y: auto; /* Solo scroll vertical cuando sea necesario */
+}
+
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden; /* Contenedor principal sin scroll */
+}
+
+/* 🆕 Mantine overrides para eliminar espacios no deseados */
+.mantine-Paper-root {
+  margin: 0 !important;
+}
+
+.mantine-AppShell-root {
+  margin: 0 !important;
+  padding: 0 !important;
 }
