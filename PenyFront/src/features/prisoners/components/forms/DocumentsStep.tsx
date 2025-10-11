@@ -27,33 +27,43 @@ import {
   Eye
 } from 'lucide-react';
 
-// 🔧 Imports condicionales para Dropzone
-let Dropzone: any;
-let IMAGE_MIME_TYPE: string[];
-let PDF_MIME_TYPE: string[];
-let MS_WORD_MIME_TYPE: string[];
-
-try {
-  const dropzoneModule = require('@mantine/dropzone');
-  Dropzone = dropzoneModule.Dropzone;
-  IMAGE_MIME_TYPE = dropzoneModule.IMAGE_MIME_TYPE;
-  PDF_MIME_TYPE = dropzoneModule.PDF_MIME_TYPE;
-  MS_WORD_MIME_TYPE = dropzoneModule.MS_WORD_MIME_TYPE;
-} catch (error) {
-  // Fallback si @mantine/dropzone no está disponible
-  console.warn('@mantine/dropzone no está instalado, usando FileInput como fallback');
-  IMAGE_MIME_TYPE = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
-  PDF_MIME_TYPE = ['application/pdf'];
-  MS_WORD_MIME_TYPE = ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-}
-
 // Importar tipos específicos
 import type { FormStepProps, Documents, DocumentType } from '../../types';
 
 // Type para FileWithPath alternativo
 type FileWithPath = File & { path?: string };
 
-// 🔧 Tipo más flexible para configuración de documentos
+// 🔧 Tipos para Dropzone (evitar JSX.Element)
+interface DropzoneComponent {
+  (props: {
+    onDrop: (files: FileWithPath[]) => void;
+    accept: string[];
+    maxSize: number;
+    maxFiles: number;
+    children: React.ReactNode;
+  }): React.ReactElement;
+}
+
+// 🔧 Imports condicionales para Dropzone
+let Dropzone: DropzoneComponent | null = null;
+let IMAGE_MIME_TYPE: string[] = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+let PDF_MIME_TYPE: string[] = ['application/pdf'];
+let MS_WORD_MIME_TYPE: string[] = ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+
+// 🔧 Intentar importar Dropzone dinámicamente
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const dropzoneModule = require('@mantine/dropzone');
+  Dropzone = dropzoneModule.Dropzone as DropzoneComponent;
+  IMAGE_MIME_TYPE = dropzoneModule.IMAGE_MIME_TYPE as string[];
+  PDF_MIME_TYPE = dropzoneModule.PDF_MIME_TYPE as string[];
+  MS_WORD_MIME_TYPE = dropzoneModule.MS_WORD_MIME_TYPE as string[];
+} catch {
+  // Usar fallback silencioso sin variable error
+  console.warn('@mantine/dropzone no está instalado, usando FileInput como fallback');
+}
+
+// Tipo más flexible para configuración de documentos
 interface DocumentConfig {
   type: DocumentType;
   label: string;
@@ -184,11 +194,11 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
     }
   }, []);
 
-  // 🔧 Componente de upload con fallback - tipo más flexible
+  // 🔧 Componente de upload con fallback
   const UploadZone = ({ config, onDrop }: { 
-    config: DocumentConfig, 
-    onDrop: (files: FileWithPath[]) => void 
-  }) => {
+    config: DocumentConfig; 
+    onDrop: (files: FileWithPath[]) => void;
+  }): React.ReactElement => {
     if (Dropzone) {
       return (
         <Dropzone
@@ -266,7 +276,6 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
         {isUploading && (
           <Stack gap="sm">
             <Text size="sm">Subiendo archivo...</Text>
-            {/* 🔧 Cambiar animate por animated */}
             <Progress value={progress} striped animated />
           </Stack>
         )}
@@ -317,7 +326,7 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
     const progress = uploadProgress.legalDocuments;
     const isUploading = progress !== undefined && progress < 100;
 
-    // 🔧 Crear configuración específica para documentos legales
+    // Crear configuración específica para documentos legales
     const legalConfig: DocumentConfig = {
       type: 'legalDocuments',
       label: 'Documentos Legales',
@@ -353,7 +362,6 @@ export const DocumentsStep = ({ data, onUpdate }: FormStepProps<Documents>) => {
         {isUploading && (
           <Stack gap="sm">
             <Text size="sm">Subiendo documentos...</Text>
-            {/* 🔧 Cambiar animate por animated */}
             <Progress value={progress} striped animated />
           </Stack>
         )}
