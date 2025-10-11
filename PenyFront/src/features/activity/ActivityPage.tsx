@@ -19,8 +19,6 @@ import {
   Clock
 } from 'lucide-react';
 import { useState } from 'react';
-
-// Tipos para los datos de actividad
 interface ActivityStat {
   title: string;
   value: number;
@@ -47,7 +45,6 @@ const ActivityPage = () => {
   const [actionFilter, setActionFilter] = useState('all');
   const [timeFilter, setTimeFilter] = useState('today');
 
-  // Datos simulados - en una app real vendrían de una API
   const stats: ActivityStat[] = [
     {
       title: 'Acciones Hoy',
