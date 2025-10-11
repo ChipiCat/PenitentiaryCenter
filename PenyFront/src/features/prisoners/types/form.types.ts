@@ -28,11 +28,22 @@ export interface ContactInfo {
   address?: string;
 }
 
-// Tipo base para documentos
+// 🔧 Actualizar interfaz Documents para coincidir con DocumentsStep.tsx
 export interface Documents {
-  photos?: File[];
-  documents?: File[];
-  medicalRecords?: File[];
+  // Documentos individuales (singular para single file)
+  photo?: File;                    // Foto del recluso
+  identificationDoc?: File;        // Documento de identificación
+  medicalRecord?: File;           // Registro médico principal
+  
+  // Colecciones de documentos (plural para arrays)
+  photos?: File[];                // Múltiples fotos
+  documents?: File[];             // Documentos generales
+  medicalRecords?: File[];        // Múltiples registros médicos
+  legalDocuments?: File[];        // 🆕 Documentos legales
+  
+  // Metadatos adicionales
+  uploadProgress?: Record<string, number>;
+  uploadErrors?: Record<string, string>;
 }
 
 // Tipo para formulario completo
@@ -48,7 +59,7 @@ export interface FormStepProps<T = Record<string, unknown>> {
   onUpdate: (data: Partial<T>) => void;
 }
 
-// 🔧 Usar type aliases en lugar de interfaces vacías para evitar el error de ESLint
+// Usar type aliases en lugar de interfaces vacías para evitar el error de ESLint
 export type BasicInfoStepProps = FormStepProps<BasicInfo>;
 export type ContactInfoStepProps = FormStepProps<ContactInfo>;
 export type DocumentsStepProps = FormStepProps<Documents>;
@@ -119,4 +130,32 @@ export interface StepValidation {
   errors: string[];
   warnings: string[];
   requiredFields: string[];
+}
+
+// 🆕 Tipos específicos para documentos
+export type DocumentType = 
+  | 'photo' 
+  | 'identificationDoc' 
+  | 'medicalRecord' 
+  | 'legalDocuments';
+
+// 🆕 Tipo para información de archivo subido
+export interface UploadedFileInfo {
+  file: File;
+  preview?: string;
+  uploadDate: Date;
+  status: 'pending' | 'uploading' | 'success' | 'error';
+  progress?: number;
+  error?: string;
+}
+
+// 🆕 Configuración para cada tipo de documento
+export interface DocumentConfig {
+  type: DocumentType;
+  label: string;
+  description: string;
+  accept: string;
+  maxSize: number;
+  maxFiles: number;
+  required?: boolean;
 }
