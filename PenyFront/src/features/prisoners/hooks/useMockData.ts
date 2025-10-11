@@ -1,20 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import mockData from '../utils/mockData.json';
+import type { Prisoner, PrisonerStatus } from '../types';
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  status: string;
-  photoUrl: string | null;
-  lastLogin: string;
-  createdAt: string;
-  updatedAt: string;
-  permissions: string[];
-}
-
-export interface Prisoner {
+// 🔧 Tipo para datos raw del JSON que coincide exactamente con mockData.json
+interface RawPrisonerData {
   id: string;
   fullName: string;
   idNumber: string;
@@ -30,310 +19,329 @@ export interface Prisoner {
   sentence: string;
   remainingSentence: string;
   cellBlock: string;
+  legalStatus: string;
+  behavior: string;
+  workAssignment: string | null; // 🔧 Puede ser null en el JSON
+  releaseDate?: string; // 🔧 Opcional, solo presente en liberados
+  // 🔧 emergencyContact es un objeto en el JSON
   emergencyContact: {
     name: string;
     relationship: string;
     phone: string;
     address: string;
   };
-  legalStatus: string;
-  behavior: string;
-  workAssignment: string | null;
+  // 🔧 medicalInfo es un objeto en el JSON
   medicalInfo: {
     bloodType: string;
     allergies: string;
     medications: string[];
     lastCheckup: string;
   };
-  releaseDate?: string;
+  [key: string]: unknown;
 }
-
-export interface Activity {
-  id: string;
-  userId: string;
-  user: {
-    name: string;
-    role: string;
-    avatar: string | null;
-  };
-  action: string;
-  target: string;
-  targetId?: string;
-  description: string;
-  timestamp: string;
-  type: string;
-  metadata?: Record<string, any>;
-}
-
-export interface DashboardStat {
-  id: string;
-  title: string;
-  value: number;
-  change: string;
-  changeType: 'positive' | 'negative';
-  icon: string;
-  color: string;
-  lastUpdated: string;
-}
-
-export interface ActivityStat {
-  id: string;
-  title: string;
-  value: number;
-  subtitle: string;
-  color: string;
-  icon: string;
-}
-
-export interface Report {
-  id: string;
-  title: string;
-  description: string;
-  generatedBy: string;
-  generatedAt: string;
-  type: string;
-  format: string;
-  recordCount: number;
-  status: string;
-}
-
-export interface SystemInfo {
-  version: string;
-  lastUpdate: string;
-  maintenance: boolean;
-  settings: {
-    maxInmates: number;
-    allowedFileTypes: string[];
-    sessionTimeout: number;
-    backupFrequency: string;
-  };
-}
-
-export interface MockDataType {
-  users: User[];
-  prisoners: Prisoner[];
-  activities: Activity[];
-  statistics: {
-    dashboard: DashboardStat[];
-    activity: ActivityStat[];
-  };
-  reports: Report[];
-  system: SystemInfo;
-}
-
-// 🆕 Funciones de validación y conversión
-const validateChangeType = (changeType: string): 'positive' | 'negative' => {
-  return changeType === 'positive' || changeType === 'negative' ? changeType : 'positive';
-};
-
-const convertDashboardStat = (stat: any): DashboardStat => ({
-  id: stat.id || '',
-  title: stat.title || '',
-  value: Number(stat.value) || 0,
-  change: stat.change || '',
-  changeType: validateChangeType(stat.changeType),
-  icon: stat.icon || '',
-  color: stat.color || 'blue',
-  lastUpdated: stat.lastUpdated || new Date().toISOString()
-});
-
-const convertActivityStat = (stat: any): ActivityStat => ({
-  id: stat.id || '',
-  title: stat.title || '',
-  value: Number(stat.value) || 0,
-  subtitle: stat.subtitle || '',
-  color: stat.color || 'blue',
-  icon: stat.icon || ''
-});
 
 export const useMockData = () => {
-  const [data, setData] = useState<MockDataType | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Simular delay de API
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // Validar datos básicos
-        if (!mockData.users || !mockData.prisoners || !mockData.activities) {
-          throw new Error('Datos mockeados incompletos');
-        }
-        
-        // 🆕 Conversión segura con validación y tipado correcto
-        const validatedData: MockDataType = {
-          users: mockData.users.map(user => ({
-            ...user,
-            photoUrl: user.photoUrl || null
-          })),
-          prisoners: mockData.prisoners.map(prisoner => ({
-            ...prisoner,
-            workAssignment: prisoner.workAssignment || null,
-            releaseDate: prisoner.releaseDate || undefined
-          })),
-          activities: mockData.activities.map(activity => ({
-            ...activity,
-            user: {
-              ...activity.user,
-              avatar: activity.user.avatar || null
-            }
-          })),
-          statistics: {
-            // 🆕 Validar y convertir estadísticas del dashboard
-            dashboard: (mockData.statistics?.dashboard || []).map(convertDashboardStat),
-            // 🆕 Validar y convertir estadísticas de actividad
-            activity: (mockData.statistics?.activity || []).map(convertActivityStat)
-          },
-          reports: mockData.reports || [],
-          system: mockData.system || {
-            version: '1.0.0',
-            lastUpdate: new Date().toISOString(),
-            maintenance: false,
-            settings: {
-              maxInmates: 1000,
-              allowedFileTypes: ['pdf', 'doc', 'docx'],
-              sessionTimeout: 3600,
-              backupFrequency: 'daily'
-            }
-          }
-        };
-        
-        setData(validatedData);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
-        setError(errorMessage);
-        console.error('Error loading mock data:', err);
-      } finally {
-        setLoading(false);
-      }
+  // 🔧 Función para normalizar status con tipo específico
+  const normalizeStatus = (status: string | undefined): PrisonerStatus => {
+    if (!status) return 'Activo';
+    
+    const statusMap: Record<string, PrisonerStatus> = {
+      'activo': 'Activo',
+      'Activo': 'Activo',
+      'inactivo': 'Inactivo',
+      'Inactivo': 'Inactivo',
+      'en proceso': 'En Proceso',
+      'En proceso': 'En Proceso',
+      'En Proceso': 'En Proceso',
+      'liberado': 'Liberado',
+      'Liberado': 'Liberado',
+      'transferido': 'Transferido',
+      'Transferido': 'Transferido'
     };
+    
+    return statusMap[status] || 'Activo';
+  };
 
-    loadData();
+  // 🔧 Transformar datos raw del JSON a Prisoner[]
+  const allPrisoners = useMemo(() => {
+    // 🔧 Cast seguro: primero a unknown, luego a RawPrisonerData[]
+    const rawPrisoners = mockData.prisoners as unknown as RawPrisonerData[];
+    
+    return rawPrisoners.map((rawPrisoner): Prisoner => {
+      const currentDate = new Date().toISOString();
+      
+      // 🔧 Transformar emergencyContact de objeto a propiedades planas
+      const emergencyContactName = rawPrisoner.emergencyContact?.name;
+      const emergencyPhone = rawPrisoner.emergencyContact?.phone;
+      const relationship = rawPrisoner.emergencyContact?.relationship;
+      const contactAddress = rawPrisoner.emergencyContact?.address;
+      
+      // 🔧 Transformar medicalInfo
+      const medicalInfo = rawPrisoner.medicalInfo ? {
+        bloodType: rawPrisoner.medicalInfo.bloodType,
+        allergies: rawPrisoner.medicalInfo.allergies === 'Ninguna' 
+          ? [] 
+          : [rawPrisoner.medicalInfo.allergies],
+        medications: rawPrisoner.medicalInfo.medications || [],
+        lastCheckup: rawPrisoner.medicalInfo.lastCheckup
+      } : undefined;
+      
+      // Asegurar que todos los campos requeridos estén presentes
+      return {
+        // Campos requeridos con fallbacks
+        id: rawPrisoner.id,
+        fullName: rawPrisoner.fullName || 'Sin nombre',
+        idNumber: rawPrisoner.idNumber || '',
+        age: rawPrisoner.age || 0,
+        status: normalizeStatus(rawPrisoner.status),
+        createdAt: rawPrisoner.createdAt || currentDate,
+        updatedAt: rawPrisoner.updatedAt || currentDate,
+        lastUpdate: rawPrisoner.updatedAt || currentDate, // 🔧 Usar updatedAt como lastUpdate
+        
+        // Campos opcionales del JSON
+        firstName: undefined, // No está en el JSON actual
+        lastName: undefined,  // No está en el JSON actual
+        identification: rawPrisoner.idNumber, // Usar idNumber como identification
+        passport: undefined,
+        birthDate: rawPrisoner.birthDate,
+        gender: rawPrisoner.gender,
+        nationality: rawPrisoner.nationality,
+        crime: rawPrisoner.crime,
+        sentence: rawPrisoner.sentence,
+        cellBlock: rawPrisoner.cellBlock,
+        legalStatus: rawPrisoner.legalStatus,
+        behavior: rawPrisoner.behavior,
+        workAssignment: rawPrisoner.workAssignment || undefined, // 🔧 Convertir null a undefined
+        admissionDate: rawPrisoner.admissionDate,
+        remainingSentence: rawPrisoner.remainingSentence,
+        photo: undefined, // No está en el JSON actual
+        
+        // 🔧 Información de contacto transformada
+        emergencyContact: emergencyContactName,
+        emergencyPhone: emergencyPhone,
+        relationship: relationship,
+        location: contactAddress ? {
+          department: undefined,
+          city: undefined,
+          address: contactAddress
+        } : undefined,
+        
+        // 🔧 Información médica transformada
+        medicalInfo: medicalInfo
+      };
+    });
   }, []);
 
-  return { data, loading, error };
-};
-
-// 🆕 Hook específico para reclusos
-export const usePrisoners = () => {
-  const { data, loading, error } = useMockData();
-  
-  const prisoners = useMemo(() => data?.prisoners || [], [data]);
-  
-  const stats = useMemo(() => {
-    const total = prisoners.length;
-    const active = prisoners.filter(p => p.status === 'Activo').length;
-    const inProcess = prisoners.filter(p => p.status === 'En Proceso').length;
-    const released = prisoners.filter(p => p.status === 'Liberado').length;
-    
-    return { total, active, inProcess, released };
-  }, [prisoners]);
-
-  return {
-    prisoners,
-    stats,
-    loading,
-    error
-  };
-};
-
-// 🆕 Hook específico para usuarios
-export const useUsers = () => {
-  const { data, loading, error } = useMockData();
-  
-  const users = useMemo(() => data?.users || [], [data]);
-  
-  const stats = useMemo(() => {
-    const total = users.length;
-    const active = users.filter(u => u.status === 'ACTIVO').length;
-    const byRole = users.reduce((acc, user) => {
-      acc[user.role] = (acc[user.role] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    
-    return { total, active, byRole };
-  }, [users]);
-
-  return {
-    users,
-    stats,
-    loading,
-    error
-  };
-};
-
-// 🆕 Hook específico para actividades
-export const useActivities = () => {
-  const { data, loading, error } = useMockData();
-  
-  const activities = useMemo(() => data?.activities || [], [data]);
-  
-  const stats = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
-    const todayActivities = activities.filter(a => 
-      a.timestamp.startsWith(today)
-    ).length;
-    
-    const byType = activities.reduce((acc, activity) => {
-      acc[activity.type] = (acc[activity.type] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    
-    return { 
-      total: activities.length, 
-      today: todayActivities, 
-      byType 
+  const getPrisonerById = useMemo(() => {
+    return (id: string): Prisoner | null => {
+      return allPrisoners.find(p => p.id === id) || null;
     };
-  }, [activities]);
+  }, [allPrisoners]);
+
+  const getFilteredPrisoners = useMemo(() => {
+    return (searchTerm: string, statusFilter: string | null): Prisoner[] => {
+      let filtered = allPrisoners;
+      
+      if (searchTerm) {
+        filtered = filtered.filter(p => 
+          p.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          p.idNumber?.includes(searchTerm)
+        );
+      }
+      
+      if (statusFilter) {
+        filtered = filtered.filter(p => p.status === statusFilter);
+      }
+      
+      return filtered;
+    };
+  }, [allPrisoners]);
+
+  const getPaginatedPrisoners = useMemo(() => {
+    return (prisoners: Prisoner[], page: number, itemsPerPage: number): Prisoner[] => {
+      const startIndex = (page - 1) * itemsPerPage;
+      return prisoners.slice(startIndex, startIndex + itemsPerPage);
+    };
+  }, []);
+
+  const getStats = useMemo(() => {
+    return () => ({
+      total: allPrisoners.length,
+      active: allPrisoners.filter(p => p.status === 'Activo').length,
+      inProcess: allPrisoners.filter(p => p.status === 'En Proceso').length,
+      released: allPrisoners.filter(p => p.status === 'Liberado').length,
+      inactive: allPrisoners.filter(p => p.status === 'Inactivo').length,
+      transferred: allPrisoners.filter(p => p.status === 'Transferido').length
+    });
+  }, [allPrisoners]);
+
+  // Funciones de transformación con tipos específicos
+  const transformRawData = useMemo(() => {
+    return (rawData: RawPrisonerData[]): Prisoner[] => {
+      return rawData.map((prisoner): Prisoner => {
+        const currentDate = new Date().toISOString();
+        
+        // Transformar emergencyContact
+        const emergencyContactName = prisoner.emergencyContact?.name;
+        const emergencyPhone = prisoner.emergencyContact?.phone;
+        const relationship = prisoner.emergencyContact?.relationship;
+        const contactAddress = prisoner.emergencyContact?.address;
+        
+        // Transformar medicalInfo
+        const medicalInfo = prisoner.medicalInfo ? {
+          bloodType: prisoner.medicalInfo.bloodType,
+          allergies: prisoner.medicalInfo.allergies === 'Ninguna' 
+            ? [] 
+            : [prisoner.medicalInfo.allergies],
+          medications: prisoner.medicalInfo.medications || [],
+          lastCheckup: prisoner.medicalInfo.lastCheckup
+        } : undefined;
+        
+        return {
+          // Campos requeridos
+          id: prisoner.id,
+          fullName: prisoner.fullName || 'Sin nombre',
+          idNumber: prisoner.idNumber || '',
+          age: prisoner.age || 0,
+          status: normalizeStatus(prisoner.status),
+          createdAt: prisoner.createdAt || currentDate,
+          updatedAt: prisoner.updatedAt || currentDate,
+          lastUpdate: prisoner.updatedAt || currentDate,
+          
+          // Campos opcionales
+          firstName: undefined,
+          lastName: undefined,
+          identification: prisoner.idNumber,
+          passport: undefined,
+          birthDate: prisoner.birthDate,
+          gender: prisoner.gender,
+          nationality: prisoner.nationality,
+          crime: prisoner.crime,
+          sentence: prisoner.sentence,
+          cellBlock: prisoner.cellBlock,
+          legalStatus: prisoner.legalStatus,
+          behavior: prisoner.behavior,
+          workAssignment: prisoner.workAssignment || undefined,
+          admissionDate: prisoner.admissionDate,
+          remainingSentence: prisoner.remainingSentence,
+          photo: undefined,
+          emergencyContact: emergencyContactName,
+          emergencyPhone: emergencyPhone,
+          relationship: relationship,
+          location: contactAddress ? {
+            department: undefined,
+            city: undefined,
+            address: contactAddress
+          } : undefined,
+          medicalInfo: medicalInfo
+        };
+      });
+    };
+  }, []);
+
+  const searchPrisoners = useMemo(() => {
+    return (prisoners: Prisoner[], searchTerm: string): Prisoner[] => {
+      if (!searchTerm.trim()) return prisoners;
+      
+      const term = searchTerm.toLowerCase();
+      return prisoners.filter(prisoner => 
+        prisoner.fullName?.toLowerCase().includes(term) ||
+        prisoner.idNumber?.toLowerCase().includes(term) ||
+        prisoner.firstName?.toLowerCase().includes(term) ||
+        prisoner.lastName?.toLowerCase().includes(term) ||
+        prisoner.identification?.toLowerCase().includes(term)
+      );
+    };
+  }, []);
+
+  // Función para filtrar por múltiples criterios
+  const advancedFilter = useMemo(() => {
+    return (
+      prisoners: Prisoner[], 
+      filters: {
+        searchTerm?: string;
+        status?: PrisonerStatus | null;
+        ageRange?: { min: number; max: number };
+        cellBlock?: string;
+        behavior?: string;
+      }
+    ): Prisoner[] => {
+      let filtered = prisoners;
+
+      if (filters.searchTerm) {
+        const term = filters.searchTerm.toLowerCase();
+        filtered = filtered.filter(p => 
+          p.fullName?.toLowerCase().includes(term) ||
+          p.idNumber?.toLowerCase().includes(term) ||
+          p.firstName?.toLowerCase().includes(term) ||
+          p.lastName?.toLowerCase().includes(term)
+        );
+      }
+
+      if (filters.status) {
+        filtered = filtered.filter(p => p.status === filters.status);
+      }
+
+      if (filters.ageRange) {
+        filtered = filtered.filter(p => 
+          p.age >= filters.ageRange!.min && p.age <= filters.ageRange!.max
+        );
+      }
+
+      if (filters.cellBlock) {
+        filtered = filtered.filter(p => 
+          p.cellBlock?.toLowerCase().includes(filters.cellBlock!.toLowerCase())
+        );
+      }
+
+      if (filters.behavior) {
+        filtered = filtered.filter(p => p.behavior === filters.behavior);
+      }
+
+      return filtered;
+    };
+  }, []);
+
+  // Función para ordenar con tipo específico
+  const sortPrisoners = useMemo(() => {
+    return (
+      prisoners: Prisoner[], 
+      sortBy: keyof Prisoner, 
+      direction: 'asc' | 'desc' = 'asc'
+    ): Prisoner[] => {
+      return [...prisoners].sort((a, b) => {
+        const aValue = a[sortBy];
+        const bValue = b[sortBy];
+
+        if (aValue === undefined && bValue === undefined) return 0;
+        if (aValue === undefined) return direction === 'asc' ? 1 : -1;
+        if (bValue === undefined) return direction === 'asc' ? -1 : 1;
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return direction === 'asc' 
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        }
+
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+          return direction === 'asc' ? aValue - bValue : bValue - aValue;
+        }
+
+        return 0;
+      });
+    };
+  }, []);
 
   return {
-    activities,
-    stats,
-    loading,
-    error
-  };
-};
-
-// Hooks para estadísticas específicas con tipos correctos
-export const useDashboardStats = () => {
-  const { data, loading, error } = useMockData();
-  return {
-    stats: data?.statistics.dashboard || [],
-    loading,
-    error
-  };
-};
-
-export const useActivityStats = () => {
-  const { data, loading, error } = useMockData();
-  return {
-    stats: data?.statistics.activity || [],
-    activities: data?.activities || [],
-    loading,
-    error
-  };
-};
-
-export const useReports = () => {
-  const { data, loading, error } = useMockData();
-  return {
-    reports: data?.reports || [],
-    loading,
-    error
-  };
-};
-
-// 🆕 Hook para información del sistema
-export const useSystemInfo = () => {
-  const { data, loading, error } = useMockData();
-  return {
-    system: data?.system,
-    loading,
-    error
+    allPrisoners,
+    getPrisonerById,
+    getFilteredPrisoners,
+    getPaginatedPrisoners,
+    getStats,
+    transformRawData,
+    searchPrisoners,
+    advancedFilter,
+    sortPrisoners,
+    normalizeStatus
   };
 };

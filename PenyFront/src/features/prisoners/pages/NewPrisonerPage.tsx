@@ -19,6 +19,8 @@ import { DocumentsStep } from '../components/forms/DocumentsStep';
 import { FormStepper } from '../components/forms/FormStepper';
 import { FormNavigation } from '../components/forms/FormNavigation';
 import { useNewPrisoner } from '../hooks/useNewPrisoner';
+// 🔧 Importar tipos específicos
+import type { BasicInfoUpdate, ContactInfoUpdate, DocumentsUpdate } from '../types';
 
 const NewPrisonerPage = () => {
   const { width } = useViewportSize();
@@ -78,21 +80,24 @@ const NewPrisonerPage = () => {
         return (
           <BasicInfoStep
             data={formData.basicInfo}
-            onUpdate={(data) => updateFormData('basicInfo', data)}
+            // 🔧 Especificar tipo explícito para el parámetro
+            onUpdate={(data: BasicInfoUpdate) => updateFormData('basicInfo', data)}
           />
         );
       case 1:
         return (
           <ContactInfoStep
             data={formData.contactInfo}
-            onUpdate={(data) => updateFormData('contactInfo', data)}
+            // 🔧 Especificar tipo explícito para el parámetro
+            onUpdate={(data: ContactInfoUpdate) => updateFormData('contactInfo', data)}
           />
         );
       case 2:
         return (
           <DocumentsStep
             data={formData.documents}
-            onUpdate={(data) => updateFormData('documents', data)}
+            // 🔧 Especificar tipo explícito para el parámetro
+            onUpdate={(data: DocumentsUpdate) => updateFormData('documents', data)}
           />
         );
       default:

@@ -20,7 +20,7 @@ export interface Prisoner {
   legalStatus?: string;
   behavior?: string;
   workAssignment?: string;
-  status: PrisonerStatus; // 🔧 Usar union type específico
+  status: PrisonerStatus;
   admissionDate?: string;
   remainingSentence?: string;
   createdAt: string;
@@ -67,9 +67,12 @@ export interface PrisonersTableProps {
   onDownloadPrisoner: (id: string, format?: 'pdf' | 'excel') => void;
 }
 
-export interface PrisonersCardsProps extends PrisonersTableProps {
-  // Mismo tipo que PrisonersTableProps
-}
+// 🔧 Tipo específico en lugar de interface vacía
+export type PrisonersCardsProps = PrisonersTableProps & {
+  // Propiedades adicionales específicas para cards si las necesitas
+  cardSize?: 'sm' | 'md' | 'lg';
+  showPhotos?: boolean;
+};
 
 // Props para controles
 export interface PrisonersControlsProps {
@@ -91,3 +94,29 @@ export interface EmptyStateProps {
 
 // Tipos para modos de vista
 export type ViewMode = 'table' | 'cards';
+
+// Tipos adicionales útiles
+export interface PrisonerFilters {
+  searchTerm?: string;
+  status?: PrisonerStatus | null;
+  ageRange?: { min: number; max: number };
+  cellBlock?: string;
+  behavior?: string;
+}
+
+export interface PrisonerSortOptions {
+  field: keyof Prisoner;
+  direction: 'asc' | 'desc';
+}
+
+export interface PaginationOptions {
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+// Tipo para crear un nuevo prisionero (sin campos auto-generados)
+export type CreatePrisonerData = Omit<Prisoner, 'id' | 'createdAt' | 'updatedAt' | 'lastUpdate'>;
+
+// Tipo para actualizar un prisionero existente
+export type UpdatePrisonerData = Partial<Omit<Prisoner, 'id' | 'createdAt'>>;
