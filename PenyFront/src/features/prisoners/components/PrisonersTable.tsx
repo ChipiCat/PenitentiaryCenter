@@ -6,20 +6,9 @@ import {
   Flex,
   Pagination
 } from '@mantine/core';
-import type { Prisoner } from '../utils/types';
 import { getStatusColor } from '../utils/prisonerUtils';
 import { PrisonerActions } from './PrisonerActions';
-
-interface PrisonersTableProps {
-  prisoners: Prisoner[];
-  totalPages: number;
-  activePage: number;
-  onPageChange: (page: number) => void;
-  onViewPrisoner: (id: string) => void;
-  onEditPrisoner: (id: string) => void;
-  onDeletePrisoner: (id: string) => void;
-  onDownloadPrisoner?: (id: string) => void;
-}
+import type { PrisonersTableProps } from '../types';
 
 export const PrisonersTable = ({
   prisoners,

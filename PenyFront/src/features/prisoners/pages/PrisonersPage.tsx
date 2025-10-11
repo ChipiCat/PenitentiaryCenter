@@ -1,12 +1,12 @@
 import { Container, Stack } from '@mantine/core';
 import { useState } from 'react';
-import type { ViewMode } from './utils/types';
-import { usePrisoners } from './hooks/usePrisoners';
-import { PrisonersHeader } from './components/PrisonersHeader';
-import { PrisonersControls } from './components/PrisonersControls';
-import { PrisonersTable } from './components/PrisonersTable';
-import { PrisonersCards } from './components/PrisonersCards';
-import { EmptyState } from './components/EmptyState';
+import type { ViewMode } from '../types';
+import { usePrisoners } from '../hooks/usePrisoners'; 
+import { PrisonersHeader } from '../components/PrisonersHeader';
+import { PrisonersControls } from '../components/PrisonersControls';
+import { PrisonersTable } from '../components/PrisonersTable';
+import { PrisonersCards } from '../components/PrisonersCards';
+import { EmptyState } from '../components/EmptyState';
 
 const PrisonersPage = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('table');
@@ -20,38 +20,16 @@ const PrisonersPage = () => {
     setActivePage,
     filteredPrisoners,
     paginatedPrisoners,
-    totalPages
-  } = usePrisoners();
-
-  // Funciones para las acciones
-  const handleViewPrisoner = (id: string) => {
-    console.log('Ver expediente:', id);
-    // navigate(`/prisoners/${id}`);
-  };
-
-  const handleEditPrisoner = (id: string) => {
-    console.log('Editar prisionero:', id);
-    // navigate(`/prisoners/${id}/edit`);
-  };
-
-  const handleDeletePrisoner = (id: string) => {
-    console.log('Eliminar prisionero:', id);
-    // Mostrar modal de confirmación
-  };
-
-  const handleDownloadPrisoner = (id: string) => {
-    console.log('Descargar expediente:', id);
-    // Lógica para descargar PDF
-  };
-
-  const handleNewPrisoner = () => {
-    console.log('Nuevo interno');
-    // navigate('/prisoners/new');
-  };
+    totalPages,
+    handleNewPrisoner,
+    handleViewPrisoner,
+    handleEditPrisoner,
+    handleDeletePrisoner,
+    handleDownloadPrisoner
+  } = usePrisoners(); 
 
   const hasFilters = Boolean(searchTerm || statusFilter);
 
-  // Componente de vista según el modo seleccionado
   const renderPrisonersView = () => {
     if (filteredPrisoners.length === 0) {
       return (

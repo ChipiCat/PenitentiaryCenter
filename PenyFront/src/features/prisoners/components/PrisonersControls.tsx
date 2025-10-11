@@ -14,19 +14,8 @@ import {
   List,
   Grid3X3
 } from 'lucide-react';
-import type { Prisoner, ViewMode } from '../utils/types';
+import type { PrisonersControlsProps } from '../types'; // 🔧 Importar desde tipos unificados
 import { getStatusFilterOptions } from '../utils/prisonerUtils';
-
-interface PrisonersControlsProps {
-  searchTerm: string;
-  setSearchTerm: (term: string) => void;
-  statusFilter: string | null;
-  setStatusFilter: (status: string | null) => void;
-  viewMode: ViewMode;
-  setViewMode: (mode: ViewMode) => void;
-  filteredPrisoners: Prisoner[];
-  onNewPrisoner: () => void;
-}
 
 export const PrisonersControls = ({
   searchTerm,
@@ -72,7 +61,7 @@ export const PrisonersControls = ({
             leftSection={<Plus size={16} />}
             onClick={onNewPrisoner}
           >
-            Nuevo Interno
+            Nuevo Recluso
           </Button>
         </Group>
       </Group>
@@ -89,8 +78,12 @@ export const PrisonersControls = ({
         <Text size="sm" c="yellow">
           En Proceso: {filteredPrisoners.filter(p => p.status === 'En Proceso').length}
         </Text>
-        <Text size="sm" c="purple">
+        <Text size="sm" c="blue">
           Liberados: {filteredPrisoners.filter(p => p.status === 'Liberado').length}
+        </Text>
+        {/* 🔧 Agregar otros estados si existen */}
+        <Text size="sm" c="gray">
+          Inactivos: {filteredPrisoners.filter(p => p.status === 'Inactivo').length}
         </Text>
       </Group>
     </Paper>
