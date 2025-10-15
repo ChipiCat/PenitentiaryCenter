@@ -69,3 +69,216 @@ model UserAuth {
 
   @@map("user_auth")
 }
+
+//////////////////////
+// Prisoners module
+//////////////////////
+
+enum PrisonerStatus {
+  Activo
+  Trasladado
+  Liberado
+  Archivado
+}
+
+enum CitizenshipType {
+  Local
+  CiudadanoNacional
+  CiudadanoExtranjero
+}
+
+enum Gender {
+  Masculino
+  Femenino
+  Otro
+}
+
+enum MaritalStatus {
+  Soltero
+  Casado
+  Viudo
+  Divorciado
+}
+
+enum IdDocumentType {
+  CedulaDeIdentidad
+  Pasaporte
+  Otro
+}
+
+enum PrisonerCategory {
+  DerechoComun
+  PrisionPreventiva
+  PrisioneroAcusado
+}
+
+model Prisoner {
+  id                 String                  @id @default(cuid())
+  registrationNumber String                  @unique
+  admissionDate      DateTime
+  fiscalFileNumber   String?
+  status             PrisonerStatus          @default(Activo)
+
+  // Base entity fields
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  // Relations
+  identity    PrisonerIdentity?
+  personal    PrisonerPersonal?
+  penitentiary PrisonerPenitentiary?
+  medicalRecords MedicalRecord[]
+  belongings  PrisonerBelonging[]
+  contacts    PrisonerContact[]
+  children    PrisonerChild[]
+
+  @@map("prisoners")
+}
+
+model PrisonerIdentity {
+  id                       String   @id @default(cuid())
+  prisonerId               String   @unique
+  photoUrl                 String?
+  rightHandFingerprintUrl  String?
+  leftHandFingerprintUrl   String?
+  surname                  String
+  firstName                String
+  birthDate                DateTime?
+  birthPlace               String?
+  residence                String?
+  citizenshipType          CitizenshipType?
+  countryOfOrigin         String?
+  nationalityType          String?
+  nationality              String?
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+
+  @@map("prisoner_identity")
+}
+
+model PrisonerPersonal {
+  id                String   @id @default(cuid())
+  prisonerId        String   @unique
+  gender            Gender?
+  fatherName        String?
+  motherName        String?
+  educationLevel    String?
+  occupation        String?
+  languages         String?
+  maritalStatus     MaritalStatus?
+  idDocumentType    IdDocumentType?
+  idDocumentNumber  String?
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+
+  @@map("prisoner_personal")
+}
+
+model PrisonerPenitentiary {
+  id            String @id @default(cuid())
+  prisonerId    String @unique
+  category      PrisonerCategory?
+  buildingNumber String?
+  cellNumber    String?
+  bedNumber     String?
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+
+  @@map("prisoner_penitentiary")
+}
+
+model MedicalRecord {
+  id             String   @id @default(cuid())
+  prisonerId     String
+  doctorName     String?
+  examinationDate DateTime?
+  referenceNumber String?
+  filePath       String?
+  notes          String?
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+
+  @@map("medical_records")
+}
+
+model PrisonerBelonging {
+  id          String  @id @default(cuid())
+  prisonerId  String
+  description String
+  quantity    Int     @default(1)
+  condition   String?
+  returned    Boolean @default(false)
+  filePath    String?
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+
+  @@map("prisoner_belongings")
+}
+
+model PrisonerContact {
+  id         String @id @default(cuid())
+  prisonerId String
+  name       String
+  relationship String
+  phone      String
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+
+  @@map("prisoner_contacts")
+}
+
+model PrisonerChild {
+  id          String  @id @default(cuid())
+  prisonerId  String
+  fullName    String
+  birthDate   DateTime?
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+
+  @@map("prisoner_children")
+}
