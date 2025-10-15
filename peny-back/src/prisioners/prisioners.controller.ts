@@ -8,7 +8,6 @@ import {
   Param,
   Query,
   UseGuards,
-  Req,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -28,6 +27,7 @@ import {
   PrisonerListResponseDto,
 } from './dto/prisoner.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('Prisoners')
 @ApiBearerAuth()
@@ -47,9 +47,8 @@ export class PrisionersController {
   @ApiResponse({ status: 401, description: 'No autorizado' })
   async create(
     @Body() createDto: CreatePrisonerDTO,
-    @Req() req: any,
+    @CurrentUser() userId: string,
   ): Promise<PrisonerResponseDTO> {
-    const userId = req.user.userId; // Extraído del JWT por JwtAuthGuard
     return this.prisionersService.create(createDto, userId);
   }
 
@@ -95,9 +94,8 @@ export class PrisionersController {
   async update(
     @Param('id') id: string,
     @Body() updateDto: UpdatePrisonerDto,
-    @Req() req: any,
+    @CurrentUser() userId: string,
   ): Promise<PrisonerResponseDTO> {
-    const userId = req.user.userId;
     return this.prisionersService.update(id, updateDto, userId);
   }
 
@@ -108,8 +106,10 @@ export class PrisionersController {
   @ApiResponse({ status: 204, description: 'Prisionero eliminado exitosamente' })
   @ApiResponse({ status: 404, description: 'Prisionero no encontrado' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
-  async remove(@Param('id') id: string, @Req() req: any): Promise<void> {
-    const userId = req.user.userId;
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser() userId: string,
+  ): Promise<void> {
     return this.prisionersService.remove(id, userId);
   }
 }
