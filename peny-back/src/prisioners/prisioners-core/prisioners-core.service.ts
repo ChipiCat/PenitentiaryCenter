@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { Prisoner, PrisonerStatus } from '../../generated/prisma';
+import { PrismaService } from '../../prisma/prisma.service';
+import { Prisoner, PrisonerStatus } from '../../../generated/prisma';
 import {
   CreatePrisonerDTO,
   UpdatePrisonerDto,
@@ -8,7 +8,7 @@ import {
   PrisonerListQueryDto,
   PrisonerListResponseDto,
 } from './dto/prisoner.dto';
-import { PaginationMetaDto } from '../common/interfaces/entity.interface';
+import { PaginationMetaDto } from '../../common/interfaces/entity.interface';
 
 @Injectable()
 export class PrisionersService {

@@ -1,4 +1,4 @@
-import { createParamDecorator, ExecutionContext, Logger } from '@nestjs/common';
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
 /**
  * Decorador para extraer el ID del usuario autenticado desde el JWT

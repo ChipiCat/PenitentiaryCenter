@@ -18,16 +18,16 @@ import {
   ApiBearerAuth,                                                                                                                                                                                                                            
   ApiParam,
 } from '@nestjs/swagger';
-import { PrisionersService } from './prisioners-core/prisioners-core.service';
+import { PrisionersService } from './prisioners-core.service';
 import {
   CreatePrisonerDTO,
   UpdatePrisonerDto,
   PrisonerResponseDTO,
   PrisonerListQueryDto,
   PrisonerListResponseDto,
-} from './prisioners-core/dto/prisoner.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CurrentUser } from '../common/decorators/current-user.decorator';
+} from './dto/prisoner.dto';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @ApiTags('Prisoners')
 @ApiBearerAuth()
