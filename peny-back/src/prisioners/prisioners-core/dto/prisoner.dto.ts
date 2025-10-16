@@ -73,7 +73,7 @@ export class CreatePrisonerDTO {
 
 
 export class PrisonerResponseDTO {
-  @ApiProperty({ example: 'uuid-123', description: 'ID único del prisionero' })
+  @ApiProperty({ example: 'cuid-123', description: 'ID único del prisionero' })
   id: string;
 
   @ApiProperty({ example: 'REG-12345' })

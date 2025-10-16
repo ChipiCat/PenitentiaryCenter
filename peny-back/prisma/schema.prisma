@@ -27,11 +27,11 @@ enum UserRole {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  role      UserRole @default(SECRETARY)
-  photoUrl  String?
+  id       String   @id @default(cuid())
+  name     String
+  email    String   @unique
+  role     UserRole @default(SECRETARY)
+  photoUrl String?
 
   // Base entity fields
   isDeleted Boolean  @default(false)
@@ -41,11 +41,11 @@ model User {
   updatedBy String?
 
   // Relations
-  userAuth     UserAuth?
-  createdUsers User[]    @relation("UserCreatedBy")
-  updatedUsers User[]    @relation("UserUpdatedBy")
-  createdByUser User?    @relation("UserCreatedBy", fields: [createdBy], references: [id])
-  updatedByUser User?    @relation("UserUpdatedBy", fields: [updatedBy], references: [id])
+  userAuth      UserAuth?
+  createdUsers  User[]    @relation("UserCreatedBy")
+  updatedUsers  User[]    @relation("UserUpdatedBy")
+  createdByUser User?     @relation("UserCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User?     @relation("UserUpdatedBy", fields: [updatedBy], references: [id])
 
   @@map("users")
 }
@@ -113,11 +113,11 @@ enum PrisonerCategory {
 }
 
 model Prisoner {
-  id                 String                  @id @default(cuid())
-  registrationNumber String                  @unique
+  id                 String         @id @default(cuid())
+  registrationNumber String         @unique
   admissionDate      DateTime
   fiscalFileNumber   String?
-  status             PrisonerStatus          @default(Activo)
+  status             PrisonerStatus @default(Activo)
 
   // Base entity fields
   isDeleted Boolean  @default(false)
@@ -127,32 +127,32 @@ model Prisoner {
   updatedBy String?
 
   // Relations
-  identity    PrisonerIdentity?
-  personal    PrisonerPersonal?
-  penitentiary PrisonerPenitentiary?
+  identity       PrisonerIdentity?
+  personal       PrisonerPersonal?
+  penitentiary   PrisonerPenitentiary?
   medicalRecords MedicalRecord[]
-  belongings  PrisonerBelonging[]
-  contacts    PrisonerContact[]
-  children    PrisonerChild[]
+  belongings     PrisonerBelonging[]
+  contacts       PrisonerContact[]
+  children       PrisonerChild[]
 
   @@map("prisoners")
 }
 
 model PrisonerIdentity {
-  id                       String   @id @default(cuid())
-  prisonerId               String   @unique
-  photoUrl                 String?
-  rightHandFingerprintUrl  String?
-  leftHandFingerprintUrl   String?
-  surname                  String
-  firstName                String
-  birthDate                DateTime?
-  birthPlace               String?
-  residence                String?
-  citizenshipType          CitizenshipType?
-  countryOfOrigin         String?
-  nationalityType          String?
-  nationality              String?
+  id                     String           @id @default(cuid())
+  prisonerId             String           @unique
+  photoFileId            String?
+  rightFingerprintFileId String?
+  leftFingerprintFileId  String?
+  surname                String
+  firstName              String
+  birthDate              DateTime?
+  birthPlace             String?
+  residence              String?
+  citizenshipType        CitizenshipType?
+  countryOfOrigin        String?
+  nationalityType        String?
+  nationality            String?
 
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -160,23 +160,26 @@ model PrisonerIdentity {
   createdBy String?
   updatedBy String?
 
-  prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+  prisoner         Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+  photoFile        File?    @relation("IdentityPhoto", fields: [photoFileId], references: [id], onDelete: SetNull)
+  rightFingerprint File?    @relation("RightFingerprint", fields: [rightFingerprintFileId], references: [id], onDelete: SetNull)
+  leftFingerprint  File?    @relation("LeftFingerprint", fields: [leftFingerprintFileId], references: [id], onDelete: SetNull)
 
   @@map("prisoner_identity")
 }
 
 model PrisonerPersonal {
-  id                String   @id @default(cuid())
-  prisonerId        String   @unique
-  gender            Gender?
-  fatherName        String?
-  motherName        String?
-  educationLevel    String?
-  occupation        String?
-  languages         String?
-  maritalStatus     MaritalStatus?
-  idDocumentType    IdDocumentType?
-  idDocumentNumber  String?
+  id               String          @id @default(cuid())
+  prisonerId       String          @unique
+  gender           Gender?
+  fatherName       String?
+  motherName       String?
+  educationLevel   String?
+  occupation       String?
+  languages        String?
+  maritalStatus    MaritalStatus?
+  idDocumentType   IdDocumentType?
+  idDocumentNumber String?
 
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -190,12 +193,12 @@ model PrisonerPersonal {
 }
 
 model PrisonerPenitentiary {
-  id            String @id @default(cuid())
-  prisonerId    String @unique
-  category      PrisonerCategory?
+  id             String            @id @default(cuid())
+  prisonerId     String            @unique
+  category       PrisonerCategory?
   buildingNumber String?
-  cellNumber    String?
-  bedNumber     String?
+  cellNumber     String?
+  bedNumber      String?
 
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -209,13 +212,13 @@ model PrisonerPenitentiary {
 }
 
 model MedicalRecord {
-  id             String   @id @default(cuid())
-  prisonerId     String
-  doctorName     String?
+  id              String    @id @default(cuid())
+  prisonerId      String
+  doctorName      String?
   examinationDate DateTime?
   referenceNumber String?
-  filePath       String?
-  notes          String?
+  fileId        String?
+  notes           String?
 
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -224,6 +227,7 @@ model MedicalRecord {
   updatedBy String?
 
   prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+  file     File?    @relation("MedicalFile", fields: [fileId], references: [id], onDelete: SetNull)
 
   @@map("medical_records")
 }
@@ -235,7 +239,7 @@ model PrisonerBelonging {
   quantity    Int     @default(1)
   condition   String?
   returned    Boolean @default(false)
-  filePath    String?
+  inventoryFileId    String?
 
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -244,16 +248,17 @@ model PrisonerBelonging {
   updatedBy String?
 
   prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+  inventoryFile File?    @relation("BelongingInventory", fields: [inventoryFileId], references: [id], onDelete: SetNull)
 
   @@map("prisoner_belongings")
 }
 
 model PrisonerContact {
-  id         String @id @default(cuid())
-  prisonerId String
-  name       String
+  id           String @id @default(cuid())
+  prisonerId   String
+  name         String
   relationship String
-  phone      String
+  phone        String
 
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -267,10 +272,10 @@ model PrisonerContact {
 }
 
 model PrisonerChild {
-  id          String  @id @default(cuid())
-  prisonerId  String
-  fullName    String
-  birthDate   DateTime?
+  id         String    @id @default(cuid())
+  prisonerId String
+  fullName   String
+  birthDate  DateTime?
 
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -281,4 +286,46 @@ model PrisonerChild {
   prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
 
   @@map("prisoner_children")
+}
+
+//Model File:
+model File {
+  id String @id @default(cuid())
+
+  // URLs y paths
+  url         String
+  storagePath String?
+
+  // Metadata del archivo
+  filename     String
+  originalName String
+  mimeType     String
+  extension    String
+  size         Int
+
+  // Storage provider
+  storageType String // "cloudinary" | "s3"
+
+  // Relación polimórfica
+  entityType String // "prisoner_identity", "medical_record", "belonging"
+  entityId   String // ID de la entidad relacionada
+  fieldName  String // "photo", "right_fingerprint", "left_fingerprint", etc
+
+  // Auditoría
+  createdBy String
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  // Relaciones inversas
+  identityPhotos      PrisonerIdentity[]  @relation("IdentityPhoto")
+  identityRightPrints PrisonerIdentity[]  @relation("RightFingerprint")
+  identityLeftPrints  PrisonerIdentity[]  @relation("LeftFingerprint")
+  medicalRecords      MedicalRecord[]     @relation("MedicalFile")
+  belongings          PrisonerBelonging[] @relation("BelongingInventory")
+
+  @@index([entityType, entityId])
+  @@index([entityType, entityId, fieldName])
+  @@index([createdBy])
+  @@index([deletedAt])
+  @@map("files")
 }

@@ -1,12 +1,9 @@
 import { Module } from '@nestjs/common';
-import { PrisionersController } from './prisioners.controller';
-import { PrisionersService } from './prisioners.service';
-import { PrismaModule } from '../prisma/prisma.module';
+import { PrisionersCoreModule } from './prisioners-core/prisioners-core.module';
+import { PrisonerIdentityModule } from './prisoner-identity/prisoner-identity.module';
 
 @Module({
-  imports: [PrismaModule],
-  controllers: [PrisionersController],
-  providers: [PrisionersService],
-  exports: [PrisionersService],
+  imports: [PrisionersCoreModule, PrisonerIdentityModule],
+  exports: [PrisionersCoreModule, PrisonerIdentityModule],
 })
 export class PrisionersModule {}
