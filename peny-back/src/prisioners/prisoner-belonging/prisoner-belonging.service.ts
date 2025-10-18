@@ -7,6 +7,7 @@ import {
   BelongingResponseDto,
 } from './dto/belonging.dto';
 import { File, PrisonerBelonging } from 'generated/prisma';
+import { UploadedFile } from '../../files/interfaces/uploaded-file.interface';
 
 @Injectable()
 export class PrisonerBelongingService {
@@ -199,7 +200,7 @@ export class PrisonerBelongingService {
   async uploadFile(
     prisonerId: string,
     belongingId: string,
-    file: any,
+    file: UploadedFile,
     userId: string,
   ): Promise<BelongingResponseDto> {
     // Verificar que el artículo exista

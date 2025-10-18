@@ -12,6 +12,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
+import { UploadedFile } from '../interfaces/uploaded-file.interface';
 
 @Injectable()
 export class S3Provider implements IStorageProvider {
@@ -49,11 +50,17 @@ export class S3Provider implements IStorageProvider {
     }
   }
 
-  async uploadFile(file: any, folder: string): Promise<UploadResult> {
+  async uploadFile(file: UploadedFile, folder: string): Promise<UploadResult> {
     try {
       this.logger.log(
         `Uploading to S3: ${file.originalname} to folder ${folder}`,
       );
+
+      if (!file.buffer) {
+        throw new InternalServerErrorException(
+          'File buffer is required for S3 upload',
+        );
+      }
 
       const filename = `${Date.now()}_${file.originalname}`;
       const key = `${folder}/${filename}`;
@@ -80,11 +87,22 @@ export class S3Provider implements IStorageProvider {
         size: file.size,
         mimeType: file.mimetype,
       };
-    } catch (error) {
-      this.logger.error(`Error uploading to S3: ${error.message}`, error.stack);
-      throw new InternalServerErrorException(
-        `Failed to upload file to S3: ${error.message}`,
-      );
+    } catch (error: unknown) {
+      if (typeof error === 'object' && error !== null && 'message' in error) {
+        const errMsg = String((error as { message?: any }).message);
+        this.logger.error(
+          `Error uploading to S3: ${errMsg}`,
+          (error as Error).stack,
+        );
+        throw new InternalServerErrorException(
+          `Failed to upload file to S3: ${errMsg}`,
+        );
+      } else {
+        this.logger.error('Unknown error uploading to S3', String(error));
+        throw new InternalServerErrorException(
+          'Failed to upload file to S3: Unknown error',
+        );
+      }
     }
   }
 
@@ -100,14 +118,22 @@ export class S3Provider implements IStorageProvider {
       await this.s3Client.send(command);
 
       this.logger.log(`File deleted successfully from S3: ${storagePath}`);
-    } catch (error) {
-      this.logger.error(
-        `Error deleting from S3: ${error.message}`,
-        error.stack,
-      );
-      throw new InternalServerErrorException(
-        `Failed to delete file from S3: ${error.message}`,
-      );
+    } catch (error: unknown) {
+      if (typeof error === 'object' && error !== null && 'message' in error) {
+        const errMsg = String((error as { message?: any }).message);
+        this.logger.error(
+          `Error deleting from S3: ${errMsg}`,
+          (error as Error).stack,
+        );
+        throw new InternalServerErrorException(
+          `Failed to delete file from S3: ${errMsg}`,
+        );
+      } else {
+        this.logger.error('Unknown error deleting from S3', String(error));
+        throw new InternalServerErrorException(
+          'Failed to delete file from S3: Unknown error',
+        );
+      }
     }
   }
 }

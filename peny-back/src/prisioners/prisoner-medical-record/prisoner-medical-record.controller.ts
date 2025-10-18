@@ -30,6 +30,7 @@ import {
 } from './dto/medical-record.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import type { UploadedFile as UploadedFileType } from '../../files/interfaces/uploaded-file.interface';
 
 @ApiTags('Prisoner Medical Records')
 @ApiBearerAuth()
@@ -150,7 +151,7 @@ export class PrisonerMedicalRecordController {
   async uploadFile(
     @Param('prisonerId') prisonerId: string,
     @Param('recordId') recordId: string,
-    @UploadedFile() file: any,
+    @UploadedFile() file: UploadedFileType,
     @CurrentUser() userId: string,
   ): Promise<MedicalRecordResponseDto> {
     if (!file) {

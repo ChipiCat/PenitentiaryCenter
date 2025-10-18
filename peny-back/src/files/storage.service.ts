@@ -2,6 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { CloudinaryProvider } from './providers/cloudinary.provider';
 import { S3Provider } from './providers/s3.provider';
 import { UploadResult } from './interfaces/storage-provider.interface';
+import { UploadedFile } from './interfaces/uploaded-file.interface';
 
 @Injectable()
 export class StorageService {
@@ -15,7 +16,7 @@ export class StorageService {
    * - Imágenes → Cloudinary
    * - PDFs y otros documentos → S3
    */
-  async uploadFile(file: any, folder: string): Promise<UploadResult> {
+  async uploadFile(file: UploadedFile, folder: string): Promise<UploadResult> {
     if (!file) {
       throw new BadRequestException('No file provided');
     }
