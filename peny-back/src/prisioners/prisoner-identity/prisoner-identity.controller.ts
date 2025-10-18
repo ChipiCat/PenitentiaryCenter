@@ -46,7 +46,10 @@ export class IdentityController {
     description: 'Identidad creada exitosamente',
     type: IdentityResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Datos inválidos o identidad ya existe' })
+  @ApiResponse({
+    status: 400,
+    description: 'Datos inválidos o identidad ya existe',
+  })
   @ApiResponse({ status: 404, description: 'Prisionero no encontrado' })
   async create(
     @Param('prisonerId') prisonerId: string,
@@ -65,12 +68,16 @@ export class IdentityController {
     type: IdentityResponseDto,
   })
   @ApiResponse({ status: 404, description: 'Identidad no encontrada' })
-  async findOne(@Param('prisonerId') prisonerId: string): Promise<IdentityResponseDto> {
+  async findOne(
+    @Param('prisonerId') prisonerId: string,
+  ): Promise<IdentityResponseDto> {
     return this.identityService.findOne(prisonerId);
   }
 
   @Put()
-  @ApiOperation({ summary: 'Actualizar información de identidad del prisionero' })
+  @ApiOperation({
+    summary: 'Actualizar información de identidad del prisionero',
+  })
   @ApiParam({ name: 'prisonerId', description: 'ID del prisionero' })
   @ApiResponse({
     status: 200,
@@ -133,8 +140,15 @@ export class IdentityController {
       throw new BadRequestException('No file provided');
     }
     if (!hand || !['right', 'left'].includes(hand)) {
-      throw new BadRequestException('Invalid hand parameter. Must be "right" or "left"');
+      throw new BadRequestException(
+        'Invalid hand parameter. Must be "right" or "left"',
+      );
     }
-    return this.identityService.uploadFingerprint(prisonerId, file, hand, userId);
+    return this.identityService.uploadFingerprint(
+      prisonerId,
+      file,
+      hand,
+      userId,
+    );
   }
 }

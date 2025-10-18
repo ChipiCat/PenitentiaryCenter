@@ -15,7 +15,7 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiBearerAuth,                                                                                                                                                                                                                            
+  ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
 import { PrisionersService } from './prisioners-core.service';
@@ -26,6 +26,7 @@ import {
   PrisonerListQueryDto,
   PrisonerListResponseDto,
 } from './dto/prisoner.dto';
+import { CompletePrisonerProfileDto } from './dto/full-prisoner.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
@@ -66,6 +67,26 @@ export class PrisionersController {
     return this.prisionersService.findAll(query);
   }
 
+  @Get('complete-profile/:id')
+  @ApiOperation({
+    summary: 'Obtener perfil completo del prisionero',
+    description:
+      'Obtiene toda la información del prisionero en una sola llamada (útil para visualización de perfil completo)',
+  })
+  @ApiParam({ name: 'id', description: 'ID del prisionero' })
+  @ApiResponse({
+    status: 200,
+    description: 'Perfil completo del prisionero',
+    type: CompletePrisonerProfileDto,
+  })
+  @ApiResponse({ status: 404, description: 'Prisionero no encontrado' })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  async getCompleteProfile(
+    @Param('id') id: string,
+  ): Promise<CompletePrisonerProfileDto> {
+    return this.prisionersService.getCompleteProfile(id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un prisionero por ID' })
   @ApiParam({ name: 'id', description: 'ID del prisionero' })
@@ -103,7 +124,10 @@ export class PrisionersController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Eliminar un prisionero (soft delete)' })
   @ApiParam({ name: 'id', description: 'ID del prisionero' })
-  @ApiResponse({ status: 204, description: 'Prisionero eliminado exitosamente' })
+  @ApiResponse({
+    status: 204,
+    description: 'Prisionero eliminado exitosamente',
+  })
   @ApiResponse({ status: 404, description: 'Prisionero no encontrado' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   async remove(

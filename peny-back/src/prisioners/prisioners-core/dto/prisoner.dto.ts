@@ -1,7 +1,15 @@
-
-import { IsString, IsOptional, IsIn, IsDateString, MinLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsIn,
+  IsDateString,
+  MinLength,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { PaginationMetaDto, ResponseListDto } from 'src/common/interfaces/entity.interface';
+import {
+  PaginationMetaDto,
+  ResponseListDto,
+} from 'src/common/interfaces/entity.interface';
 
 export class UpdatePrisonerDto {
   @ApiPropertyOptional({ example: 'REG-12345' })
@@ -14,7 +22,10 @@ export class UpdatePrisonerDto {
   @IsOptional()
   fiscal_file_number?: string;
 
-  @ApiPropertyOptional({ enum: ['Activo', 'Trasladado', 'Liberado', 'Archivado'], example: 'Activo' })
+  @ApiPropertyOptional({
+    enum: ['Activo', 'Trasladado', 'Liberado', 'Archivado'],
+    example: 'Activo',
+  })
   @IsIn(['Activo', 'Trasladado', 'Liberado', 'Archivado'])
   @IsOptional()
   status?: 'Activo' | 'Trasladado' | 'Liberado' | 'Archivado';
@@ -29,7 +40,10 @@ export class PrisonerListQueryDto {
   @IsOptional()
   limit?: number;
 
-  @ApiPropertyOptional({ enum: ['Activo', 'Trasladado', 'Liberado', 'Archivado'], example: 'Activo' })
+  @ApiPropertyOptional({
+    enum: ['Activo', 'Trasladado', 'Liberado', 'Archivado'],
+    example: 'Activo',
+  })
   @IsOptional()
   status?: string;
 
@@ -38,8 +52,6 @@ export class PrisonerListQueryDto {
   search?: string;
 }
 
-
-
 export class PrisonerListResponseDto extends ResponseListDto<PrisonerResponseDTO> {
   constructor(data: PrisonerResponseDTO[], pagination: PaginationMetaDto) {
     super(data, pagination);
@@ -47,16 +59,25 @@ export class PrisonerListResponseDto extends ResponseListDto<PrisonerResponseDTO
 }
 
 export class CreatePrisonerDTO {
-  @ApiProperty({ example: 'REG-12345', description: 'Número de registro único del prisionero' })
+  @ApiProperty({
+    example: 'REG-12345',
+    description: 'Número de registro único del prisionero',
+  })
   @IsString()
   @MinLength(1)
   registration_number: string;
 
-  @ApiProperty({ example: '2025-10-14', description: 'Fecha de admisión en formato ISO 8601' })
+  @ApiProperty({
+    example: '2025-10-14',
+    description: 'Fecha de admisión en formato ISO 8601',
+  })
   @IsDateString()
   admission_date: string;
 
-  @ApiPropertyOptional({ example: 'FISC-67890', description: 'Número de expediente fiscal' })
+  @ApiPropertyOptional({
+    example: 'FISC-67890',
+    description: 'Número de expediente fiscal',
+  })
   @IsString()
   @IsOptional()
   fiscal_file_number?: string;
@@ -70,7 +91,6 @@ export class CreatePrisonerDTO {
   @IsOptional()
   status?: 'Activo' | 'Trasladado' | 'Liberado' | 'Archivado';
 }
-
 
 export class PrisonerResponseDTO {
   @ApiProperty({ example: 'cuid-123', description: 'ID único del prisionero' })

@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PrisionersController } from '../prisioners.controller';
+import { PrisionersController } from './prisioners-core.controller';
 import { PrisionersService } from './prisioners-core.service';
 import { PrismaModule } from '../../prisma/prisma.module';
 

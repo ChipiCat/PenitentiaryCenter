@@ -1,6 +1,17 @@
-import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
-import { IStorageProvider, UploadResult } from '../interfaces/storage-provider.interface';
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+  Injectable,
+  Logger,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import {
+  IStorageProvider,
+  UploadResult,
+} from '../interfaces/storage-provider.interface';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 
 @Injectable()
 export class S3Provider implements IStorageProvider {
@@ -23,16 +34,26 @@ export class S3Provider implements IStorageProvider {
     });
 
     // Validar que las credenciales estén configuradas
-    if (!process.env.AWS_S3_BUCKET || !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-      this.logger.warn('AWS S3 credentials not configured. Please check your .env file.');
+    if (
+      !process.env.AWS_S3_BUCKET ||
+      !process.env.AWS_ACCESS_KEY_ID ||
+      !process.env.AWS_SECRET_ACCESS_KEY
+    ) {
+      this.logger.warn(
+        'AWS S3 credentials not configured. Please check your .env file.',
+      );
     } else {
-      this.logger.log(`AWS S3 configured successfully - Bucket: ${this.bucket}, Region: ${this.region}`);
+      this.logger.log(
+        `AWS S3 configured successfully - Bucket: ${this.bucket}, Region: ${this.region}`,
+      );
     }
   }
 
   async uploadFile(file: any, folder: string): Promise<UploadResult> {
     try {
-      this.logger.log(`Uploading to S3: ${file.originalname} to folder ${folder}`);
+      this.logger.log(
+        `Uploading to S3: ${file.originalname} to folder ${folder}`,
+      );
 
       const filename = `${Date.now()}_${file.originalname}`;
       const key = `${folder}/${filename}`;
@@ -61,7 +82,9 @@ export class S3Provider implements IStorageProvider {
       };
     } catch (error) {
       this.logger.error(`Error uploading to S3: ${error.message}`, error.stack);
-      throw new InternalServerErrorException(`Failed to upload file to S3: ${error.message}`);
+      throw new InternalServerErrorException(
+        `Failed to upload file to S3: ${error.message}`,
+      );
     }
   }
 
@@ -78,8 +101,13 @@ export class S3Provider implements IStorageProvider {
 
       this.logger.log(`File deleted successfully from S3: ${storagePath}`);
     } catch (error) {
-      this.logger.error(`Error deleting from S3: ${error.message}`, error.stack);
-      throw new InternalServerErrorException(`Failed to delete file from S3: ${error.message}`);
+      this.logger.error(
+        `Error deleting from S3: ${error.message}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException(
+        `Failed to delete file from S3: ${error.message}`,
+      );
     }
   }
 }

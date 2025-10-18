@@ -5,9 +5,9 @@ import { PrismaModule } from '../../prisma/prisma.module';
 import { FilesModule } from '../../files/files.module';
 
 @Module({
-	imports: [PrismaModule, FilesModule],
-	controllers: [PrisonerBelongingController],
-	providers: [PrisonerBelongingService],
-	exports: [PrisonerBelongingService],
+  imports: [PrismaModule, FilesModule],
+  controllers: [PrisonerBelongingController],
+  providers: [PrisonerBelongingService],
+  exports: [PrisonerBelongingService],
 })
 export class PrisonerBelongingModule {}

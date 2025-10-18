@@ -1,6 +1,15 @@
-import { Injectable, NotFoundException, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CreatePenitentiaryDto, PenitentiaryResponseDto } from './dto/penitentiary.dto';
+import {
+  CreatePenitentiaryDto,
+  PenitentiaryResponseDto,
+} from './dto/penitentiary.dto';
+import { PrisonerPenitentiary } from 'generated/prisma';
 
 @Injectable()
 export class PrisonerPenitentiaryService {
@@ -52,10 +61,19 @@ export class PrisonerPenitentiaryService {
         },
       });
 
-      this.logger.log(`Penitentiary info created successfully: ${penitentiary.id}`);
+      this.logger.log(
+        `Penitentiary info created successfully: ${penitentiary.id}`,
+      );
       return this.mapToResponseDto(penitentiary);
-    } catch (error) {
-      this.logger.error(`Error creating penitentiary info: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.error(
+          `Error creating penitentiary info: ${error.message}`,
+          error.stack,
+        );
+      } else {
+        this.logger.error('Error creating penitentiary info', String(error));
+      }
       throw error;
     }
   }
@@ -115,8 +133,15 @@ export class PrisonerPenitentiaryService {
 
       this.logger.log(`Penitentiary info updated successfully: ${updated.id}`);
       return this.mapToResponseDto(updated);
-    } catch (error) {
-      this.logger.error(`Error updating penitentiary info: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.error(
+          `Error updating penitentiary info: ${error.message}`,
+          error.stack,
+        );
+      } else {
+        this.logger.error('Error updating penitentiary info', String(error));
+      }
       throw error;
     }
   }
@@ -124,7 +149,9 @@ export class PrisonerPenitentiaryService {
   /**
    * Mapper de modelo Prisma a DTO
    */
-  private mapToResponseDto(penitentiary: any): PenitentiaryResponseDto {
+  private mapToResponseDto(
+    penitentiary: PrisonerPenitentiary,
+  ): PenitentiaryResponseDto {
     return {
       id: penitentiary.id,
       prisoner_id: penitentiary.prisonerId,

@@ -1,6 +1,12 @@
-import { Injectable, NotFoundException, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreatePersonalDto, PersonalResponseDto } from './dto/personal.dto';
+import { PrisonerPersonal } from '../../../generated/prisma';
 
 @Injectable()
 export class PrisonerPersonalService {
@@ -59,12 +65,18 @@ export class PrisonerPersonalService {
 
       this.logger.log(`Personal info created successfully: ${personal.id}`);
       return this.mapToResponseDto(personal);
-    } catch (error) {
-      this.logger.error(`Error creating personal info: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.error(
+          `Error creating personal info: ${error.message}`,
+          error.stack,
+        );
+      } else {
+        this.logger.error('Error creating personal info', String(error));
+      }
       throw error;
     }
   }
-
   /**
    * Obtiene información personal de un prisionero
    */
@@ -118,15 +130,23 @@ export class PrisonerPersonalService {
           languages: updateDto.languages ?? existing.languages,
           maritalStatus: updateDto.marital_status ?? existing.maritalStatus,
           idDocumentType: updateDto.id_document_type ?? existing.idDocumentType,
-          idDocumentNumber: updateDto.id_document_number ?? existing.idDocumentNumber,
+          idDocumentNumber:
+            updateDto.id_document_number ?? existing.idDocumentNumber,
           updatedBy: userId,
         },
       });
 
       this.logger.log(`Personal info updated successfully: ${updated.id}`);
       return this.mapToResponseDto(updated);
-    } catch (error) {
-      this.logger.error(`Error updating personal info: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.error(
+          `Error updating personal info: ${error.message}`,
+          error.stack,
+        );
+      } else {
+        this.logger.error('Error updating personal info', String(error));
+      }
       throw error;
     }
   }
@@ -134,7 +154,7 @@ export class PrisonerPersonalService {
   /**
    * Mapper de modelo Prisma a DTO
    */
-  private mapToResponseDto(personal: any): PersonalResponseDto {
+  private mapToResponseDto(personal: PrisonerPersonal): PersonalResponseDto {
     return {
       id: personal.id,
       prisoner_id: personal.prisonerId,
