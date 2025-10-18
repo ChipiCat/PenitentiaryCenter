@@ -118,8 +118,8 @@ export class FilesService {
       config = UPLOAD_CONFIG.photo;
     } else if (fieldName.includes('fingerprint')) {
       config = UPLOAD_CONFIG.fingerprint;
-    } else if (fieldName === 'medical_document') {
-      config = UPLOAD_CONFIG.medical_document;
+    } else if (fieldName === 'medical_file') {
+      config = UPLOAD_CONFIG.medical_file;
     } else if (fieldName === 'inventory') {
       config = UPLOAD_CONFIG.belonging_inventory;
     } else {
@@ -147,7 +147,7 @@ export class FilesService {
   private getFolderForField(fieldName: string): string {
     if (fieldName === 'photo') return UPLOAD_CONFIG.photo.folder;
     if (fieldName.includes('fingerprint')) return UPLOAD_CONFIG.fingerprint.folder;
-    if (fieldName === 'medical_document') return UPLOAD_CONFIG.medical_document.folder;
+    if (fieldName === 'medical_document') return UPLOAD_CONFIG.medical_file.folder;
     if (fieldName === 'inventory') return UPLOAD_CONFIG.belonging_inventory.folder;
     return 'uploads';
   }
