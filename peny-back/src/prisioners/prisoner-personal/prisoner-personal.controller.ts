@@ -8,7 +8,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { PrisonerPersonalService } from './prisoner-personal.service';
 import { CreatePersonalDto, PersonalResponseDto } from './dto/personal.dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -53,7 +58,10 @@ export class PrisonerPersonalController {
     description: 'Información personal obtenida exitosamente',
     type: PersonalResponseDto,
   })
-  @ApiResponse({ status: 404, description: 'Información personal no encontrada' })
+  @ApiResponse({
+    status: 404,
+    description: 'Información personal no encontrada',
+  })
   async findOne(
     @Param('prisonerId') prisonerId: string,
   ): Promise<PersonalResponseDto> {
@@ -72,7 +80,10 @@ export class PrisonerPersonalController {
     description: 'Información personal actualizada exitosamente',
     type: PersonalResponseDto,
   })
-  @ApiResponse({ status: 404, description: 'Información personal no encontrada' })
+  @ApiResponse({
+    status: 404,
+    description: 'Información personal no encontrada',
+  })
   async update(
     @Param('prisonerId') prisonerId: string,
     @Body() updateDto: CreatePersonalDto,

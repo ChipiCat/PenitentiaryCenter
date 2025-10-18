@@ -24,8 +24,10 @@ export class FilesService {
     userId: string,
   ): Promise<FileResponseDto> {
     try {
-      this.logger.log(`Starting file upload for ${fieldName} - entity: ${entityType}:${entityId}`);
-      
+      this.logger.log(
+        `Starting file upload for ${fieldName} - entity: ${entityType}:${entityId}`,
+      );
+
       // Validar archivo según configuración
       this.validateFile(file, fieldName);
 
@@ -37,10 +39,14 @@ export class FilesService {
       const uploadResult = await this.storageService.uploadFile(file, folder);
 
       // Extraer extensión
-      const extension = file.originalname ? file.originalname.split('.').pop() : '';
+      const extension = file.originalname
+        ? file.originalname.split('.').pop()
+        : '';
 
       // Determinar tipo de storage
-      const storageType = file.mimetype.startsWith('image/') ? 'cloudinary' : 's3';
+      const storageType = file.mimetype.startsWith('image/')
+        ? 'cloudinary'
+        : 's3';
 
       // Guardar en BD
       this.logger.log(`Saving file metadata to database`);
@@ -87,7 +93,10 @@ export class FilesService {
 
     // Eliminar del storage
     try {
-      await this.storageService.deleteFile(file.storageType, file.storagePath || '');
+      await this.storageService.deleteFile(
+        file.storageType,
+        file.storagePath || '',
+      );
     } catch (error) {
       this.logger.error(`Failed to delete file from storage: ${error}`);
     }
@@ -146,9 +155,12 @@ export class FilesService {
    */
   private getFolderForField(fieldName: string): string {
     if (fieldName === 'photo') return UPLOAD_CONFIG.photo.folder;
-    if (fieldName.includes('fingerprint')) return UPLOAD_CONFIG.fingerprint.folder;
-    if (fieldName === 'medical_document') return UPLOAD_CONFIG.medical_file.folder;
-    if (fieldName === 'inventory') return UPLOAD_CONFIG.belonging_inventory.folder;
+    if (fieldName.includes('fingerprint'))
+      return UPLOAD_CONFIG.fingerprint.folder;
+    if (fieldName === 'medical_document')
+      return UPLOAD_CONFIG.medical_file.folder;
+    if (fieldName === 'inventory')
+      return UPLOAD_CONFIG.belonging_inventory.folder;
     return 'uploads';
   }
 

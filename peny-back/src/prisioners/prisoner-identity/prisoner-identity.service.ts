@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { FilesService } from '../../files/files.service';
 import {
@@ -6,7 +10,12 @@ import {
   IdentityResponseDto,
   UpdateIdentityDto,
 } from './dto/identity.dto';
-import { CitizenshipType } from '../../../generated/prisma';
+import {
+  CitizenshipType,
+  File,
+  Prisma,
+  PrisonerIdentity,
+} from '../../../generated/prisma';
 
 @Injectable()
 export class IdentityService {
@@ -38,7 +47,9 @@ export class IdentityService {
     });
 
     if (existing) {
-      throw new BadRequestException('Identity already exists for this prisoner');
+      throw new BadRequestException(
+        'Identity already exists for this prisoner',
+      );
     }
 
     const identity = await this.prisma.prisonerIdentity.create({
@@ -80,7 +91,9 @@ export class IdentityService {
     });
 
     if (!identity) {
-      throw new NotFoundException(`Identity not found for prisoner ${prisonerId}`);
+      throw new NotFoundException(
+        `Identity not found for prisoner ${prisonerId}`,
+      );
     }
 
     return this.mapToResponseDto(identity);
@@ -99,7 +112,9 @@ export class IdentityService {
     });
 
     if (!existing) {
-      throw new NotFoundException(`Identity not found for prisoner ${prisonerId}`);
+      throw new NotFoundException(
+        `Identity not found for prisoner ${prisonerId}`,
+      );
     }
 
     const identity = await this.prisma.prisonerIdentity.update({
@@ -107,7 +122,9 @@ export class IdentityService {
       data: {
         surname: updateDto.surname,
         firstName: updateDto.first_name,
-        birthDate: updateDto.birth_date ? new Date(updateDto.birth_date) : undefined,
+        birthDate: updateDto.birth_date
+          ? new Date(updateDto.birth_date)
+          : undefined,
         birthPlace: updateDto.birth_place,
         residence: updateDto.residence,
         citizenshipType: updateDto.citizenship_type as CitizenshipType,
@@ -140,7 +157,9 @@ export class IdentityService {
     });
 
     if (!identity) {
-      throw new NotFoundException(`Identity not found for prisoner ${prisonerId}`);
+      throw new NotFoundException(
+        `Identity not found for prisoner ${prisonerId}`,
+      );
     }
 
     // Subir el archivo
@@ -189,11 +208,14 @@ export class IdentityService {
     });
 
     if (!identity) {
-      throw new NotFoundException(`Identity not found for prisoner ${prisonerId}`);
+      throw new NotFoundException(
+        `Identity not found for prisoner ${prisonerId}`,
+      );
     }
 
     // Subir el archivo
-    const fieldName = hand === 'right' ? 'right_fingerprint' : 'left_fingerprint';
+    const fieldName =
+      hand === 'right' ? 'right_fingerprint' : 'left_fingerprint';
     const fileRecord = await this.filesService.uploadFile(
       file,
       'prisoner_identity',
@@ -204,17 +226,21 @@ export class IdentityService {
 
     // Si existía una huella anterior, eliminarla
     const oldFileId =
-      hand === 'right' ? identity.rightFingerprintFileId : identity.leftFingerprintFileId;
+      hand === 'right'
+        ? identity.rightFingerprintFileId
+        : identity.leftFingerprintFileId;
     if (oldFileId) {
       await this.filesService.deleteFile(oldFileId);
     }
 
     // Actualizar la identidad con el nuevo file
-    const updateData: any = { updatedBy: userId };
+    const updateData: Prisma.PrisonerIdentityUpdateInput = {
+      updatedBy: userId,
+    };
     if (hand === 'right') {
-      updateData.rightFingerprintFileId = fileRecord.id;
+      updateData.rightFingerprint = { connect: { id: fileRecord.id } };
     } else {
-      updateData.leftFingerprintFileId = fileRecord.id;
+      updateData.leftFingerprint = { connect: { id: fileRecord.id } };
     }
 
     const updated = await this.prisma.prisonerIdentity.update({
@@ -233,67 +259,90 @@ export class IdentityService {
   /**
    * Mapper de modelo Prisma a DTO
    */
-  private mapToResponseDto(identity: any): IdentityResponseDto {
+  private mapToResponseDto(
+    identity: PrisonerIdentity & {
+      photoFile?: File | null;
+      rightFingerprint?: File | null;
+      leftFingerprint?: File | null;
+    },
+  ): IdentityResponseDto {
     return {
       id: identity.id,
       prisoner_id: identity.prisonerId,
       photo_file_id: identity.photoFileId || undefined,
-      photo_file: identity.photoFile ? {
-        id: identity.photoFile.id,
-        url: identity.photoFile.url,
-        storagePath: identity.photoFile.storagePath || undefined,
-        filename: identity.photoFile.originalFilename,
-        originalName: identity.photoFile.originalFilename,
-        mimeType: identity.photoFile.mimeType,
-  extension: identity.photoFile.originalFilename ? identity.photoFile.originalFilename.split('.').pop() : '',
-        size: identity.photoFile.sizeBytes,
-        storageType: identity.photoFile.storageProvider,
-        entityType: identity.photoFile.entityType,
-        entityId: identity.photoFile.entityId,
-        fieldName: identity.photoFile.fieldName,
-        createdBy: identity.photoFile.createdBy || '',
-        createdAt: identity.photoFile.createdAt.toISOString(),
-        deletedAt: identity.photoFile.deletedAt?.toISOString() || undefined,
-      } : undefined,
+      photo_file: identity.photoFile
+        ? {
+            id: identity.photoFile.id,
+            url: identity.photoFile.url,
+            storagePath: identity.photoFile.storagePath || undefined,
+            filename: identity.photoFile.fieldName,
+            originalName: identity.photoFile.originalName,
+            mimeType: identity.photoFile.mimeType,
+            extension: identity.photoFile.originalName
+              ? (identity.photoFile.originalName.split('.').pop() ?? '')
+              : '',
+            size: identity.photoFile.size,
+            storageType: identity.photoFile.storageType,
+            entityType: identity.photoFile.entityType,
+            entityId: identity.photoFile.entityId,
+            fieldName: identity.photoFile.fieldName,
+            createdBy: identity.photoFile.createdBy || '',
+            createdAt: identity.photoFile.createdAt.toISOString(),
+            deletedAt: identity.photoFile.deletedAt?.toISOString() || undefined,
+          }
+        : undefined,
       right_fingerprint_file_id: identity.rightFingerprintFileId || undefined,
-      right_fingerprint: identity.rightFingerprint ? {
-        id: identity.rightFingerprint.id,
-        url: identity.rightFingerprint.url,
-        storagePath: identity.rightFingerprint.storagePath || undefined,
-        filename: identity.rightFingerprint.originalFilename,
-        originalName: identity.rightFingerprint.originalFilename,
-        mimeType: identity.rightFingerprint.mimeType,
-  extension: identity.rightFingerprint.originalFilename ? identity.rightFingerprint.originalFilename.split('.').pop() : '',
-        size: identity.rightFingerprint.sizeBytes,
-        storageType: identity.rightFingerprint.storageProvider,
-        entityType: identity.rightFingerprint.entityType,
-        entityId: identity.rightFingerprint.entityId,
-        fieldName: identity.rightFingerprint.fieldName,
-        createdBy: identity.rightFingerprint.createdBy || '',
-        createdAt: identity.rightFingerprint.createdAt.toISOString(),
-        deletedAt: identity.rightFingerprint.deletedAt?.toISOString() || undefined,
-      } : undefined,
+      right_fingerprint: identity.rightFingerprint
+        ? {
+            id: identity.rightFingerprint.id,
+            url: identity.rightFingerprint.url,
+            storagePath: identity.rightFingerprint.storagePath || undefined,
+            filename: identity.rightFingerprint.fieldName,
+            originalName: identity.rightFingerprint.originalName,
+            mimeType: identity.rightFingerprint.mimeType,
+            extension: identity.rightFingerprint.originalName
+              ? (identity.rightFingerprint.originalName.split('.').pop() ?? '')
+              : '',
+            size: identity.rightFingerprint.size,
+            storageType: identity.rightFingerprint.storageType,
+            entityType: identity.rightFingerprint.entityType,
+            entityId: identity.rightFingerprint.entityId,
+            fieldName: identity.rightFingerprint.fieldName,
+            createdBy: identity.rightFingerprint.createdBy || '',
+            createdAt: identity.rightFingerprint.createdAt.toISOString(),
+            deletedAt:
+              identity.rightFingerprint.deletedAt?.toISOString() || undefined,
+          }
+        : undefined,
       left_fingerprint_file_id: identity.leftFingerprintFileId || undefined,
-      left_fingerprint: identity.leftFingerprint ? {
-        id: identity.leftFingerprint.id,
-        url: identity.leftFingerprint.url,
-        storagePath: identity.leftFingerprint.storagePath || undefined,
-        filename: identity.leftFingerprint.originalFilename,
-        originalName: identity.leftFingerprint.originalFilename,
-        mimeType: identity.leftFingerprint.mimeType,
-  extension: identity.leftFingerprint.originalFilename ? identity.leftFingerprint.originalFilename.split('.').pop() : '',
-        size: identity.leftFingerprint.sizeBytes,
-        storageType: identity.leftFingerprint.storageProvider,
-        entityType: identity.leftFingerprint.entityType,
-        entityId: identity.leftFingerprint.entityId,
-        fieldName: identity.leftFingerprint.fieldName,
-        createdBy: identity.leftFingerprint.createdBy || '',
-        createdAt: identity.leftFingerprint.createdAt.toISOString(),
-        deletedAt: identity.leftFingerprint.deletedAt?.toISOString() || undefined,
-      } : undefined,
+      left_fingerprint:
+        identity.leftFingerprint == null
+          ? undefined
+          : {
+              id: identity.leftFingerprint.id,
+              url: identity.leftFingerprint.url,
+              storagePath: identity.leftFingerprint.storagePath || undefined,
+              filename: identity.leftFingerprint.fieldName,
+              originalName: identity.leftFingerprint.originalName,
+              mimeType: identity.leftFingerprint.mimeType,
+              extension: identity.leftFingerprint.originalName
+                ? (identity.leftFingerprint.originalName.split('.').pop() ?? '')
+                : '',
+              size: identity.leftFingerprint.size,
+              storageType: identity.leftFingerprint.storageType,
+              entityType: identity.leftFingerprint.entityType,
+              entityId: identity.leftFingerprint.entityId,
+              fieldName: identity.leftFingerprint.fieldName,
+              createdBy: identity.leftFingerprint.createdBy || '',
+              createdAt: identity.leftFingerprint.createdAt.toISOString(),
+              deletedAt:
+                identity.leftFingerprint.deletedAt?.toISOString() || undefined,
+            },
       surname: identity.surname,
       first_name: identity.firstName,
-      birth_date: identity.birthDate ? identity.birthDate.toISOString().split('T')[0] : undefined,
+      birth_date: identity.birthDate
+        ? identity.birthDate.toISOString().split('T')[0]
+        : undefined,
       birth_place: identity.birthPlace || undefined,
       residence: identity.residence || undefined,
       citizenship_type: identity.citizenshipType || undefined,

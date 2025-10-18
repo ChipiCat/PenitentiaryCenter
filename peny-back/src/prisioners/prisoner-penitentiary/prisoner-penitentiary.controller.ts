@@ -9,9 +9,17 @@ import {
   HttpStatus,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { PrisonerPenitentiaryService } from './prisoner-penitentiary.service';
-import { CreatePenitentiaryDto, PenitentiaryResponseDto } from './dto/penitentiary.dto';
+import {
+  CreatePenitentiaryDto,
+  PenitentiaryResponseDto,
+} from './dto/penitentiary.dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
@@ -20,7 +28,9 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 @Controller('prisoners/:prisonerId/penitentiary')
 export class PrisonerPenitentiaryController {
-  constructor(private readonly penitentiaryService: PrisonerPenitentiaryService) {}
+  constructor(
+    private readonly penitentiaryService: PrisonerPenitentiaryService,
+  ) {}
 
   /**
    * POST /api/prisoners/:prisoner_id/penitentiary
@@ -34,7 +44,10 @@ export class PrisonerPenitentiaryController {
     description: 'Información penitenciaria creada exitosamente',
     type: PenitentiaryResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Información penitenciaria ya existe' })
+  @ApiResponse({
+    status: 400,
+    description: 'Información penitenciaria ya existe',
+  })
   @ApiResponse({ status: 404, description: 'Prisionero no encontrado' })
   async create(
     @Param('prisonerId') prisonerId: string,
@@ -56,7 +69,10 @@ export class PrisonerPenitentiaryController {
     description: 'Información penitenciaria obtenida exitosamente',
     type: PenitentiaryResponseDto,
   })
-  @ApiResponse({ status: 404, description: 'Información penitenciaria no encontrada' })
+  @ApiResponse({
+    status: 404,
+    description: 'Información penitenciaria no encontrada',
+  })
   async findOne(
     @Param('prisonerId') prisonerId: string,
   ): Promise<PenitentiaryResponseDto> {
@@ -69,13 +85,18 @@ export class PrisonerPenitentiaryController {
    */
   @Put()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Actualizar información penitenciaria del prisionero' })
+  @ApiOperation({
+    summary: 'Actualizar información penitenciaria del prisionero',
+  })
   @ApiResponse({
     status: 200,
     description: 'Información penitenciaria actualizada exitosamente',
     type: PenitentiaryResponseDto,
   })
-  @ApiResponse({ status: 404, description: 'Información penitenciaria no encontrada' })
+  @ApiResponse({
+    status: 404,
+    description: 'Información penitenciaria no encontrada',
+  })
   async update(
     @Param('prisonerId') prisonerId: string,
     @Body() updateDto: CreatePenitentiaryDto,

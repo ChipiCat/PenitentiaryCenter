@@ -2,9 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsOptional, IsIn, IsDateString } from 'class-validator';
 import { FileResponseDto } from '../../../files/dto/file.dto';
 
-
 export class CreateIdentityDto {
-
   @ApiProperty({ example: 'García' })
   @IsString()
   surname: string;
@@ -28,9 +26,9 @@ export class CreateIdentityDto {
   @IsOptional()
   residence?: string;
 
-  @ApiPropertyOptional({ 
-    enum: ['Local', 'Ciudadano Nacional', 'Ciudadano Extranjero'], 
-    example: 'Local' 
+  @ApiPropertyOptional({
+    enum: ['Local', 'Ciudadano Nacional', 'Ciudadano Extranjero'],
+    example: 'Local',
   })
   @IsIn(['Local', 'Ciudadano Nacional', 'Ciudadano Extranjero'])
   @IsOptional()
@@ -60,7 +58,7 @@ export class IdentityResponseDto {
   prisoner_id: string;
 
   // URLs de archivos (más conveniente para el frontend)
-    @ApiPropertyOptional({
+  @ApiPropertyOptional({
     description: 'Photo file ID',
     example: 'cm68qh0y90000i0yrwsefybrk',
   })
@@ -177,8 +175,8 @@ export class UpdateIdentityDto {
   @IsOptional()
   residence?: string;
 
-  @ApiPropertyOptional({ 
-    enum: ['Local', 'Ciudadano Nacional', 'Ciudadano Extranjero'] 
+  @ApiPropertyOptional({
+    enum: ['Local', 'Ciudadano Nacional', 'Ciudadano Extranjero'],
   })
   @IsIn(['Local', 'Ciudadano Nacional', 'Ciudadano Extranjero'])
   @IsOptional()
@@ -204,19 +202,19 @@ export class UpdateIdentityDto {
 // UPLOAD DTOs (se mantienen igual)
 // ============================================================
 export class UploadPhotoDto {
-  @ApiProperty({ 
-    type: 'string', 
-    format: 'binary', 
-    description: 'Imagen del prisionero (JPG, PNG)' 
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    description: 'Imagen del prisionero (JPG, PNG)',
   })
   file: any;
 }
 
 export class UploadFingerprintDto {
-  @ApiProperty({ 
-    type: 'string', 
-    format: 'binary', 
-    description: 'Imagen o PDF de la huella dactilar' 
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    description: 'Imagen o PDF de la huella dactilar',
   })
   file: any;
 
