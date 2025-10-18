@@ -4,6 +4,7 @@ import { PrisonerIdentityModule } from './prisoner-identity/prisoner-identity.mo
 import { PrisonerPersonalModule } from './prisoner-personal/prisoner-personal.module';
 import { PrisonerPenitentiaryModule } from './prisoner-penitentiary/prisoner-penitentiary.module';
 import { PrisonerMedicalRecordModule } from './prisoner-medical-record/prisoner-medical-record.module';
+import { PrisonerBelongingModule } from './prisoner-belonging/prisoner-belonging.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { PrisonerMedicalRecordModule } from './prisoner-medical-record/prisoner-
     PrisonerPersonalModule,
     PrisonerPenitentiaryModule,
     PrisonerMedicalRecordModule,
+    PrisonerBelongingModule,
   ],
   exports: [
     PrisionersCoreModule,
@@ -19,6 +21,7 @@ import { PrisonerMedicalRecordModule } from './prisoner-medical-record/prisoner-
     PrisonerPersonalModule,
     PrisonerPenitentiaryModule,
     PrisonerMedicalRecordModule,
+    PrisonerBelongingModule,
   ],
 })
 export class PrisionersModule {}
