@@ -31,6 +31,7 @@ import {
 } from './dto/belonging.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import type { UploadedFile as UploadedFileType } from '../../files/interfaces/uploaded-file.interface';
 
 @ApiTags('Prisoner Belongings')
 @ApiBearerAuth()
@@ -147,7 +148,7 @@ export class PrisonerBelongingController {
   async uploadFile(
     @Param('prisonerId') prisonerId: string,
     @Param('belongingId') belongingId: string,
-    @UploadedFile() file: any,
+    @UploadedFile() file: UploadedFileType,
     @CurrentUser() userId: string,
   ): Promise<BelongingResponseDto> {
     if (!file) {

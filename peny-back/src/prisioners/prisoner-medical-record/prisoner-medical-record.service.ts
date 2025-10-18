@@ -7,6 +7,7 @@ import {
   MedicalRecordResponseDto,
 } from './dto/medical-record.dto';
 import { File, MedicalRecord } from 'generated/prisma';
+import { UploadedFile } from '../../files/interfaces/uploaded-file.interface';
 
 @Injectable()
 export class PrisonerMedicalRecordService {
@@ -203,7 +204,7 @@ export class PrisonerMedicalRecordService {
   async uploadFile(
     prisonerId: string,
     recordId: string,
-    file: any,
+    file: UploadedFile,
     userId: string,
   ): Promise<MedicalRecordResponseDto> {
     // Verificar que el registro exista

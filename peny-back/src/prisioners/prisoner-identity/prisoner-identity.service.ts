@@ -16,6 +16,7 @@ import {
   Prisma,
   PrisonerIdentity,
 } from '../../../generated/prisma';
+import { UploadedFile } from '../../files/interfaces/uploaded-file.interface';
 
 @Injectable()
 export class IdentityService {
@@ -148,7 +149,7 @@ export class IdentityService {
    */
   async uploadPhoto(
     prisonerId: string,
-    file: any,
+    file: UploadedFile,
     userId: string,
   ): Promise<IdentityResponseDto> {
     // Verificar que la identidad existe
@@ -198,7 +199,7 @@ export class IdentityService {
    */
   async uploadFingerprint(
     prisonerId: string,
-    file: any,
+    file: UploadedFile,
     hand: 'right' | 'left',
     userId: string,
   ): Promise<IdentityResponseDto> {

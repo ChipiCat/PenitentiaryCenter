@@ -28,6 +28,7 @@ import {
   UploadPhotoDto,
   UploadFingerprintDto,
 } from './dto/identity.dto';
+import type { UploadedFile as UploadedFileType } from '../../files/interfaces/uploaded-file.interface';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
@@ -108,7 +109,7 @@ export class IdentityController {
   @ApiResponse({ status: 404, description: 'Identidad no encontrada' })
   async uploadPhoto(
     @Param('prisonerId') prisonerId: string,
-    @UploadedFile() file: any,
+    @UploadedFile() file: UploadedFileType,
     @CurrentUser() userId: string,
   ): Promise<IdentityResponseDto> {
     if (!file) {
@@ -133,7 +134,7 @@ export class IdentityController {
   async uploadFingerprint(
     @Param('prisonerId') prisonerId: string,
     @Body('hand') hand: 'right' | 'left',
-    @UploadedFile() file: any,
+    @UploadedFile() file: UploadedFileType,
     @CurrentUser() userId: string,
   ): Promise<IdentityResponseDto> {
     if (!file) {

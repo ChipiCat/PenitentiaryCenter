@@ -1,13 +1,22 @@
-import { createParamDecorator, ExecutionContext, Logger } from '@nestjs/common';
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import type { Request } from 'express';
+
+interface AuthenticatedUser {
+  id: string;
+  // Puedes agregar más campos si tu JWT los incluye
+}
+
+interface AuthenticatedRequest extends Request {
+  user?: AuthenticatedUser;
+}
 
 /**
  * Decorador para extraer el ID del usuario autenticado desde el JWT
  * Uso: @CurrentUser() userId: string
  */
 export const CurrentUser = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext): string => {
-    const request = ctx.switchToHttp().getRequest();
-    Logger.log(`CurrentUser decorator invoked. User: ${request.user}  `);
-    return request.user?.id; // Extraído por JwtAuthGuard
+  (data: unknown, ctx: ExecutionContext): string | undefined => {
+    const request: AuthenticatedRequest = ctx.switchToHttp().getRequest();
+    return request.user?.id;
   },
 );

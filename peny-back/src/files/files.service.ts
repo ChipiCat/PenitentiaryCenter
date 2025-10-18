@@ -1,8 +1,10 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from './storage.service';
-import { CreateFileDto, FileResponseDto } from './dto/file.dto';
+import { FileResponseDto } from './dto/file.dto';
 import { UPLOAD_CONFIG } from '../common/config/config';
+import { UploadedFile } from './interfaces/uploaded-file.interface';
+import { File } from 'generated/prisma';
 
 @Injectable()
 export class FilesService {
@@ -17,7 +19,7 @@ export class FilesService {
    * Sube un archivo y guarda su metadata en la BD
    */
   async uploadFile(
-    file: any,
+    file: UploadedFile,
     entityType: string,
     entityId: string,
     fieldName: string,
@@ -40,7 +42,7 @@ export class FilesService {
 
       // Extraer extensión
       const extension = file.originalname
-        ? file.originalname.split('.').pop()
+        ? (file.originalname.split('.').pop() ?? '')
         : '';
 
       // Determinar tipo de storage
@@ -69,8 +71,15 @@ export class FilesService {
 
       this.logger.log(`File uploaded successfully: ${fileRecord.id}`);
       return this.mapToResponseDto(fileRecord);
-    } catch (error) {
-      this.logger.error(`Error uploading file: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.error(
+          `Error uploading file: ${error.message}`,
+          error.stack,
+        );
+      } else {
+        this.logger.error(`Error uploading file: ${String(error)}`);
+      }
       throw error;
     }
   }
@@ -120,8 +129,8 @@ export class FilesService {
   /**
    * Valida el archivo según configuración
    */
-  private validateFile(file: any, fieldName: string): void {
-    let config;
+  private validateFile(file: UploadedFile, fieldName: string): void {
+    let config: { allowedTypes: string[]; maxSize: number; folder: string };
 
     if (fieldName === 'photo') {
       config = UPLOAD_CONFIG.photo;
@@ -167,7 +176,7 @@ export class FilesService {
   /**
    * Mapper de modelo Prisma a DTO
    */
-  private mapToResponseDto(file: any): FileResponseDto {
+  private mapToResponseDto(file: File): FileResponseDto {
     return {
       id: file.id,
       url: file.url,
