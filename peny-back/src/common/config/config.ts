@@ -9,7 +9,7 @@ export const UPLOAD_CONFIG = {
     maxSize: 10 * 1024 * 1024, // 10MB
     folder: 'fingerprints'
   },
-  medical_document: {
+  medical_file: {
     allowedTypes: ['application/pdf', 'image/jpeg', 'image/png'],
     maxSize: 20 * 1024 * 1024, // 20MB
     folder: 'medical'
