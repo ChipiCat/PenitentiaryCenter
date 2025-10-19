@@ -20,7 +20,7 @@ export const UPLOAD_CONFIG = {
     folder: 'inventories',
   },
 
-  mandated_document: {
+  mandate_document: {
     allowedTypes: ['application/pdf'],
     maxSize: 15 * 1024 * 1024, // 15MB
     folder: 'mandated_documents',
