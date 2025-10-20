@@ -5,6 +5,8 @@ import {
   UseGuards,
   Get,
   Request,
+  Ip,
+  Headers,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -16,6 +18,16 @@ import {
 } from './dto/auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
+interface AuthenticatedRequest {
+  user?: {
+    id?: string;
+    name?: string;
+    email?: string;
+    role?: string;
+    photoUrl?: string;
+  };
+}
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
@@ -25,50 +37,63 @@ export class AuthController {
   @ApiOperation({ summary: 'Register a new user' })
   @ApiBody({ type: RegisterDto })
   @ApiResponse({ status: 201, description: 'User registered successfully.' })
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+  async register(
+    @Body() registerDto: RegisterDto,
+    @Ip() ipAddress: string,
+    @Headers('user-agent') userAgent?: string,
+  ) {
+    return this.authService.register(registerDto, ipAddress, userAgent);
   }
 
   @Post('login')
   @ApiOperation({ summary: 'Login user' })
   @ApiBody({ type: LoginDto })
   @ApiResponse({ status: 200, description: 'User logged in.' })
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  async login(
+    @Body() loginDto: LoginDto,
+    @Ip() ipAddress: string,
+    @Headers('user-agent') userAgent?: string,
+  ) {
+    return this.authService.login(loginDto, ipAddress, userAgent);
   }
 
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh access token' })
   @ApiBody({ type: RefreshTokenDto })
   @ApiResponse({ status: 200, description: 'Token refreshed.' })
-  async refresh(@Body() refreshDto: RefreshTokenDto) {
-    return this.authService.refresh(refreshDto);
+  async refresh(
+    @Body() refreshDto: RefreshTokenDto,
+    @Ip() ipAddress: string,
+    @Headers('user-agent') userAgent?: string,
+  ) {
+    return this.authService.refresh(refreshDto, ipAddress, userAgent);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('logout')
   @ApiOperation({ summary: 'Logout user' })
   @ApiBody({ type: LogoutDto })
   @ApiResponse({ status: 200, description: 'User logged out.' })
-  async logout(@Body() logoutDto: LogoutDto) {
-    return this.authService.logout(logoutDto.refreshToken);
+  async logout(
+    @Body() logoutDto: LogoutDto,
+    @Request() req: AuthenticatedRequest,
+    @Ip() ipAddress: string,
+    @Headers('user-agent') userAgent?: string,
+  ) {
+    const userId = req.user?.id;
+    return this.authService.logout(
+      logoutDto.refreshToken,
+      userId,
+      ipAddress,
+      userAgent,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Current user profile.' })
-  async getProfile(
-    @Request()
-    req: {
-      user?: {
-        id?: string;
-        name?: string;
-        email?: string;
-        role?: string;
-        photoUrl?: string;
-      };
-    },
-  ) {
+  async getProfile(@Request() req: AuthenticatedRequest) {
     // Await a resolved Promise to satisfy require-await rule
     await Promise.resolve();
     const user = req.user ?? {};

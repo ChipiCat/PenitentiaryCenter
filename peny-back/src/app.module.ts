@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { PrisionersModule } from './prisioners/prisioners.module';
 import { PrisonerCaseModule } from './prisioners/prisoner-case/prisoner-case.module';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { PrisonerCaseModule } from './prisioners/prisoner-case/prisoner-case.mod
       isGlobal: true,
     }),
     PrismaModule,
+    AuditModule,
     AuthModule,
     UserModule,
     PrisionersModule,

@@ -404,3 +404,260 @@ model PrisonerMandate {
 
   @@map("prisoner_mandates")
 }
+
+//ACTIVIDAD
+
+// ============================================================
+// ENUMS PARA AUDITORÍA
+// ============================================================
+
+enum AuditAction {
+  // Autenticación
+  LOGIN
+  LOGOUT
+  LOGIN_FAILED
+  PASSWORD_CHANGED
+  PASSWORD_RESET_REQUESTED
+  TOKEN_REFRESHED
+  
+  // CRUD genérico
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  
+  // Archivos
+  FILE_UPLOAD
+  FILE_DOWNLOAD
+  FILE_DELETE
+  FILE_VIEW
+  
+  // Prisioneros
+  PRISONER_REGISTERED
+  PRISONER_TRANSFERRED
+  PRISONER_RELEASED
+  PRISONER_STATUS_CHANGED
+  
+  // Identidad
+  IDENTITY_CREATED
+  IDENTITY_UPDATED
+  IDENTITY_PHOTO_UPLOADED
+  FINGERPRINT_UPLOADED
+  
+  // Personal
+  PERSONAL_INFO_CREATED
+  PERSONAL_INFO_UPDATED
+  
+  // Penitenciaria
+  PENITENTIARY_INFO_CREATED
+  PENITENTIARY_INFO_UPDATED
+  CELL_CHANGED
+  
+  // Médico
+  MEDICAL_RECORD_CREATED
+  MEDICAL_RECORD_UPDATED
+  MEDICAL_RECORD_DELETED
+  MEDICAL_FILE_UPLOADED
+  
+  // Pertenencias
+  BELONGING_REGISTERED
+  BELONGING_UPDATED
+  BELONGING_RETURNED
+  BELONGING_INVENTORY_UPLOADED
+  
+  // Contactos
+  CONTACT_ADDED
+  CONTACT_UPDATED
+  CONTACT_DELETED
+  
+  // Hijos
+  CHILD_REGISTERED
+  CHILD_UPDATED
+  CHILD_DELETED
+  
+  // Casos judiciales (futuro)
+  CASE_CREATED
+  CASE_UPDATED
+  CASE_CLOSED
+  
+  // Mandamientos (futuro)
+  MANDATE_ISSUED
+  MANDATE_EXECUTED
+  MANDATE_ANNULLED
+  
+  // Reportes
+  REPORT_GENERATED
+  REPORT_DOWNLOADED
+  
+  // Administración
+  USER_CREATED
+  USER_UPDATED
+  USER_DELETED
+  USER_ROLE_CHANGED
+  PERMISSIONS_CHANGED
+}
+
+enum AuditStatus {
+  SUCCESS
+  FAILED
+  PENDING
+  CANCELLED
+}
+
+enum AuditSeverity {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
+
+enum AuditModule {
+  AUTH
+  PRISONERS
+  IDENTITY
+  PERSONAL
+  PENITENTIARY
+  MEDICAL
+  BELONGINGS
+  CONTACTS
+  CHILDREN
+  CASES
+  MANDATES
+  FILES
+  REPORTS
+  USERS
+  SYSTEM
+}
+
+enum EntityType {
+  PRISONER
+  PRISONER_IDENTITY
+  PRISONER_PERSONAL
+  PRISONER_PENITENTIARY
+  MEDICAL_RECORD
+  PRISONER_BELONGING
+  PRISONER_CONTACT
+  PRISONER_CHILD
+  PRISONER_CASE
+  PRISONER_MANDATE
+  FILE
+  SESSION
+  USER
+  ROLE
+  PERMISSION
+}
+
+enum LogoutReason {
+  USER_LOGOUT
+  TOKEN_EXPIRED
+  SESSION_TIMEOUT
+  FORCE_LOGOUT_BY_ADMIN
+  SUSPICIOUS_ACTIVITY
+  PASSWORD_CHANGED
+  ACCOUNT_DISABLED
+  DEVICE_LIMIT_REACHED
+}
+
+// ============================================================
+// TABLAS CON ENUMS
+// ============================================================
+
+model ActivityLog {
+  id              String         @id @default(cuid())
+  
+  // ¿Quién?
+  userId          String?
+  userEmail       String?
+  userName        String?
+  userRole        String?
+  
+  // ¿Qué?
+  action          AuditAction    // ✅ ENUM
+  entityType      EntityType     // ✅ ENUM
+  entityId        String?
+  
+  // ¿Cuándo?
+  timestamp       DateTime       @default(now())
+  
+  // ¿Dónde?
+  ipAddress       String?
+  userAgent       String?
+  
+  // ¿Cómo?
+  description     String
+  metadata        Json?
+  
+  // Estado
+  status          AuditStatus    @default(SUCCESS) // ✅ ENUM
+  errorMessage    String?
+  
+  // Contexto
+  module          AuditModule?   // ✅ ENUM
+  severity        AuditSeverity  @default(INFO)    // ✅ ENUM
+  
+  // Relaciones
+  dataChanges     DataChangeLog[]
+  sessionLogId    String?
+  sessionLog      SessionLog?    @relation(fields: [sessionLogId], references: [id])
+  
+  @@index([userId, timestamp])
+  @@index([entityType, entityId])
+  @@index([action, timestamp])
+  @@index([module, timestamp])
+  @@index([severity, timestamp])
+  @@index([status, timestamp])
+  @@map("activity_logs")
+}
+
+model SessionLog {
+  id              String        @id @default(cuid())
+  userId          String
+  
+  loginAt         DateTime      @default(now())
+  logoutAt        DateTime?
+  
+  ipAddress       String
+  userAgent       String
+  deviceInfo      String?
+  
+  // Ubicación (opcional)
+  country         String?
+  city            String?
+  
+  // Estado
+  isActive        Boolean       @default(true)
+  logoutReason    LogoutReason? // ✅ ENUM
+  
+  // Relaciones
+  activities      ActivityLog[]
+  
+  @@index([userId, loginAt])
+  @@index([isActive])
+  @@index([logoutReason])
+  @@map("session_logs")
+}
+
+model DataChangeLog {
+  id              String       @id @default(cuid())
+  
+  // Relación con activity log
+  activityLogId   String?
+  activityLog     ActivityLog? @relation(fields: [activityLogId], references: [id])
+  
+  entityType      EntityType   // ✅ ENUM
+  entityId        String
+  fieldName       String
+  
+  oldValue        String?
+  newValue        String?
+  
+  changedBy       String
+  changedAt       DateTime     @default(now())
+  
+  reason          String?
+  
+  @@index([activityLogId])
+  @@index([entityType, entityId, fieldName])
+  @@index([changedBy, changedAt])
+  @@map("data_change_logs")
+}

@@ -9,6 +9,8 @@ import {
   Query,
   UseGuards,
   Request,
+  Ip,
+  Headers,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -46,8 +48,15 @@ export class UserController {
   create(
     @Body() createUserDto: CreateUserDto,
     @Request() req: AuthenticatedRequest,
+    @Ip() ipAddress: string,
+    @Headers('user-agent') userAgent?: string,
   ) {
-    return this.userService.create(createUserDto, req.user?.id);
+    return this.userService.create(
+      createUserDto,
+      req.user?.id,
+      ipAddress,
+      userAgent,
+    );
   }
 
   @Get()
@@ -78,8 +87,16 @@ export class UserController {
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
     @Request() req: AuthenticatedRequest,
+    @Ip() ipAddress: string,
+    @Headers('user-agent') userAgent?: string,
   ) {
-    return this.userService.update(id, updateUserDto, req.user?.id);
+    return this.userService.update(
+      id,
+      updateUserDto,
+      req.user?.id,
+      ipAddress,
+      userAgent,
+    );
   }
 
   @Delete(':id')
@@ -87,7 +104,12 @@ export class UserController {
   @ApiParam({ name: 'id', type: String, description: 'User ID' })
   @ApiResponse({ status: 200, description: 'User deleted.' })
   @ApiResponse({ status: 404, description: 'User not found.' })
-  remove(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
-    return this.userService.remove(id, req.user?.id);
+  remove(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest,
+    @Ip() ipAddress: string,
+    @Headers('user-agent') userAgent?: string,
+  ) {
+    return this.userService.remove(id, req.user?.id, ipAddress, userAgent);
   }
 }
