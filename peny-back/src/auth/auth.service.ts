@@ -13,16 +13,22 @@ import {
   AuthResponseDto,
 } from './dto/auth.dto';
 import * as bcrypt from 'bcryptjs';
-import { UserRole } from '../../generated/prisma';
+import { UserRole, LogoutReason } from '../../generated/prisma';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private auditService: AuditService,
   ) {}
 
-  async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
+  async register(
+    registerDto: RegisterDto,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<AuthResponseDto> {
     const { email, password, name, role, photoUrl } = registerDto;
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
@@ -61,6 +67,19 @@ export class AuthService {
       },
     });
 
+    // Log user creation
+    await this.auditService.logUserCreated(
+      result.id,
+      result.email,
+      result.name,
+      undefined, // createdBy is undefined for self-registration
+      undefined,
+      undefined,
+      undefined,
+      ipAddress,
+      userAgent,
+    );
+
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
@@ -74,7 +93,11 @@ export class AuthService {
     };
   }
 
-  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+  async login(
+    loginDto: LoginDto,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<AuthResponseDto> {
     const { email, password } = loginDto;
     const user = await this.prisma.user.findUnique({
       where: { email, isDeleted: false },
@@ -82,6 +105,13 @@ export class AuthService {
     });
 
     if (!user || !user.userAuth) {
+      // Log failed login attempt
+      await this.auditService.logLoginFailed(
+        email,
+        'Invalid credentials',
+        ipAddress,
+        userAgent,
+      );
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -90,6 +120,13 @@ export class AuthService {
       user.userAuth.passwordHash,
     );
     if (!isPasswordValid) {
+      // Log failed login attempt
+      await this.auditService.logLoginFailed(
+        email,
+        'Invalid password',
+        ipAddress,
+        userAgent,
+      );
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -102,6 +139,24 @@ export class AuthService {
         tokenExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       },
     });
+
+    // Create session log
+    const sessionLog = await this.auditService.createSession({
+      user_id: user.id,
+      ip_address: ipAddress || 'unknown',
+      user_agent: userAgent || 'unknown',
+    });
+
+    // Log successful login
+    await this.auditService.logLogin(
+      user.id,
+      user.email,
+      user.name,
+      user.role,
+      ipAddress,
+      userAgent,
+      sessionLog.id,
+    );
 
     return {
       accessToken: tokens.accessToken,
@@ -116,7 +171,11 @@ export class AuthService {
     };
   }
 
-  async refresh(refreshDto: RefreshTokenDto): Promise<AuthResponseDto> {
+  async refresh(
+    refreshDto: RefreshTokenDto,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<AuthResponseDto> {
     const { refreshToken } = refreshDto;
 
     try {
@@ -145,6 +204,16 @@ export class AuthService {
         },
       });
 
+      // Log token refresh
+      await this.auditService.logTokenRefresh(
+        userAuth.user.id,
+        userAuth.user.email,
+        userAuth.user.name,
+        userAuth.user.role,
+        ipAddress,
+        userAgent,
+      );
+
       return {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
@@ -161,7 +230,43 @@ export class AuthService {
     }
   }
 
-  async logout(refreshToken: string): Promise<{ message: string }> {
+  async logout(
+    refreshToken: string,
+    userId?: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<{ message: string }> {
+    // Get user info from refresh token if userId not provided
+    let user: { id: string; email: string; name: string; role: string } | null =
+      null;
+    if (userId) {
+      const foundUser = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+      if (foundUser) {
+        user = {
+          id: foundUser.id,
+          email: foundUser.email,
+          name: foundUser.name,
+          role: foundUser.role,
+        };
+      }
+    } else {
+      const userAuth = await this.prisma.userAuth.findFirst({
+        where: { refreshToken },
+        include: { user: true },
+      });
+      if (userAuth) {
+        user = {
+          id: userAuth.user.id,
+          email: userAuth.user.email,
+          name: userAuth.user.name,
+          role: userAuth.user.role,
+        };
+      }
+    }
+
+    // Clear refresh token
     await this.prisma.userAuth.updateMany({
       where: { refreshToken },
       data: {
@@ -169,6 +274,33 @@ export class AuthService {
         tokenExpiry: null,
       },
     });
+
+    // If user found, log the logout and close session
+    if (user) {
+      // Get active session
+      const activeSession = await this.auditService.getActiveSession(user.id);
+
+      if (activeSession) {
+        // Close session
+        await this.auditService.updateSession(activeSession.id, {
+          logout_at: new Date(),
+          is_active: false,
+          logout_reason: LogoutReason.USER_LOGOUT,
+        });
+
+        // Log logout
+        await this.auditService.logLogout(
+          user.id,
+          user.email,
+          user.name,
+          user.role,
+          LogoutReason.USER_LOGOUT,
+          ipAddress,
+          userAgent,
+          activeSession.id,
+        );
+      }
+    }
 
     return { message: 'Logged out successfully' };
   }
