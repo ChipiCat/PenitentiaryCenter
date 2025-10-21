@@ -71,7 +71,7 @@ export class PrisonerContactService {
       return cachedUser;
     }
 
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       where: { id: userId, isDeleted: false },
       select: {
         id: true,
@@ -100,7 +100,7 @@ export class PrisonerContactService {
     const userInfo = await this.getUserInfo(userId);
 
     // Verificar que el prisionero exista
-    const prisoner = await this.prisma.prisoner.findUnique({
+    const prisoner = await this.prisma.prisoner.findFirst({
       where: { id: prisonerId, isDeleted: false },
     });
 
@@ -135,6 +135,7 @@ export class PrisonerContactService {
       userInfo?.role,
       ipAddress,
       userAgent,
+      prisonerId, // prisonerRelatedId
     );
 
     return this.mapToResponseDto(contact);
@@ -285,6 +286,7 @@ export class PrisonerContactService {
         userInfo?.role,
         ipAddress,
         userAgent,
+        prisonerId, // prisonerRelatedId
       );
     }
 
@@ -339,6 +341,7 @@ export class PrisonerContactService {
       userInfo?.role,
       ipAddress,
       userAgent,
+      prisonerId, // prisonerRelatedId
     );
 
     return { message: 'Contacto de emergencia eliminado exitosamente' };

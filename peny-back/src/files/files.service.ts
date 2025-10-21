@@ -148,6 +148,10 @@ export class FilesService {
       });
 
       // Log audit - creación sin DataChangeLog
+      const prisonerRelatedId = entityType?.toLowerCase().includes('prisoner')
+        ? entityId
+        : undefined;
+
       await this.auditService.logEntityCreated(
         AuditAction.FILE_UPLOAD,
         EntityType.FILE,
@@ -160,6 +164,7 @@ export class FilesService {
         userInfo?.role,
         ipAddress,
         userAgent,
+        prisonerRelatedId,
       );
 
       this.logger.log(`File uploaded successfully: ${fileRecord.id}`);
@@ -186,7 +191,7 @@ export class FilesService {
       const { ipAddress, userAgent } = this.getAuditMetadata();
       const userInfo = await this.getUserInfo(userId);
 
-      const file = await this.prisma.file.findUnique({ where: { id: fileId } });
+      const file = await this.prisma.file.findFirst({ where: { id: fileId } });
 
       if (!file) {
         throw new BadRequestException('File not found');
@@ -199,6 +204,12 @@ export class FilesService {
       });
 
       // Log audit - eliminación
+      const prisonerRelatedId = file.entityType
+        ?.toLowerCase()
+        .includes('prisoner')
+        ? file.entityId
+        : undefined;
+
       await this.auditService.logEntityDeleted(
         AuditAction.FILE_DELETE,
         EntityType.FILE,
@@ -211,6 +222,7 @@ export class FilesService {
         userInfo?.role,
         ipAddress,
         userAgent,
+        prisonerRelatedId,
       );
 
       // Eliminar del storage
@@ -238,7 +250,7 @@ export class FilesService {
    * Obtiene un archivo por ID
    */
   async findOne(fileId: string): Promise<FileResponseDto> {
-    const file = await this.prisma.file.findUnique({
+    const file = await this.prisma.file.findFirst({
       where: { id: fileId, deletedAt: null },
     });
 

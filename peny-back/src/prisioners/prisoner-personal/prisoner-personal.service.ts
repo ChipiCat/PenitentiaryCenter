@@ -107,7 +107,7 @@ export class PrisonerPersonalService {
       const userInfo = await this.getUserInfo(userId);
 
       // Verificar que el prisionero existe
-      const prisoner = await this.prisma.prisoner.findUnique({
+      const prisoner = await this.prisma.prisoner.findFirst({
         where: { id: prisonerId, isDeleted: false },
       });
 
@@ -116,7 +116,7 @@ export class PrisonerPersonalService {
       }
 
       // Verificar que no exista información personal previa
-      const existing = await this.prisma.prisonerPersonal.findUnique({
+      const existing = await this.prisma.prisonerPersonal.findFirst({
         where: { prisonerId, isDeleted: false },
       });
 
@@ -180,7 +180,7 @@ export class PrisonerPersonalService {
   async findOne(prisonerId: string): Promise<PersonalResponseDto> {
     this.logger.log(`Fetching personal info for prisoner: ${prisonerId}`);
 
-    const personal = await this.prisma.prisonerPersonal.findUnique({
+    const personal = await this.prisma.prisonerPersonal.findFirst({
       where: { prisonerId, isDeleted: false },
     });
 
@@ -207,7 +207,7 @@ export class PrisonerPersonalService {
       const userInfo = await this.getUserInfo(userId);
 
       // Verificar que existe
-      const existing = await this.prisma.prisonerPersonal.findUnique({
+      const existing = await this.prisma.prisonerPersonal.findFirst({
         where: { prisonerId, isDeleted: false },
       });
 

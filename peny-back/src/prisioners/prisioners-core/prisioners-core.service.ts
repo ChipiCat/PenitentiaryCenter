@@ -99,7 +99,7 @@ export class PrisionersService {
       return cachedUser;
     }
 
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       where: { id: userId, isDeleted: false },
       select: {
         id: true,
@@ -128,7 +128,7 @@ export class PrisionersService {
     const userInfo = await this.getUserInfo(userId);
 
     // Verificar que el número de registro no exista
-    const existing = await this.prisma.prisoner.findUnique({
+    const existing = await this.prisma.prisoner.findFirst({
       where: { registrationNumber: createDto.registration_number },
     });
 
@@ -162,6 +162,7 @@ export class PrisionersService {
       userInfo?.role,
       ipAddress,
       userAgent,
+      prisoner.id, // prisonerRelatedId
     );
 
     return this.mapToResponseDto(prisoner);
@@ -219,7 +220,7 @@ export class PrisionersService {
    * Obtiene un prisionero por ID
    */
   async findOne(id: string): Promise<PrisonerResponseDTO> {
-    const prisoner = await this.prisma.prisoner.findUnique({
+    const prisoner = await this.prisma.prisoner.findFirst({
       where: { id },
     });
 
@@ -242,7 +243,7 @@ export class PrisionersService {
     const userInfo = await this.getUserInfo(userId);
 
     // Verificar que existe
-    const existing = await this.prisma.prisoner.findUnique({
+    const existing = await this.prisma.prisoner.findFirst({
       where: { id },
     });
 
@@ -255,7 +256,7 @@ export class PrisionersService {
       updateDto.registration_number &&
       updateDto.registration_number !== existing.registrationNumber
     ) {
-      const duplicate = await this.prisma.prisoner.findUnique({
+      const duplicate = await this.prisma.prisoner.findFirst({
         where: { registrationNumber: updateDto.registration_number },
       });
 
@@ -328,6 +329,7 @@ export class PrisionersService {
         userInfo?.role,
         ipAddress,
         userAgent,
+        prisoner.id, // prisonerRelatedId
       );
     }
 
@@ -341,7 +343,7 @@ export class PrisionersService {
     const { ipAddress, userAgent } = this.getAuditMetadata();
     const userInfo = await this.getUserInfo(userId);
 
-    const existing = await this.prisma.prisoner.findUnique({
+    const existing = await this.prisma.prisoner.findFirst({
       where: { id },
     });
 
@@ -370,6 +372,7 @@ export class PrisionersService {
       userInfo?.role,
       ipAddress,
       userAgent,
+      existing.id, // prisonerRelatedId
     );
   }
 
