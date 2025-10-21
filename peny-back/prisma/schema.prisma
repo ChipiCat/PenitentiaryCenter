@@ -578,30 +578,34 @@ model ActivityLog {
   
   // ¿Cuándo?
   timestamp       DateTime       @default(now())
-  
+
   // ¿Dónde?
   ipAddress       String?
   userAgent       String?
-  
+
   // ¿Cómo?
   description     String
   metadata        Json?
-  
+
   // Estado
   status          AuditStatus    @default(SUCCESS) // ✅ ENUM
   errorMessage    String?
-  
+
   // Contexto
   module          AuditModule?   // ✅ ENUM
   severity        AuditSeverity  @default(INFO)    // ✅ ENUM
-  
+
+  // Relación directa con prisionero (opcional, para trazabilidad)
+  prisonerRelatedId String?
+
   // Relaciones
   dataChanges     DataChangeLog[]
   sessionLogId    String?
   sessionLog      SessionLog?    @relation(fields: [sessionLogId], references: [id])
-  
+
   @@index([userId, timestamp])
   @@index([entityType, entityId])
+  @@index([prisonerRelatedId, timestamp])
   @@index([action, timestamp])
   @@index([module, timestamp])
   @@index([severity, timestamp])
@@ -647,17 +651,21 @@ model DataChangeLog {
   entityType      EntityType   // ✅ ENUM
   entityId        String
   fieldName       String
-  
+
   oldValue        String?
   newValue        String?
-  
+
   changedBy       String
   changedAt       DateTime     @default(now())
-  
+
   reason          String?
-  
+
+  // Relación directa con prisionero (opcional, para trazabilidad)
+  prisonerRelatedId String?
+
   @@index([activityLogId])
   @@index([entityType, entityId, fieldName])
+  @@index([prisonerRelatedId, changedAt])
   @@index([changedBy, changedAt])
   @@map("data_change_logs")
 }

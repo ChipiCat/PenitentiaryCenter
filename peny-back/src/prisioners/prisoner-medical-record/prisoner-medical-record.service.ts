@@ -145,6 +145,7 @@ export class PrisonerMedicalRecordService {
       userInfo?.role,
       ipAddress,
       userAgent,
+      prisonerId, // prisonerRelatedId
     );
 
     return this.mapToResponseDto(medicalRecord);
@@ -321,6 +322,7 @@ export class PrisonerMedicalRecordService {
         userInfo?.role,
         ipAddress,
         userAgent,
+        prisonerId, // prisonerRelatedId
       );
     }
 
@@ -380,6 +382,7 @@ export class PrisonerMedicalRecordService {
       userInfo?.role,
       ipAddress,
       userAgent,
+      prisonerId, // prisonerRelatedId
     );
 
     return { message: 'Registro médico eliminado exitosamente' };

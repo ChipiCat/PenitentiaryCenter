@@ -157,6 +157,7 @@ export class PrisonerPersonalService {
         userInfo?.role,
         ipAddress,
         userAgent,
+        prisonerId, // prisonerRelatedId
       );
 
       this.logger.log(`Personal info created successfully: ${personal.id}`);
@@ -309,6 +310,7 @@ export class PrisonerPersonalService {
           userInfo?.role,
           ipAddress,
           userAgent,
+          prisonerId, // prisonerRelatedId
         );
       }
 
