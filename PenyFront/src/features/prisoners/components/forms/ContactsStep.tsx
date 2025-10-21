@@ -11,11 +11,20 @@ import {
   Text,
 } from '@mantine/core';
 import { Plus, Trash2, Users, AlertCircle } from 'lucide-react';
-import type { CreatePrisonerData } from '../../../../shared/types/prisoners';
+import type { CreateContactData } from '../../../../shared/types';
+
+interface Contact {
+  name: string;
+  relationship: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  is_emergency?: boolean;
+}
 
 interface ContactsStepProps {
-  data: Partial<CreatePrisonerData>;
-  onUpdate: (updates: Partial<CreatePrisonerData>) => void;
+  data: { contacts?: Contact[] };
+  onUpdate: (updates: { contacts: Contact[] }) => void;
   errors?: Record<string, string>;
 }
 

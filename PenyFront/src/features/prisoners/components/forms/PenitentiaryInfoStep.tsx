@@ -9,13 +9,12 @@ import {
   Text
 } from '@mantine/core';
 import type { 
-  CreatePrisonerData,
-  PrisonerCategory
-} from '../../../../shared/types/prisoners';
+  Penitentiary
+} from '../../../../shared/types';
 
 interface PenitentiaryInfoStepProps {
-  data: Partial<CreatePrisonerData>;
-  onUpdate: (updates: Partial<CreatePrisonerData>) => void;
+  data: { penitentiary?: Partial<Penitentiary> };
+  onUpdate: (updates: { penitentiary?: Partial<Penitentiary> }) => void;
   errors?: Record<string, string>;
 }
 

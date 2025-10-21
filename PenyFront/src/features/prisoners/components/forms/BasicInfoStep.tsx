@@ -12,11 +12,23 @@ import { DatePickerInput } from '@mantine/dates';
 import type { 
   CreatePrisonerData,
   CitizenshipType
-} from '../../../../shared/types/prisoners';
+} from '../../../../shared/types';
 
 interface BasicInfoStepProps {
-  data: Partial<CreatePrisonerData>;
-  onUpdate: (updates: Partial<CreatePrisonerData>) => void;
+  data: Partial<CreatePrisonerData> & {
+    identity?: {
+      surname?: string;
+      first_name?: string;
+      birth_date?: Date;
+      birth_place?: string;
+      residence?: string;
+      citizenship_type?: CitizenshipType;
+      country_of_origin?: string;
+      nationality_type?: string;
+      nationality?: string;
+    };
+  };
+  onUpdate: (updates: Partial<CreatePrisonerData> & { identity?: Partial<BasicInfoStepProps['data']['identity']> }) => void;
   errors?: Record<string, string>;
 }
 
@@ -33,15 +45,7 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
   const handleIdentityChange = (field: string, value: any) => {
     onUpdate({
       identity: {
-        surname: data.identity?.surname || '',
-        first_name: data.identity?.first_name || '',
-        birth_date: data.identity?.birth_date,
-        birth_place: data.identity?.birth_place,
-        residence: data.identity?.residence,
-        citizenship_type: data.identity?.citizenship_type,
-        country_of_origin: data.identity?.country_of_origin,
-        nationality_type: data.identity?.nationality_type,
-        nationality: data.identity?.nationality,
+        ...data.identity,
         [field]: value
       }
     });
@@ -146,11 +150,11 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               label="Tipo de Ciudadanía"
               placeholder="Seleccione el tipo"
               value={data.identity?.citizenship_type || ''}
-              onChange={(value) => handleIdentityChange('citizenship_type', value)}
+              onChange={(value) => handleIdentityChange('citizenship_type', value as CitizenshipType)}
               data={[
-                { value: 'Local', label: 'Local' },
-                { value: 'Ciudadano Nacional', label: 'Ciudadano Nacional' },
-                { value: 'Ciudadano Extranjero', label: 'Ciudadano Extranjero' }
+                { value: 'Hondureño', label: 'Hondureño' },
+                { value: 'Naturalizado', label: 'Naturalizado' },
+                { value: 'Extranjero', label: 'Extranjero' }
               ]}
               error={errors['identity.citizenship_type']}
             />

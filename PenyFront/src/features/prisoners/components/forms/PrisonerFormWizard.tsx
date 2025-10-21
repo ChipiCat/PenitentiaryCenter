@@ -24,14 +24,26 @@ import { PersonalInfoStep } from './PersonalInfoStep';
 import { PenitentiaryInfoStep } from './PenitentiaryInfoStep';
 import { ContactsStep } from './ContactsStep';
 
+// ✅ IMPORTS ACTUALIZADOS - NUEVA ARQUITECTURA
 import { 
-  prisonersApi, 
-  type CreatePrisonerDTO,
-  type CreateIdentityDTO,
-  type CreatePersonalDTO,
-  type CreatePenitentiaryDTO,
-  type CreateContactDTO
-} from '../../../../shared/services/prisonersApi';
+  prisonersService,
+  identityService,
+  personalService,
+  penitentiaryService,
+  contactsService
+} from '../../../../shared/services';
+
+import type {
+  CreatePrisonerData,
+  CreateIdentityData,
+  CreatePersonalData,
+  CreatePenitentiaryData,
+  CreateContactData,
+  PrisonerBase,
+  CitizenshipType,
+  MaritalStatus,  
+  EducationLevel  
+} from '../../../../shared/types';
 
 interface FormData {
   registration_number: string;
@@ -45,26 +57,23 @@ interface FormData {
     birth_date?: Date;
     birth_place?: string;
     residence?: string;
-    citizenship_type?: 'Local' | 'Ciudadano Nacional' | 'Ciudadano Extranjero';
+    citizenship_type?: CitizenshipType;  // ✅ TIPO CENTRALIZADO
     country_of_origin?: string;
-    nationality_type?: string;
+    nationality_type?: string;           // ✅ AGREGADO CAMPO FALTANTE
     nationality?: string;
   };
   
   personal?: {
-    gender?: 'Masculino' | 'Femenino' | 'Otro';
-    father_name?: string;
-    mother_name?: string;
-    education_level?: string;
+    marital_status?: MaritalStatus;      
+    education_level?: EducationLevel;    
     occupation?: string;
-    languages?: string;
-    marital_status?: 'Soltero' | 'Casado' | 'Viudo' | 'Divorciado';
-    id_document_type?: 'Cédula de identidad' | 'Pasaporte' | 'Otro';
-    id_document_number?: string;
+    emergency_contact?: string;
+    emergency_phone?: string;
+    observations?: string;
   };
   
   penitentiary?: {
-    category?: 'Derecho Común' | 'Prisión Preventiva' | 'Prisionero Acusado';
+    category?: string;
     building_number?: string;
     cell_number?: string;
     bed_number?: string;
@@ -73,14 +82,17 @@ interface FormData {
   contacts?: {
     name: string;
     relationship: string;
-    phone: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    is_emergency?: boolean;
   }[];
 }
 
 interface PrisonerFormWizardProps {
   mode?: 'create' | 'edit';
   initialData?: Partial<FormData>;
-  onSuccess?: (result: { prisoner: any; id: string }) => void;
+  onSuccess?: (result: { prisoner: PrisonerBase; id: string }) => void;
   onCancel?: () => void;
 }
 
@@ -90,7 +102,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
   onSuccess,
   onCancel
 }) => {
-  // Estados
+  // ==================== ESTADOS ====================
   const [activeStep, setActiveStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -100,7 +112,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Configuración de pasos
+  // ==================== CONFIGURACIÓN DE PASOS ====================
   const steps = useMemo(() => [
     {
       step: 0,
@@ -128,13 +140,13 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
     }
   ], []);
 
-  // Función de utilidad
+  // ==================== FUNCIONES DE UTILIDAD ====================
   const formatDateForAPI = useCallback((date: Date | undefined): string | undefined => {
     if (!date) return undefined;
     return date.toISOString().split('T')[0];
   }, []);
 
-  // Handler para actualizar datos
+  // ==================== HANDLERS DE DATOS ====================
   const handleDataUpdate = useCallback((updates: Partial<FormData>) => {
     setFormData(prev => ({
       ...prev,
@@ -157,7 +169,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
     });
   }, []);
 
-  // ✅ CORREGIR: Función de validación que NO actualiza state
+  // ==================== VALIDACIONES ====================
   const isStepValid = useCallback((step: number, currentFormData: FormData): boolean => {
     switch (step) {
       case 0:
@@ -166,15 +178,10 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
           currentFormData.identity?.surname?.trim() &&
           currentFormData.identity?.first_name?.trim()
         );
-
       case 1:
-        // Paso opcional, siempre válido
-        return true;
-
+        return true; // Información personal es opcional
       case 2:
-        // Paso opcional, siempre válido
-        return true;
-
+        return true; // Información penitenciaria es opcional
       case 3:
         if (!currentFormData.contacts?.length) {
           return false;
@@ -184,13 +191,11 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
           contact.relationship?.trim() && 
           contact.phone?.trim()
         );
-
       default:
         return true;
     }
   }, []);
 
-  // ✅ CORREGIR: Función separada para validar Y establecer errores
   const validateStepWithErrors = useCallback((step: number): boolean => {
     const stepErrors: Record<string, string> = {};
 
@@ -206,15 +211,6 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
           stepErrors['identity.first_name'] = 'Nombres son requeridos';
         }
         break;
-
-      case 1:
-        // Validaciones opcionales
-        break;
-
-      case 2:
-        // Validaciones opcionales
-        break;
-
       case 3:
         if (!formData.contacts?.length) {
           stepErrors.contacts = 'Al menos un contacto de emergencia es requerido';
@@ -238,12 +234,11 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
     return Object.keys(stepErrors).length === 0;
   }, [formData]);
 
-  // ✅ CORREGIR: Calcular si puede avanzar sin bucles
   const canGoNext = useMemo(() => {
     return isStepValid(activeStep, formData);
   }, [activeStep, formData, isStepValid]);
 
-  // Handlers de navegación
+  // ==================== HANDLERS DE NAVEGACIÓN ====================
   const handleNext = useCallback(() => {
     if (validateStepWithErrors(activeStep)) {
       setActiveStep(prev => Math.min(prev + 1, steps.length - 1));
@@ -258,7 +253,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
     onCancel?.();
   }, [onCancel]);
 
-  // Submit handler
+  // ==================== SUBMIT HANDLER ====================
   const handleSubmit = useCallback(async () => {
     // Validar todos los pasos
     let allValid = true;
@@ -283,60 +278,101 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
     setIsSubmitting(true);
 
     try {
-      const apiData = {
-        prisoner: {
-          registration_number: formData.registration_number,
-          admission_date: formData.admission_date.toISOString().split('T')[0],
-          fiscal_file_number: formData.fiscal_file_number,
-          status: formData.status || 'Activo'
-        } as CreatePrisonerDTO,
-        identity: formData.identity ? {
-          surname: formData.identity.surname,
+      // ✅ PASO 1: CREAR PRISIONERO BASE
+      const prisonerData: CreatePrisonerData = {
+        registration_number: formData.registration_number,
+        admission_date: formatDateForAPI(formData.admission_date)!,
+        fiscal_file_number: formData.fiscal_file_number,
+        status: formData.status || 'Activo'
+      };
+
+      console.log('📤 Creando prisionero:', prisonerData);
+      const prisoner = await prisonersService.createPrisoner(prisonerData);
+      console.log('✅ Prisionero creado:', prisoner);
+
+      const prisonerId = prisoner.id;
+
+      // ✅ PASO 2: CREAR IDENTIDAD SI EXISTE
+      if (formData.identity) {
+        const identityData: CreateIdentityData = {
           first_name: formData.identity.first_name,
+          surname: formData.identity.surname,
           birth_date: formatDateForAPI(formData.identity.birth_date),
           birth_place: formData.identity.birth_place,
           residence: formData.identity.residence,
           citizenship_type: formData.identity.citizenship_type,
           country_of_origin: formData.identity.country_of_origin,
-          nationality_type: formData.identity.nationality_type,
           nationality: formData.identity.nationality
-        } as CreateIdentityDTO : undefined,
-        personal: formData.personal ? {
-          gender: formData.personal.gender,
-          father_name: formData.personal.father_name,
-          mother_name: formData.personal.mother_name,
+          // nationality_type se mapea automáticamente si es necesario
+        };
+
+        console.log('📤 Creando identidad:', identityData);
+        await identityService.createIdentity(prisonerId, identityData);
+        console.log('✅ Identidad creada');
+      }
+
+      // ✅ PASO 3: CREAR INFORMACIÓN PERSONAL SI EXISTE
+      if (formData.personal) {
+        const personalData: CreatePersonalData = {
+          marital_status: formData.personal.marital_status,
           education_level: formData.personal.education_level,
           occupation: formData.personal.occupation,
-          languages: formData.personal.languages,
-          marital_status: formData.personal.marital_status,
-          id_document_type: formData.personal.id_document_type,
-          id_document_number: formData.personal.id_document_number
-        } as CreatePersonalDTO : undefined,
-        penitentiary: formData.penitentiary ? {
+          emergency_contact: formData.personal.emergency_contact,
+          emergency_phone: formData.personal.emergency_phone,
+          observations: formData.personal.observations
+        };
+
+        console.log('📤 Creando información personal:', personalData);
+        await personalService.createPersonal(prisonerId, personalData);
+        console.log('✅ Información personal creada');
+      }
+
+      // ✅ PASO 4: CREAR INFORMACIÓN PENITENCIARIA SI EXISTE
+      if (formData.penitentiary) {
+        const penitentiaryData: CreatePenitentiaryData = {
           category: formData.penitentiary.category,
           building_number: formData.penitentiary.building_number,
           cell_number: formData.penitentiary.cell_number,
           bed_number: formData.penitentiary.bed_number
-        } as CreatePenitentiaryDTO : undefined,
-        contacts: formData.contacts ? formData.contacts.map(contact => ({
-          name: contact.name,
-          relationship: contact.relationship,
-          phone: contact.phone
-        } as CreateContactDTO)) : undefined
-      };
-      
-      console.log('📤 Enviando datos al API:', apiData);
-      
-      const result = await prisonersApi.createCompletePrisoner(apiData);
-      
-      console.log('✅ Prisionero creado exitosamente:', result);
-      onSuccess?.(result);
+        };
+
+        console.log('📤 Creando información penitenciaria:', penitentiaryData);
+        await penitentiaryService.createPenitentiary(prisonerId, penitentiaryData);
+        console.log('✅ Información penitenciaria creada');
+      }
+
+      // ✅ PASO 5: CREAR CONTACTOS SI EXISTEN
+      if (formData.contacts?.length) {
+        console.log('📤 Creando contactos:', formData.contacts);
+        for (const contact of formData.contacts) {
+          const contactData: CreateContactData = {
+            name: contact.name,
+            relationship: contact.relationship,
+            phone: contact.phone,
+            email: contact.email,
+            address: contact.address,
+            is_emergency: contact.is_emergency ?? true
+          };
+          
+          await contactsService.createContact(prisonerId, contactData);
+        }
+        console.log('✅ Contactos creados');
+      }
+
+      // ✅ ÉXITO
+      notifications.show({
+        title: 'Éxito',
+        message: 'Prisionero registrado correctamente',
+        color: 'green'
+      });
+
+      onSuccess?.({ prisoner, id: prisonerId });
 
     } catch (error) {
       console.error('❌ Error al guardar:', error);
       notifications.show({
         title: 'Error',
-        message: 'Ocurrió un error al guardar. Intenta nuevamente.',
+        message: error instanceof Error ? error.message : 'Ocurrió un error al guardar',
         color: 'red',
         icon: <AlertCircle size={16} />
       });
@@ -345,7 +381,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
     }
   }, [formData, onSuccess, steps.length, validateStepWithErrors, formatDateForAPI]);
 
-  // Render del paso actual
+  // ==================== RENDER DEL PASO ACTUAL ====================
   const renderCurrentStep = useCallback(() => {
     const commonProps = {
       data: formData,
@@ -355,7 +391,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
 
     switch (activeStep) {
       case 0:
-        return <BasicInfoStep {...commonProps} />;
+        return <BasicInfoStep {...commonProps} />;  // ✅ DEBERÍA FUNCIONAR AHORA
       case 1:
         return <PersonalInfoStep {...commonProps} />;
       case 2:
@@ -367,6 +403,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
     }
   }, [activeStep, formData, errors, handleDataUpdate]);
 
+  // ==================== RENDER PRINCIPAL ====================
   return (
     <Container size="lg">
       <Card withBorder padding="xl" pos="relative">
@@ -402,7 +439,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
           activeStep={activeStep}
           totalSteps={steps.length}
           isSubmitting={isSubmitting}
-          canGoNext={canGoNext} // ✅ Valor booleano, no función
+          canGoNext={canGoNext}
           onPrevious={handlePrevious}
           onNext={handleNext}
           onCancel={handleCancel}
