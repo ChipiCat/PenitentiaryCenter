@@ -1,19 +1,95 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  Logger,
+  Inject,
+  Scope,
+} from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import type { Request } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditService } from '../audit/audit.service';
 import { StorageService } from './storage.service';
 import { FileResponseDto } from './dto/file.dto';
 import { UPLOAD_CONFIG } from '../common/config/config';
 import { UploadedFile } from './interfaces/uploaded-file.interface';
-import { File } from 'generated/prisma';
+import { File, AuditAction, AuditModule, EntityType } from 'generated/prisma';
 
-@Injectable()
+/**
+ * Interfaz para los metadatos de auditoría extraídos del request
+ */
+interface AuditMetadata {
+  ipAddress?: string;
+  userAgent?: string;
+}
+
+/**
+ * Tipo extendido de Request para incluir metadatos de auditoría y usuario cacheado
+ */
+type RequestWithAuditData = Request & {
+  auditMetadata?: AuditMetadata;
+  currentUser?: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+};
+
+@Injectable({ scope: Scope.REQUEST })
 export class FilesService {
   private readonly logger = new Logger(FilesService.name);
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly storageService: StorageService,
+    private readonly auditService: AuditService,
+    @Inject(REQUEST) private readonly request: Request,
   ) {}
+
+  /**
+   * Extraer metadatos de auditoría del request
+   */
+  private getAuditMetadata(): AuditMetadata {
+    const req = this.request as RequestWithAuditData;
+    const auditMetadata = req.auditMetadata;
+    return {
+      ipAddress: auditMetadata?.ipAddress,
+      userAgent: auditMetadata?.userAgent,
+    };
+  }
+
+  /**
+   * Obtener información completa del usuario actual para auditoría
+   */
+  private async getUserInfo(userId: string): Promise<{
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  } | null> {
+    const req = this.request as RequestWithAuditData;
+    const cachedUser = req.currentUser;
+    if (cachedUser && cachedUser.id === userId) {
+      return cachedUser;
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, isDeleted: false },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+      },
+    });
+
+    if (user) {
+      req.currentUser = user;
+    }
+
+    return user;
+  }
 
   /**
    * Sube un archivo y guarda su metadata en la BD
@@ -29,6 +105,8 @@ export class FilesService {
       this.logger.log(
         `Starting file upload for ${fieldName} - entity: ${entityType}:${entityId}`,
       );
+      const { ipAddress, userAgent } = this.getAuditMetadata();
+      const userInfo = await this.getUserInfo(userId);
 
       // Validar archivo según configuración
       this.validateFile(file, fieldName);
@@ -69,6 +147,21 @@ export class FilesService {
         },
       });
 
+      // Log audit - creación sin DataChangeLog
+      await this.auditService.logEntityCreated(
+        AuditAction.FILE_UPLOAD,
+        EntityType.FILE,
+        fileRecord.id,
+        `Archivo subido: ${fileRecord.originalName} (${fieldName}) para ${entityType}`,
+        userId,
+        AuditModule.FILES,
+        userInfo?.email,
+        userInfo?.name,
+        userInfo?.role,
+        ipAddress,
+        userAgent,
+      );
+
       this.logger.log(`File uploaded successfully: ${fileRecord.id}`);
       return this.mapToResponseDto(fileRecord);
     } catch (error: unknown) {
@@ -87,27 +180,57 @@ export class FilesService {
   /**
    * Elimina un archivo (soft delete)
    */
-  async deleteFile(fileId: string): Promise<void> {
-    const file = await this.prisma.file.findUnique({ where: { id: fileId } });
-
-    if (!file) {
-      throw new BadRequestException('File not found');
-    }
-
-    // Soft delete en BD
-    await this.prisma.file.update({
-      where: { id: fileId },
-      data: { deletedAt: new Date() },
-    });
-
-    // Eliminar del storage
+  async deleteFile(fileId: string, userId: string): Promise<void> {
     try {
-      await this.storageService.deleteFile(
-        file.storageType,
-        file.storagePath || '',
+      this.logger.log(`Deleting file: ${fileId}`);
+      const { ipAddress, userAgent } = this.getAuditMetadata();
+      const userInfo = await this.getUserInfo(userId);
+
+      const file = await this.prisma.file.findUnique({ where: { id: fileId } });
+
+      if (!file) {
+        throw new BadRequestException('File not found');
+      }
+
+      // Soft delete en BD
+      await this.prisma.file.update({
+        where: { id: fileId },
+        data: { deletedAt: new Date() },
+      });
+
+      // Log audit - eliminación
+      await this.auditService.logEntityDeleted(
+        AuditAction.FILE_DELETE,
+        EntityType.FILE,
+        fileId,
+        `Archivo eliminado: ${file.originalName} (${file.fieldName})`,
+        userId,
+        AuditModule.FILES,
+        userInfo?.email,
+        userInfo?.name,
+        userInfo?.role,
+        ipAddress,
+        userAgent,
       );
-    } catch (error) {
-      this.logger.error(`Failed to delete file from storage: ${error}`);
+
+      // Eliminar del storage
+      try {
+        await this.storageService.deleteFile(
+          file.storageType,
+          file.storagePath || '',
+        );
+      } catch (error) {
+        this.logger.error(`Failed to delete file from storage: ${error}`);
+      }
+
+      this.logger.log(`File deleted successfully: ${fileId}`);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.error(`Error deleting file: ${error.message}`, error.stack);
+      } else {
+        this.logger.error(`Error deleting file: ${String(error)}`);
+      }
+      throw error;
     }
   }
 

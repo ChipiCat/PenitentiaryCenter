@@ -177,6 +177,10 @@ export class PrisonerBelongingController {
     @Param('belongingId') belongingId: string,
     @CurrentUser() userId: string,
   ): Promise<BelongingResponseDto> {
-    return this.belongingService.markAsReturned(prisonerId, belongingId, userId);
+    return this.belongingService.markAsReturned(
+      prisonerId,
+      belongingId,
+      userId,
+    );
   }
 }

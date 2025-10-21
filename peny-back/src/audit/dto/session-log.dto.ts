@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsEnum, IsBoolean, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsBoolean,
+  IsDateString,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { LogoutReason } from '../../../generated/prisma';
 
@@ -45,7 +51,10 @@ export class UpdateSessionLogDto {
   @IsDateString()
   logout_at?: Date;
 
-  @ApiPropertyOptional({ description: 'Is session still active', default: false })
+  @ApiPropertyOptional({
+    description: 'Is session still active',
+    default: false,
+  })
   @IsOptional()
   @IsBoolean()
   is_active?: boolean;
@@ -118,7 +127,10 @@ export class SessionLogQueryDto {
   @IsBoolean()
   is_active?: boolean;
 
-  @ApiPropertyOptional({ enum: LogoutReason, description: 'Filter by logout reason' })
+  @ApiPropertyOptional({
+    enum: LogoutReason,
+    description: 'Filter by logout reason',
+  })
   @IsOptional()
   @IsEnum(LogoutReason)
   logout_reason?: LogoutReason;

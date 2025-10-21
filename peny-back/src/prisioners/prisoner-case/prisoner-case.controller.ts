@@ -156,7 +156,10 @@ export class PrisonerCaseController {
   @ApiParam({ name: 'caseId', description: 'ID del caso' })
   @ApiResponse({ status: 204, description: 'Caso eliminado exitosamente' })
   @ApiResponse({ status: 404, description: 'Caso no encontrado' })
-  async remove(@Param('caseId') caseId: string): Promise<void> {
-    return this.caseService.remove(caseId);
+  async remove(
+    @Param('caseId') caseId: string,
+    @CurrentUser() userId: string,
+  ): Promise<void> {
+    return this.caseService.remove(caseId, userId);
   }
 }

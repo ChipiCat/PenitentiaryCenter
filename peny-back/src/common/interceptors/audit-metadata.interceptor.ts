@@ -29,7 +29,7 @@ export class AuditMetadataInterceptor implements NestInterceptor {
     // Extract IP address (handles proxies and load balancers)
     const forwardedFor = request.headers['x-forwarded-for'];
     const realIp = request.headers['x-real-ip'];
-    
+
     let ipAddress: string;
     if (typeof forwardedFor === 'string') {
       ipAddress = forwardedFor.split(',')[0].trim();

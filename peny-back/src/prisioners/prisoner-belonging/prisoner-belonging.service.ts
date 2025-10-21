@@ -1,3 +1,23 @@
+/**
+ * Interfaz para los metadatos de auditoría extraídos del request
+ */
+interface AuditMetadata {
+  ipAddress?: string;
+  userAgent?: string;
+}
+
+/**
+ * Tipo extendido de Request para incluir currentUser cacheado
+ */
+type RequestWithCurrentUser = Request & {
+  auditMetadata?: AuditMetadata;
+  currentUser?: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+};
 import { Injectable, NotFoundException, Inject, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import type { Request } from 'express';
@@ -24,8 +44,9 @@ export class PrisonerBelongingService {
   /**
    * Extraer metadatos de auditoría del request
    */
-  private getAuditMetadata(): { ipAddress?: string; userAgent?: string } {
-    const auditMetadata = (this.request as any).auditMetadata;
+  private getAuditMetadata(): AuditMetadata {
+    const req = this.request as RequestWithCurrentUser;
+    const auditMetadata = req.auditMetadata;
     return {
       ipAddress: auditMetadata?.ipAddress,
       userAgent: auditMetadata?.userAgent,
@@ -42,7 +63,8 @@ export class PrisonerBelongingService {
     role: string;
   } | null> {
     // Cache en el request para evitar múltiples consultas
-    const cachedUser = (this.request as any).currentUser;
+    const req = this.request as RequestWithCurrentUser;
+    const cachedUser = req.currentUser;
     if (cachedUser && cachedUser.id === userId) {
       return cachedUser;
     }
@@ -59,7 +81,7 @@ export class PrisonerBelongingService {
 
     if (user) {
       // Cachear en el request
-      (this.request as any).currentUser = user;
+      req.currentUser = user;
     }
 
     return user;
@@ -75,7 +97,7 @@ export class PrisonerBelongingService {
   ): Promise<BelongingResponseDto> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
     const userInfo = await this.getUserInfo(userId);
-    
+
     // Verificar que el prisionero exista
     const prisoner = await this.prisma.prisoner.findUnique({
       where: { id: prisonerId, isDeleted: false },
@@ -190,7 +212,7 @@ export class PrisonerBelongingService {
   ): Promise<BelongingResponseDto> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
     const userInfo = await this.getUserInfo(userId);
-    
+
     // Verificar que el artículo exista
     const existingBelonging = await this.prisma.prisonerBelonging.findFirst({
       where: {
@@ -303,7 +325,7 @@ export class PrisonerBelongingService {
   ): Promise<{ message: string }> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
     const userInfo = await this.getUserInfo(userId);
-    
+
     // Verificar que el artículo exista
     const existingBelonging = await this.prisma.prisonerBelonging.findFirst({
       where: {
@@ -330,7 +352,10 @@ export class PrisonerBelongingService {
 
     // Si tiene archivo asociado, marcarlo como eliminado
     if (existingBelonging.inventoryFileId) {
-      await this.filesService.deleteFile(existingBelonging.inventoryFileId);
+      await this.filesService.deleteFile(
+        existingBelonging.inventoryFileId,
+        userId,
+      );
     }
 
     // Log audit
@@ -377,7 +402,10 @@ export class PrisonerBelongingService {
 
     // Si ya tiene archivo, eliminar el anterior
     if (existingBelonging.inventoryFileId) {
-      await this.filesService.deleteFile(existingBelonging.inventoryFileId);
+      await this.filesService.deleteFile(
+        existingBelonging.inventoryFileId,
+        userId,
+      );
     }
 
     // Subir el nuevo archivo
@@ -414,7 +442,7 @@ export class PrisonerBelongingService {
   ): Promise<BelongingResponseDto> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
     const userInfo = await this.getUserInfo(userId);
-    
+
     // Verificar que el artículo exista
     const existingBelonging = await this.prisma.prisonerBelonging.findFirst({
       where: {

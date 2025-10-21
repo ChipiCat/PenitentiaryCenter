@@ -3,9 +3,10 @@ import { PrisonerMedicalRecordController } from './prisoner-medical-record.contr
 import { PrisonerMedicalRecordService } from './prisoner-medical-record.service';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { FilesModule } from '../../files/files.module';
+import { AuditModule } from '../../audit/audit.module';
 
 @Module({
-  imports: [PrismaModule, FilesModule],
+  imports: [PrismaModule, FilesModule, AuditModule],
   controllers: [PrisonerMedicalRecordController],
   providers: [PrisonerMedicalRecordService],
   exports: [PrisonerMedicalRecordService],

@@ -8,6 +8,8 @@ import { RequestWithAudit } from '../interceptors/audit-metadata.interceptor';
 export const AuditMetadata = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<RequestWithAudit>();
-    return request.auditMetadata || { ipAddress: 'unknown', userAgent: 'unknown' };
+    return (
+      request.auditMetadata || { ipAddress: 'unknown', userAgent: 'unknown' }
+    );
   },
 );

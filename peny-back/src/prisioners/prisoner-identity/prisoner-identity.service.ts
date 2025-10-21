@@ -2,9 +2,14 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Inject,
+  Scope,
 } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import type { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
 import { FilesService } from '../../files/files.service';
+import { AuditService } from '../../audit/audit.service';
 import {
   CreateIdentityDto,
   IdentityResponseDto,
@@ -15,15 +20,85 @@ import {
   File,
   Prisma,
   PrisonerIdentity,
+  AuditAction,
+  AuditModule,
+  EntityType,
 } from '../../../generated/prisma';
 import { UploadedFile } from '../../files/interfaces/uploaded-file.interface';
 
-@Injectable()
+/**
+ * Interfaz para los metadatos de auditoría extraídos del request
+ */
+interface AuditMetadata {
+  ipAddress?: string;
+  userAgent?: string;
+}
+
+/**
+ * Tipo extendido de Request para incluir metadatos de auditoría y usuario cacheado
+ */
+type RequestWithAuditData = Request & {
+  auditMetadata?: AuditMetadata;
+  currentUser?: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+};
+
+@Injectable({ scope: Scope.REQUEST })
 export class IdentityService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly filesService: FilesService,
+    private readonly auditService: AuditService,
+    @Inject(REQUEST) private readonly request: Request,
   ) {}
+
+  /**
+   * Extraer metadatos de auditoría del request
+   */
+  private getAuditMetadata(): AuditMetadata {
+    const req = this.request as RequestWithAuditData;
+    const auditMetadata = req.auditMetadata;
+    return {
+      ipAddress: auditMetadata?.ipAddress,
+      userAgent: auditMetadata?.userAgent,
+    };
+  }
+
+  /**
+   * Obtener información completa del usuario actual para auditoría
+   */
+  private async getUserInfo(userId: string): Promise<{
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  } | null> {
+    const req = this.request as RequestWithAuditData;
+    const cachedUser = req.currentUser;
+    if (cachedUser && cachedUser.id === userId) {
+      return cachedUser;
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId, isDeleted: false },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+      },
+    });
+
+    if (user) {
+      req.currentUser = user;
+    }
+
+    return user;
+  }
 
   /**
    * Crea información de identidad para un prisionero
@@ -33,6 +108,9 @@ export class IdentityService {
     createDto: CreateIdentityDto,
     userId: string,
   ): Promise<IdentityResponseDto> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
+    const userInfo = await this.getUserInfo(userId);
+
     // Verificar que el prisionero existe
     const prisoner = await this.prisma.prisoner.findUnique({
       where: { id: prisonerId, isDeleted: false },
@@ -75,6 +153,21 @@ export class IdentityService {
       },
     });
 
+    // Log audit - creación sin DataChangeLog
+    await this.auditService.logEntityCreated(
+      AuditAction.CREATE,
+      EntityType.PRISONER_IDENTITY,
+      identity.id,
+      `Identidad creada: ${identity.firstName} ${identity.surname}`,
+      userId,
+      AuditModule.IDENTITY,
+      userInfo?.email,
+      userInfo?.name,
+      userInfo?.role,
+      ipAddress,
+      userAgent,
+    );
+
     return this.mapToResponseDto(identity);
   }
 
@@ -108,6 +201,9 @@ export class IdentityService {
     updateDto: UpdateIdentityDto,
     userId: string,
   ): Promise<IdentityResponseDto> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
+    const userInfo = await this.getUserInfo(userId);
+
     const existing = await this.prisma.prisonerIdentity.findUnique({
       where: { prisonerId, isDeleted: false },
     });
@@ -116,6 +212,115 @@ export class IdentityService {
       throw new NotFoundException(
         `Identity not found for prisoner ${prisonerId}`,
       );
+    }
+
+    // Build field changes array
+    const fieldChanges: Array<{
+      field_name: string;
+      old_value?: string;
+      new_value?: string;
+    }> = [];
+
+    if (
+      updateDto.surname !== undefined &&
+      updateDto.surname !== existing.surname
+    ) {
+      fieldChanges.push({
+        field_name: 'surname',
+        old_value: existing.surname,
+        new_value: updateDto.surname,
+      });
+    }
+
+    if (
+      updateDto.first_name !== undefined &&
+      updateDto.first_name !== existing.firstName
+    ) {
+      fieldChanges.push({
+        field_name: 'first_name',
+        old_value: existing.firstName,
+        new_value: updateDto.first_name,
+      });
+    }
+
+    if (updateDto.birth_date !== undefined) {
+      const newBirthDate = updateDto.birth_date
+        ? new Date(updateDto.birth_date).toISOString()
+        : null;
+      const oldBirthDate = existing.birthDate?.toISOString() || null;
+      if (newBirthDate !== oldBirthDate) {
+        fieldChanges.push({
+          field_name: 'birth_date',
+          old_value: oldBirthDate || 'null',
+          new_value: newBirthDate || 'null',
+        });
+      }
+    }
+
+    if (
+      updateDto.birth_place !== undefined &&
+      updateDto.birth_place !== existing.birthPlace
+    ) {
+      fieldChanges.push({
+        field_name: 'birth_place',
+        old_value: existing.birthPlace || 'null',
+        new_value: updateDto.birth_place || 'null',
+      });
+    }
+
+    if (
+      updateDto.residence !== undefined &&
+      updateDto.residence !== existing.residence
+    ) {
+      fieldChanges.push({
+        field_name: 'residence',
+        old_value: existing.residence || 'null',
+        new_value: updateDto.residence || 'null',
+      });
+    }
+
+    if (
+      updateDto.citizenship_type !== undefined &&
+      updateDto.citizenship_type !== existing.citizenshipType
+    ) {
+      fieldChanges.push({
+        field_name: 'citizenship_type',
+        old_value: existing.citizenshipType || 'null',
+        new_value: updateDto.citizenship_type || 'null',
+      });
+    }
+
+    if (
+      updateDto.country_of_origin !== undefined &&
+      updateDto.country_of_origin !== existing.countryOfOrigin
+    ) {
+      fieldChanges.push({
+        field_name: 'country_of_origin',
+        old_value: existing.countryOfOrigin || 'null',
+        new_value: updateDto.country_of_origin || 'null',
+      });
+    }
+
+    if (
+      updateDto.nationality_type !== undefined &&
+      updateDto.nationality_type !== existing.nationalityType
+    ) {
+      fieldChanges.push({
+        field_name: 'nationality_type',
+        old_value: existing.nationalityType || 'null',
+        new_value: updateDto.nationality_type || 'null',
+      });
+    }
+
+    if (
+      updateDto.nationality !== undefined &&
+      updateDto.nationality !== existing.nationality
+    ) {
+      fieldChanges.push({
+        field_name: 'nationality',
+        old_value: existing.nationality || 'null',
+        new_value: updateDto.nationality || 'null',
+      });
     }
 
     const identity = await this.prisma.prisonerIdentity.update({
@@ -140,6 +345,24 @@ export class IdentityService {
         leftFingerprint: true,
       },
     });
+
+    // Log audit with field changes
+    if (fieldChanges.length > 0) {
+      await this.auditService.logEntityUpdated(
+        AuditAction.UPDATE,
+        EntityType.PRISONER_IDENTITY,
+        identity.id,
+        `Identidad actualizada: ${identity.firstName} ${identity.surname}`,
+        userId,
+        AuditModule.IDENTITY,
+        fieldChanges,
+        userInfo?.email,
+        userInfo?.name,
+        userInfo?.role,
+        ipAddress,
+        userAgent,
+      );
+    }
 
     return this.mapToResponseDto(identity);
   }
@@ -174,7 +397,7 @@ export class IdentityService {
 
     // Si existía una foto anterior, eliminarla
     if (identity.photoFileId) {
-      await this.filesService.deleteFile(identity.photoFileId);
+      await this.filesService.deleteFile(identity.photoFileId, userId);
     }
 
     // Actualizar la identidad con el nuevo file
@@ -231,7 +454,7 @@ export class IdentityService {
         ? identity.rightFingerprintFileId
         : identity.leftFingerprintFileId;
     if (oldFileId) {
-      await this.filesService.deleteFile(oldFileId);
+      await this.filesService.deleteFile(oldFileId, userId);
     }
 
     // Actualizar la identidad con el nuevo file

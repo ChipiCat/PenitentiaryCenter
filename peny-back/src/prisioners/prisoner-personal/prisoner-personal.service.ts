@@ -3,16 +3,95 @@ import {
   NotFoundException,
   Logger,
   BadRequestException,
+  Inject,
+  Scope,
 } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import type { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
+import { AuditService } from '../../audit/audit.service';
 import { CreatePersonalDto, PersonalResponseDto } from './dto/personal.dto';
-import { PrisonerPersonal } from '../../../generated/prisma';
+import {
+  PrisonerPersonal,
+  AuditAction,
+  AuditModule,
+  EntityType,
+} from '../../../generated/prisma';
 
-@Injectable()
+/**
+ * Interfaz para los metadatos de auditoría extraídos del request
+ */
+interface AuditMetadata {
+  ipAddress?: string;
+  userAgent?: string;
+}
+
+/**
+ * Tipo extendido de Request para incluir metadatos de auditoría y usuario cacheado
+ */
+type RequestWithAuditData = Request & {
+  auditMetadata?: AuditMetadata;
+  currentUser?: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+};
+
+@Injectable({ scope: Scope.REQUEST })
 export class PrisonerPersonalService {
   private readonly logger = new Logger(PrisonerPersonalService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
+    @Inject(REQUEST) private readonly request: Request,
+  ) {}
+
+  /**
+   * Extraer metadatos de auditoría del request
+   */
+  private getAuditMetadata(): AuditMetadata {
+    const req = this.request as RequestWithAuditData;
+    const auditMetadata = req.auditMetadata;
+    return {
+      ipAddress: auditMetadata?.ipAddress,
+      userAgent: auditMetadata?.userAgent,
+    };
+  }
+
+  /**
+   * Obtener información completa del usuario actual para auditoría
+   */
+  private async getUserInfo(userId: string): Promise<{
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  } | null> {
+    const req = this.request as RequestWithAuditData;
+    const cachedUser = req.currentUser;
+    if (cachedUser && cachedUser.id === userId) {
+      return cachedUser;
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, isDeleted: false },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+      },
+    });
+
+    if (user) {
+      req.currentUser = user;
+    }
+
+    return user;
+  }
 
   /**
    * Crea información personal de un prisionero
@@ -24,6 +103,8 @@ export class PrisonerPersonalService {
   ): Promise<PersonalResponseDto> {
     try {
       this.logger.log(`Creating personal info for prisoner: ${prisonerId}`);
+      const { ipAddress, userAgent } = this.getAuditMetadata();
+      const userInfo = await this.getUserInfo(userId);
 
       // Verificar que el prisionero existe
       const prisoner = await this.prisma.prisoner.findUnique({
@@ -62,6 +143,21 @@ export class PrisonerPersonalService {
           updatedBy: userId,
         },
       });
+
+      // Log audit - creación sin DataChangeLog
+      await this.auditService.logEntityCreated(
+        AuditAction.CREATE,
+        EntityType.PRISONER_PERSONAL,
+        personal.id,
+        `Información personal creada`,
+        userId,
+        AuditModule.PERSONAL,
+        userInfo?.email,
+        userInfo?.name,
+        userInfo?.role,
+        ipAddress,
+        userAgent,
+      );
 
       this.logger.log(`Personal info created successfully: ${personal.id}`);
       return this.mapToResponseDto(personal);
@@ -106,6 +202,8 @@ export class PrisonerPersonalService {
   ): Promise<PersonalResponseDto> {
     try {
       this.logger.log(`Updating personal info for prisoner: ${prisonerId}`);
+      const { ipAddress, userAgent } = this.getAuditMetadata();
+      const userInfo = await this.getUserInfo(userId);
 
       // Verificar que existe
       const existing = await this.prisma.prisonerPersonal.findUnique({
@@ -117,6 +215,65 @@ export class PrisonerPersonalService {
           `Personal information not found for prisoner ${prisonerId}`,
         );
       }
+
+      // Build field changes array
+      const fieldChanges: Array<{
+        field_name: string;
+        old_value?: string;
+        new_value?: string;
+      }> = [];
+
+      const fields = [
+        { dto: 'gender', existing: 'gender', name: 'gender' },
+        { dto: 'father_name', existing: 'fatherName', name: 'father_name' },
+        { dto: 'mother_name', existing: 'motherName', name: 'mother_name' },
+        {
+          dto: 'education_level',
+          existing: 'educationLevel',
+          name: 'education_level',
+        },
+        { dto: 'occupation', existing: 'occupation', name: 'occupation' },
+        { dto: 'languages', existing: 'languages', name: 'languages' },
+        {
+          dto: 'marital_status',
+          existing: 'maritalStatus',
+          name: 'marital_status',
+        },
+        {
+          dto: 'id_document_type',
+          existing: 'idDocumentType',
+          name: 'id_document_type',
+        },
+        {
+          dto: 'id_document_number',
+          existing: 'idDocumentNumber',
+          name: 'id_document_number',
+        },
+      ];
+
+      type DtoKeys = keyof CreatePersonalDto;
+      type ModelKeys = keyof PrisonerPersonal;
+
+      fields.forEach((field) => {
+        // Acceso tipado a los campos del DTO y del modelo
+        const dtoKey = field.dto as DtoKeys;
+        const modelKey = field.existing as ModelKeys;
+        const dtoValue = updateDto[dtoKey];
+        const existingValue = existing[modelKey];
+        if (dtoValue !== undefined && dtoValue !== existingValue) {
+          fieldChanges.push({
+            field_name: field.name,
+            old_value:
+              existingValue !== null && existingValue !== undefined
+                ? String(existingValue)
+                : 'null',
+            new_value:
+              dtoValue !== null && dtoValue !== undefined
+                ? String(dtoValue)
+                : 'null',
+          });
+        }
+      });
 
       // Actualizar
       const updated = await this.prisma.prisonerPersonal.update({
@@ -135,6 +292,25 @@ export class PrisonerPersonalService {
           updatedBy: userId,
         },
       });
+      Logger.log(`Personal user updated by: ${userId}`);
+
+      // Log audit with field changes
+      if (fieldChanges.length > 0) {
+        await this.auditService.logEntityUpdated(
+          AuditAction.UPDATE,
+          EntityType.PRISONER_PERSONAL,
+          updated.id,
+          `Información personal actualizada`,
+          userId,
+          AuditModule.PERSONAL,
+          fieldChanges,
+          userInfo?.email,
+          userInfo?.name,
+          userInfo?.role,
+          ipAddress,
+          userAgent,
+        );
+      }
 
       this.logger.log(`Personal info updated successfully: ${updated.id}`);
       return this.mapToResponseDto(updated);

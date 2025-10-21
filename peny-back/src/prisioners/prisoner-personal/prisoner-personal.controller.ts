@@ -7,6 +7,7 @@ import {
   Body,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,9 +18,11 @@ import {
 import { PrisonerPersonalService } from './prisoner-personal.service';
 import { CreatePersonalDto, PersonalResponseDto } from './dto/personal.dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @ApiTags('Prisoners - Personal')
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('prisoners/:prisonerId/personal')
 export class PrisonerPersonalController {
   constructor(private readonly personalService: PrisonerPersonalService) {}
