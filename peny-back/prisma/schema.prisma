@@ -27,11 +27,11 @@ enum UserRole {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  role      UserRole @default(SECRETARY)
-  photoUrl  String?
+  id       String   @id @default(cuid())
+  name     String
+  email    String   @unique
+  role     UserRole @default(SECRETARY)
+  photoUrl String?
 
   // Base entity fields
   isDeleted Boolean  @default(false)
@@ -41,11 +41,11 @@ model User {
   updatedBy String?
 
   // Relations
-  userAuth     UserAuth?
-  createdUsers User[]    @relation("UserCreatedBy")
-  updatedUsers User[]    @relation("UserUpdatedBy")
-  createdByUser User?    @relation("UserCreatedBy", fields: [createdBy], references: [id])
-  updatedByUser User?    @relation("UserUpdatedBy", fields: [updatedBy], references: [id])
+  userAuth      UserAuth?
+  createdUsers  User[]    @relation("UserCreatedBy")
+  updatedUsers  User[]    @relation("UserUpdatedBy")
+  createdByUser User?     @relation("UserCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User?     @relation("UserUpdatedBy", fields: [updatedBy], references: [id])
 
   @@map("users")
 }
@@ -68,4 +68,339 @@ model UserAuth {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_auth")
+}
+
+//////////////////////
+// Prisoners module
+//////////////////////
+
+enum PrisonerStatus {
+  Activo
+  Trasladado
+  Liberado
+  Archivado
+}
+
+enum CitizenshipType {
+  Local
+  CiudadanoNacional
+  CiudadanoExtranjero
+}
+
+enum Gender {
+  Masculino
+  Femenino
+  Otro
+}
+
+enum MaritalStatus {
+  Soltero
+  Casado
+  Viudo
+  Divorciado
+}
+
+enum IdDocumentType {
+  CedulaDeIdentidad
+  Pasaporte
+  Otro
+}
+
+enum PrisonerCategory {
+  DerechoComun
+  PrisionPreventiva
+  PrisioneroAcusado
+}
+
+model Prisoner {
+  id                 String         @id @default(cuid())
+  registrationNumber String         @unique
+  admissionDate      DateTime
+  fiscalFileNumber   String?
+  status             PrisonerStatus @default(Activo)
+
+  // Base entity fields
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  // Relations
+  identity       PrisonerIdentity?
+  personal       PrisonerPersonal?
+  penitentiary   PrisonerPenitentiary?
+  medicalRecords MedicalRecord[]
+  belongings     PrisonerBelonging[]
+  contacts       PrisonerContact[]
+  children       PrisonerChild[]
+
+  cases          PrisonerCase[]
+
+  @@map("prisoners")
+}
+
+model PrisonerIdentity {
+  id                     String           @id @default(cuid())
+  prisonerId             String           @unique
+  photoFileId            String?
+  rightFingerprintFileId String?
+  leftFingerprintFileId  String?
+  surname                String
+  firstName              String
+  birthDate              DateTime?
+  birthPlace             String?
+  residence              String?
+  citizenshipType        CitizenshipType?
+  countryOfOrigin        String?
+  nationalityType        String?
+  nationality            String?
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  prisoner         Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+  photoFile        File?    @relation("IdentityPhoto", fields: [photoFileId], references: [id], onDelete: SetNull)
+  rightFingerprint File?    @relation("RightFingerprint", fields: [rightFingerprintFileId], references: [id], onDelete: SetNull)
+  leftFingerprint  File?    @relation("LeftFingerprint", fields: [leftFingerprintFileId], references: [id], onDelete: SetNull)
+
+  @@map("prisoner_identity")
+}
+
+model PrisonerPersonal {
+  id               String          @id @default(cuid())
+  prisonerId       String          @unique
+  gender           Gender?
+  fatherName       String?
+  motherName       String?
+  educationLevel   String?
+  occupation       String?
+  languages        String?
+  maritalStatus    MaritalStatus?
+  idDocumentType   IdDocumentType?
+  idDocumentNumber String?
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+
+  @@map("prisoner_personal")
+}
+
+model PrisonerPenitentiary {
+  id             String            @id @default(cuid())
+  prisonerId     String            @unique
+  category       PrisonerCategory?
+  buildingNumber String?
+  cellNumber     String?
+  bedNumber      String?
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+
+  @@map("prisoner_penitentiary")
+}
+
+model MedicalRecord {
+  id              String    @id @default(cuid())
+  prisonerId      String
+  doctorName      String?
+  examinationDate DateTime?
+  referenceNumber String?
+  fileId        String?
+  notes           String?
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+  file     File?    @relation("MedicalFile", fields: [fileId], references: [id], onDelete: SetNull)
+
+  @@map("medical_records")
+}
+
+model PrisonerBelonging {
+  id          String  @id @default(cuid())
+  prisonerId  String
+  description String
+  quantity    Int     @default(1)
+  condition   String?
+  returned    Boolean @default(false)
+  inventoryFileId    String?
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+  inventoryFile File?    @relation("BelongingInventory", fields: [inventoryFileId], references: [id], onDelete: SetNull)
+
+  @@map("prisoner_belongings")
+}
+
+model PrisonerContact {
+  id           String @id @default(cuid())
+  prisonerId   String
+  name         String
+  relationship String
+  phone        String
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+
+  @@map("prisoner_contacts")
+}
+
+model PrisonerChild {
+  id         String    @id @default(cuid())
+  prisonerId String
+  fullName   String
+  birthDate  DateTime?
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+
+  @@map("prisoner_children")
+}
+
+//Model File:
+model File {
+  id String @id @default(cuid())
+
+  // URLs y paths
+  url         String
+  storagePath String?
+
+  // Metadata del archivo
+  filename     String
+  originalName String
+  mimeType     String
+  extension    String
+  size         Int
+
+  // Storage provider
+  storageType String // "cloudinary" | "s3"
+
+  // Relación polimórfica
+  entityType String // "prisoner_identity", "medical_record", "belonging"
+  entityId   String // ID de la entidad relacionada
+  fieldName  String // "photo", "right_fingerprint", "left_fingerprint", etc
+
+  // Auditoría
+  createdBy String
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  // Relaciones inversas
+  identityPhotos      PrisonerIdentity[]  @relation("IdentityPhoto")
+  identityRightPrints PrisonerIdentity[]  @relation("RightFingerprint")
+  identityLeftPrints  PrisonerIdentity[]  @relation("LeftFingerprint")
+  medicalRecords      MedicalRecord[]     @relation("MedicalFile")
+  belongings          PrisonerBelonging[] @relation("BelongingInventory")
+
+  mandates            PrisonerMandate[] @relation("MandateDocument")
+
+  @@index([entityType, entityId])
+  @@index([entityType, entityId, fieldName])
+  @@index([createdBy])
+  @@index([deletedAt])
+  @@map("files")
+}
+
+//////////////////////
+// Prisoner Cases & Mandates
+//////////////////////
+
+enum CaseStatus {
+  EnProceso
+  Condenado
+  Apelacion
+  Cerrado
+}
+
+enum MandateType {
+  Detencion
+  Condena
+  Libertad
+  Apelacion
+  Traslado
+}
+
+enum MandateStatus {
+  Vigente
+  Ejecutado
+  Anulado
+}
+
+model PrisonerCase {
+  id             String            @id @default(cuid())
+  prisonerId     String
+  caseNumber     String
+  crime          String
+  status         CaseStatus
+  startDate      DateTime
+  endDate        DateTime?
+  courtName      String?
+  judgeName      String?
+  sentenceYears  Int?
+  remarks        String?
+
+  isDeleted      Boolean           @default(false)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  createdBy      String?
+  updatedBy      String?
+
+  prisoner       Prisoner          @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+  mandates       PrisonerMandate[]
+
+  @@map("prisoner_cases")
+}
+
+model PrisonerMandate {
+  id          String         @id @default(cuid())
+  caseId      String
+  type        MandateType
+  issueDate   DateTime
+  fileId      String?
+  file        File?          @relation("MandateDocument", fields: [fileId], references: [id], onDelete: SetNull)
+  description String?
+  status      MandateStatus
+
+  isDeleted   Boolean        @default(false)
+  createdBy   String?
+  updatedBy   String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  case        PrisonerCase   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@map("prisoner_mandates")
 }
