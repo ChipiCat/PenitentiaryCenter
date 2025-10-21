@@ -75,7 +75,7 @@ export class PrisonerMedicalRecordService {
       return cachedUser;
     }
 
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       where: { id: userId, isDeleted: false },
       select: {
         id: true,
@@ -104,7 +104,7 @@ export class PrisonerMedicalRecordService {
     const userInfo = await this.getUserInfo(userId);
 
     // Verificar que el prisionero exista
-    const prisoner = await this.prisma.prisoner.findUnique({
+    const prisoner = await this.prisma.prisoner.findFirst({
       where: { id: prisonerId, isDeleted: false },
     });
 
@@ -156,7 +156,7 @@ export class PrisonerMedicalRecordService {
    */
   async findAll(prisonerId: string): Promise<MedicalRecordResponseDto[]> {
     // Verificar que el prisionero exista
-    const prisoner = await this.prisma.prisoner.findUnique({
+    const prisoner = await this.prisma.prisoner.findFirst({
       where: { id: prisonerId, isDeleted: false },
     });
 

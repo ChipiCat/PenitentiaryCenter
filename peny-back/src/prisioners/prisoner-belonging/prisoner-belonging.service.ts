@@ -69,7 +69,7 @@ export class PrisonerBelongingService {
       return cachedUser;
     }
 
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       where: { id: userId, isDeleted: false },
       select: {
         id: true,
@@ -99,7 +99,7 @@ export class PrisonerBelongingService {
     const userInfo = await this.getUserInfo(userId);
 
     // Verificar que el prisionero exista
-    const prisoner = await this.prisma.prisoner.findUnique({
+    const prisoner = await this.prisma.prisoner.findFirst({
       where: { id: prisonerId, isDeleted: false },
     });
 
@@ -149,7 +149,7 @@ export class PrisonerBelongingService {
    */
   async findAll(prisonerId: string): Promise<BelongingResponseDto[]> {
     // Verificar que el prisionero exista
-    const prisoner = await this.prisma.prisoner.findUnique({
+    const prisoner = await this.prisma.prisoner.findFirst({
       where: { id: prisonerId, isDeleted: false },
     });
 

@@ -78,7 +78,7 @@ export class PrisonerCaseService {
       return cachedUser;
     }
 
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       where: { id: userId, isDeleted: false },
       select: {
         id: true,
@@ -107,7 +107,7 @@ export class PrisonerCaseService {
     const userInfo = await this.getUserInfo(userId);
 
     // Verificar que el prisionero existe
-    const prisoner = await this.prisma.prisoner.findUnique({
+    const prisoner = await this.prisma.prisoner.findFirst({
       where: { id: prisonerId, isDeleted: false },
     });
 
@@ -147,6 +147,7 @@ export class PrisonerCaseService {
       userInfo?.role,
       ipAddress,
       userAgent,
+      prisonerId, // prisonerRelatedId
     );
 
     return this.mapToResponseDto(prisonerCase);
@@ -208,7 +209,7 @@ export class PrisonerCaseService {
    * Obtener un caso por ID
    */
   async findOne(caseId: string): Promise<CaseResponseDto> {
-    const prisonerCase = await this.prisma.prisonerCase.findUnique({
+    const prisonerCase = await this.prisma.prisonerCase.findFirst({
       where: { id: caseId, isDeleted: false },
     });
 
@@ -230,7 +231,7 @@ export class PrisonerCaseService {
     const { ipAddress, userAgent } = this.getAuditMetadata();
     const userInfo = await this.getUserInfo(userId);
 
-    const existing = await this.prisma.prisonerCase.findUnique({
+    const existing = await this.prisma.prisonerCase.findFirst({
       where: { id: caseId, isDeleted: false },
     });
 
@@ -378,6 +379,7 @@ export class PrisonerCaseService {
         userInfo?.role,
         ipAddress,
         userAgent,
+        existing.prisonerId, // prisonerRelatedId
       );
     }
 
@@ -391,7 +393,7 @@ export class PrisonerCaseService {
     const { ipAddress, userAgent } = this.getAuditMetadata();
     const userInfo = await this.getUserInfo(userId);
 
-    const existing = await this.prisma.prisonerCase.findUnique({
+    const existing = await this.prisma.prisonerCase.findFirst({
       where: { id: caseId, isDeleted: false },
     });
 
@@ -417,6 +419,7 @@ export class PrisonerCaseService {
       userInfo?.role,
       ipAddress,
       userAgent,
+      existing.prisonerId, // prisonerRelatedId
     );
   }
 

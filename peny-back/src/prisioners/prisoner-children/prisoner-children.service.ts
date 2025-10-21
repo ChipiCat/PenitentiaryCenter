@@ -71,7 +71,7 @@ export class PrisonerChildrenService {
       return cachedUser;
     }
 
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       where: { id: userId, isDeleted: false },
       select: {
         id: true,
@@ -100,7 +100,7 @@ export class PrisonerChildrenService {
     const userInfo = await this.getUserInfo(userId);
 
     // Verificar que el prisionero exista
-    const prisoner = await this.prisma.prisoner.findUnique({
+    const prisoner = await this.prisma.prisoner.findFirst({
       where: { id: prisonerId, isDeleted: false },
     });
 
@@ -134,6 +134,7 @@ export class PrisonerChildrenService {
       userInfo?.role,
       ipAddress,
       userAgent,
+      prisonerId, // prisonerRelatedId
     );
 
     return this.mapToResponseDto(child);
@@ -277,6 +278,7 @@ export class PrisonerChildrenService {
         userInfo?.role,
         ipAddress,
         userAgent,
+        prisonerId, // prisonerRelatedId
       );
     }
 
@@ -331,6 +333,7 @@ export class PrisonerChildrenService {
       userInfo?.role,
       ipAddress,
       userAgent,
+      prisonerId, // prisonerRelatedId
     );
 
     return { message: 'Registro de hijo eliminado exitosamente' };

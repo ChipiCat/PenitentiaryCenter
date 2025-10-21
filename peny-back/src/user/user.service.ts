@@ -30,7 +30,7 @@ export class UserService {
     const { email, password, name, role, photoUrl } = createUserDto;
 
     // Check if user already exists
-    const existingUser = await this.prisma.user.findUnique({
+    const existingUser = await this.prisma.user.findFirst({
       where: { email },
     });
 
@@ -72,7 +72,7 @@ export class UserService {
       role: string;
     } | null = null;
     if (createdBy) {
-      const creator = await this.prisma.user.findUnique({
+      const creator = await this.prisma.user.findFirst({
         where: { id: createdBy },
       });
       if (creator) {
@@ -150,7 +150,7 @@ export class UserService {
   }
 
   async findOne(id: string): Promise<User> {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       where: { id, isDeleted: false },
     });
 
@@ -175,7 +175,7 @@ export class UserService {
 
     // If email is being updated, check for conflicts
     if (email && email !== existingUser.email) {
-      const emailExists = await this.prisma.user.findUnique({
+      const emailExists = await this.prisma.user.findFirst({
         where: { email },
       });
 
@@ -203,7 +203,7 @@ export class UserService {
       role: string;
     } | null = null;
     if (updatedBy) {
-      const updater = await this.prisma.user.findUnique({
+      const updater = await this.prisma.user.findFirst({
         where: { id: updatedBy },
       });
       if (updater) {
@@ -300,7 +300,7 @@ export class UserService {
       role: string;
     } | null = null;
     if (updatedBy) {
-      const deleter = await this.prisma.user.findUnique({
+      const deleter = await this.prisma.user.findFirst({
         where: { id: updatedBy },
       });
       if (deleter) {

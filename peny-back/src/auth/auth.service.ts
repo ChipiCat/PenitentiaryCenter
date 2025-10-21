@@ -30,7 +30,7 @@ export class AuthService {
     userAgent?: string,
   ): Promise<AuthResponseDto> {
     const { email, password, name, role, photoUrl } = registerDto;
-    const existingUser = await this.prisma.user.findUnique({
+    const existingUser = await this.prisma.user.findFirst({
       where: { email },
     });
 
@@ -240,7 +240,7 @@ export class AuthService {
     let user: { id: string; email: string; name: string; role: string } | null =
       null;
     if (userId) {
-      const foundUser = await this.prisma.user.findUnique({
+      const foundUser = await this.prisma.user.findFirst({
         where: { id: userId },
       });
       if (foundUser) {

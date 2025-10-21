@@ -83,7 +83,7 @@ export class IdentityService {
       return cachedUser;
     }
 
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       where: { id: userId, isDeleted: false },
       select: {
         id: true,
@@ -112,7 +112,7 @@ export class IdentityService {
     const userInfo = await this.getUserInfo(userId);
 
     // Verificar que el prisionero existe
-    const prisoner = await this.prisma.prisoner.findUnique({
+    const prisoner = await this.prisma.prisoner.findFirst({
       where: { id: prisonerId, isDeleted: false },
     });
 
@@ -121,7 +121,7 @@ export class IdentityService {
     }
 
     // Verificar que no exista ya una identidad
-    const existing = await this.prisma.prisonerIdentity.findUnique({
+    const existing = await this.prisma.prisonerIdentity.findFirst({
       where: { prisonerId },
     });
 
@@ -176,7 +176,7 @@ export class IdentityService {
    * Obtiene información de identidad de un prisionero
    */
   async findOne(prisonerId: string): Promise<IdentityResponseDto> {
-    const identity = await this.prisma.prisonerIdentity.findUnique({
+    const identity = await this.prisma.prisonerIdentity.findFirst({
       where: { prisonerId, isDeleted: false },
       include: {
         photoFile: true,
@@ -205,7 +205,7 @@ export class IdentityService {
     const { ipAddress, userAgent } = this.getAuditMetadata();
     const userInfo = await this.getUserInfo(userId);
 
-    const existing = await this.prisma.prisonerIdentity.findUnique({
+    const existing = await this.prisma.prisonerIdentity.findFirst({
       where: { prisonerId, isDeleted: false },
     });
 
@@ -378,7 +378,7 @@ export class IdentityService {
     userId: string,
   ): Promise<IdentityResponseDto> {
     // Verificar que la identidad existe
-    const identity = await this.prisma.prisonerIdentity.findUnique({
+    const identity = await this.prisma.prisonerIdentity.findFirst({
       where: { prisonerId, isDeleted: false },
     });
 
@@ -429,7 +429,7 @@ export class IdentityService {
     userId: string,
   ): Promise<IdentityResponseDto> {
     // Verificar que la identidad existe
-    const identity = await this.prisma.prisonerIdentity.findUnique({
+    const identity = await this.prisma.prisonerIdentity.findFirst({
       where: { prisonerId, isDeleted: false },
     });
 
