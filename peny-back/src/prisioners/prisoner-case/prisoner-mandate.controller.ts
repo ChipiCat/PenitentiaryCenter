@@ -164,7 +164,10 @@ export class PrisonerMandateController {
   @ApiParam({ name: 'mandateId', description: 'ID del mandato' })
   @ApiResponse({ status: 204, description: 'Archivo eliminado exitosamente' })
   @ApiResponse({ status: 404, description: 'Mandato o archivo no encontrado' })
-  async deleteFile(@Param('mandateId') mandateId: string): Promise<void> {
-    return this.mandateService.deleteFile(mandateId);
+  async deleteFile(
+    @Param('mandateId') mandateId: string,
+    @CurrentUser() userId: string,
+  ): Promise<void> {
+    return this.mandateService.deleteFile(mandateId, userId);
   }
 }

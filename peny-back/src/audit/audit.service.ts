@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { 
-  ActivityLog, 
+import {
+  ActivityLog,
   SessionLog,
   DataChangeLog,
   Prisma,
@@ -13,7 +13,10 @@ import {
   LogoutReason,
 } from '../../generated/prisma';
 import { CreateActivityLogDto } from './dto/activity-log.dto';
-import { CreateSessionLogDto, UpdateSessionLogDto } from './dto/session-log.dto';
+import {
+  CreateSessionLogDto,
+  UpdateSessionLogDto,
+} from './dto/session-log.dto';
 import { CreateDataChangeLogDto } from './dto/data-change-log.dto';
 
 @Injectable()
@@ -43,7 +46,9 @@ export class AuditService {
           ipAddress: dto.ip_address,
           userAgent: dto.user_agent,
           description: dto.description,
-          metadata: dto.metadata ? (dto.metadata as Prisma.InputJsonValue) : Prisma.JsonNull,
+          metadata: dto.metadata
+            ? (dto.metadata as Prisma.InputJsonValue)
+            : Prisma.JsonNull,
           status: dto.status ?? AuditStatus.SUCCESS,
           errorMessage: dto.error_message,
           module: dto.module,
@@ -320,7 +325,7 @@ export class AuditService {
     });
 
     return {
-      activityLog
+      activityLog,
     };
   }
 
@@ -435,7 +440,13 @@ export class AuditService {
     endDate?: Date;
     page?: number;
     size?: number;
-  }): Promise<{ items: ActivityLog[]; total: number; page: number; size: number; totalPages: number }> {
+  }): Promise<{
+    items: ActivityLog[];
+    total: number;
+    page: number;
+    size: number;
+    totalPages: number;
+  }> {
     const {
       userId,
       action,
@@ -587,7 +598,13 @@ export class AuditService {
     endDate?: Date;
     page?: number;
     size?: number;
-  }): Promise<{ items: SessionLog[]; total: number; page: number; size: number; totalPages: number }> {
+  }): Promise<{
+    items: SessionLog[];
+    total: number;
+    page: number;
+    size: number;
+    totalPages: number;
+  }> {
     const {
       userId,
       isActive,

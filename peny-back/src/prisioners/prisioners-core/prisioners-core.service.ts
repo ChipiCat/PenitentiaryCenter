@@ -1,8 +1,27 @@
+/**
+ * Tipo extendido de Request para incluir currentUser cacheado
+ */
+type RequestWithCurrentUser = Request & {
+  currentUser?: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+};
 import {
   Injectable,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+
+/**
+ * Interfaz para los metadatos de auditoría extraídos del request
+ */
+export interface AuditMetadata {
+  ipAddress?: string;
+  userAgent?: string;
+}
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   Prisoner,
@@ -53,8 +72,11 @@ export class PrisionersService {
   /**
    * Extraer metadatos de auditoría del request
    */
-  private getAuditMetadata(): { ipAddress?: string; userAgent?: string } {
-    const auditMetadata = (this.request as any).auditMetadata;
+  private getAuditMetadata(): AuditMetadata {
+    // El tipo Request no incluye auditMetadata, así que extendemos el tipo aquí
+    const auditMetadata = (
+      this.request as Request & { auditMetadata?: AuditMetadata }
+    ).auditMetadata;
     return {
       ipAddress: auditMetadata?.ipAddress,
       userAgent: auditMetadata?.userAgent,
@@ -71,7 +93,8 @@ export class PrisionersService {
     role: string;
   } | null> {
     // Cache en el request para evitar múltiples consultas
-    const cachedUser = (this.request as any).currentUser;
+    const req = this.request as RequestWithCurrentUser;
+    const cachedUser = req.currentUser;
     if (cachedUser && cachedUser.id === userId) {
       return cachedUser;
     }
@@ -88,7 +111,7 @@ export class PrisionersService {
 
     if (user) {
       // Cachear en el request
-      (this.request as any).currentUser = user;
+      (this.request as RequestWithCurrentUser).currentUser = user;
     }
 
     return user;
@@ -103,7 +126,7 @@ export class PrisionersService {
   ): Promise<PrisonerResponseDTO> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
     const userInfo = await this.getUserInfo(userId);
-    
+
     // Verificar que el número de registro no exista
     const existing = await this.prisma.prisoner.findUnique({
       where: { registrationNumber: createDto.registration_number },
@@ -217,7 +240,7 @@ export class PrisionersService {
   ): Promise<PrisonerResponseDTO> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
     const userInfo = await this.getUserInfo(userId);
-    
+
     // Verificar que existe
     const existing = await this.prisma.prisoner.findUnique({
       where: { id },
@@ -260,7 +283,10 @@ export class PrisionersService {
       new_value?: string;
     }> = [];
 
-    if (updateDto.registration_number && updateDto.registration_number !== existing.registrationNumber) {
+    if (
+      updateDto.registration_number &&
+      updateDto.registration_number !== existing.registrationNumber
+    ) {
       fieldChanges.push({
         field_name: 'registration_number',
         old_value: existing.registrationNumber,
@@ -268,7 +294,10 @@ export class PrisionersService {
       });
     }
 
-    if (updateDto.fiscal_file_number !== undefined && updateDto.fiscal_file_number !== existing.fiscalFileNumber) {
+    if (
+      updateDto.fiscal_file_number !== undefined &&
+      updateDto.fiscal_file_number !== existing.fiscalFileNumber
+    ) {
       fieldChanges.push({
         field_name: 'fiscal_file_number',
         old_value: existing.fiscalFileNumber || 'null',
@@ -308,13 +337,10 @@ export class PrisionersService {
   /**
    * Elimina un prisionero (soft delete)
    */
-  async remove(
-    id: string,
-    userId: string,
-  ): Promise<void> {
+  async remove(id: string, userId: string): Promise<void> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
     const userInfo = await this.getUserInfo(userId);
-    
+
     const existing = await this.prisma.prisoner.findUnique({
       where: { id },
     });

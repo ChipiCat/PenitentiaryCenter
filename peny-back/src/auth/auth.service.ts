@@ -99,7 +99,7 @@ export class AuthService {
     userAgent?: string,
   ): Promise<AuthResponseDto> {
     const { email, password } = loginDto;
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       where: { email, isDeleted: false },
       include: { userAuth: true },
     });
@@ -319,7 +319,7 @@ export class AuthService {
   }
 
   async validateUser(userId: string) {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       where: { id: userId, isDeleted: false },
     });
 

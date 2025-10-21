@@ -7,7 +7,9 @@ import { EntityType } from '../../../generated/prisma';
 // ============================================================
 
 export class CreateDataChangeLogDto {
-  @ApiPropertyOptional({ description: 'ID of the activity log this change belongs to' })
+  @ApiPropertyOptional({
+    description: 'ID of the activity log this change belongs to',
+  })
   @IsOptional()
   @IsString()
   activity_log_id?: string;
@@ -98,7 +100,10 @@ export class DataChangeLogQueryDto {
   @IsString()
   activity_log_id?: string;
 
-  @ApiPropertyOptional({ enum: EntityType, description: 'Filter by entity type' })
+  @ApiPropertyOptional({
+    enum: EntityType,
+    description: 'Filter by entity type',
+  })
   @IsOptional()
   @IsEnum(EntityType)
   entity_type?: EntityType;

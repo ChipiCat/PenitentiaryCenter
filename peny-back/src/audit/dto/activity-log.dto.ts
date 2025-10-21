@@ -1,11 +1,17 @@
-import { IsString, IsOptional, IsEnum, IsObject, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsObject,
+  IsDateString,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { 
-  AuditAction, 
-  AuditStatus, 
-  AuditSeverity, 
-  AuditModule, 
-  EntityType 
+import {
+  AuditAction,
+  AuditStatus,
+  AuditSeverity,
+  AuditModule,
+  EntityType,
 } from '../../../generated/prisma';
 
 // ============================================================
@@ -13,7 +19,9 @@ import {
 // ============================================================
 
 export class CreateActivityLogDto {
-  @ApiPropertyOptional({ description: 'ID of the user who performed the action' })
+  @ApiPropertyOptional({
+    description: 'ID of the user who performed the action',
+  })
   @IsOptional()
   @IsString()
   user_id?: string;
@@ -75,7 +83,10 @@ export class CreateActivityLogDto {
   @IsString()
   error_message?: string;
 
-  @ApiPropertyOptional({ enum: AuditModule, description: 'Module where action occurred' })
+  @ApiPropertyOptional({
+    enum: AuditModule,
+    description: 'Module where action occurred',
+  })
   @IsOptional()
   @IsEnum(AuditModule)
   module?: AuditModule;
@@ -85,7 +96,9 @@ export class CreateActivityLogDto {
   @IsEnum(AuditSeverity)
   severity?: AuditSeverity;
 
-  @ApiPropertyOptional({ description: 'Session log ID if action is part of a session' })
+  @ApiPropertyOptional({
+    description: 'Session log ID if action is part of a session',
+  })
   @IsOptional()
   @IsString()
   session_log_id?: string;
@@ -174,7 +187,10 @@ export class ActivityLogQueryDto {
   @IsEnum(AuditAction)
   action?: AuditAction;
 
-  @ApiPropertyOptional({ enum: EntityType, description: 'Filter by entity type' })
+  @ApiPropertyOptional({
+    enum: EntityType,
+    description: 'Filter by entity type',
+  })
   @IsOptional()
   @IsEnum(EntityType)
   entity_type?: EntityType;
@@ -189,7 +205,10 @@ export class ActivityLogQueryDto {
   @IsEnum(AuditModule)
   module?: AuditModule;
 
-  @ApiPropertyOptional({ enum: AuditSeverity, description: 'Filter by severity' })
+  @ApiPropertyOptional({
+    enum: AuditSeverity,
+    description: 'Filter by severity',
+  })
   @IsOptional()
   @IsEnum(AuditSeverity)
   severity?: AuditSeverity;
