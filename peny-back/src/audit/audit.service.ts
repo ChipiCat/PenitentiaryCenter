@@ -282,6 +282,144 @@ export class AuditService {
     });
   }
 
+  // ============================================================
+  // GENERIC ENTITY AUDIT METHODS
+  // ============================================================
+
+  /**
+   * Generic method to log entity creation with field-level tracking
+   */
+  async logEntityCreated(
+    action: AuditAction,
+    entityType: EntityType,
+    entityId: string,
+    entityDescription: string,
+    createdByUserId: string,
+    module: AuditModuleEnum,
+    createdByUserEmail?: string,
+    createdByUserName?: string,
+    createdByUserRole?: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<{ activityLog: ActivityLog }> {
+    // Create activity log
+    const activityLog = await this.logActivity({
+      user_id: createdByUserId,
+      user_email: createdByUserEmail,
+      user_name: createdByUserName,
+      user_role: createdByUserRole,
+      action,
+      entity_type: entityType,
+      entity_id: entityId,
+      ip_address: ipAddress,
+      user_agent: userAgent,
+      description: entityDescription,
+      status: AuditStatus.SUCCESS,
+      module,
+      severity: AuditSeverity.INFO,
+    });
+
+    return {
+      activityLog
+    };
+  }
+
+  /**
+   * Generic method to log entity update with field-level changes
+   */
+  async logEntityUpdated(
+    action: AuditAction,
+    entityType: EntityType,
+    entityId: string,
+    entityDescription: string,
+    updatedByUserId: string,
+    module: AuditModuleEnum,
+    fieldChanges?: Array<{
+      field_name: string;
+      old_value?: string;
+      new_value?: string;
+    }>,
+    updatedByUserEmail?: string,
+    updatedByUserName?: string,
+    updatedByUserRole?: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<{ activityLog: ActivityLog; dataChanges: DataChangeLog[] }> {
+    // Create activity log
+    const activityLog = await this.logActivity({
+      user_id: updatedByUserId,
+      user_email: updatedByUserEmail,
+      user_name: updatedByUserName,
+      user_role: updatedByUserRole,
+      action,
+      entity_type: entityType,
+      entity_id: entityId,
+      ip_address: ipAddress,
+      user_agent: userAgent,
+      description: entityDescription,
+      status: AuditStatus.SUCCESS,
+      module,
+      severity: AuditSeverity.INFO,
+    });
+
+    // Create data change logs if there are field changes
+    const dataChanges: DataChangeLog[] = [];
+    if (fieldChanges && fieldChanges.length > 0) {
+      const changeLogDtos: CreateDataChangeLogDto[] = fieldChanges.map(
+        (change) => ({
+          activity_log_id: activityLog.id,
+          entity_type: entityType,
+          entity_id: entityId,
+          field_name: change.field_name,
+          old_value: change.old_value,
+          new_value: change.new_value,
+          changed_by: updatedByUserId,
+        }),
+      );
+
+      const createdChanges = await this.logDataChanges(changeLogDtos);
+      dataChanges.push(...createdChanges);
+    }
+
+    return {
+      activityLog,
+      dataChanges,
+    };
+  }
+
+  /**
+   * Generic method to log entity deletion
+   */
+  async logEntityDeleted(
+    action: AuditAction,
+    entityType: EntityType,
+    entityId: string,
+    entityDescription: string,
+    deletedByUserId: string,
+    module: AuditModuleEnum,
+    deletedByUserEmail?: string,
+    deletedByUserName?: string,
+    deletedByUserRole?: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<ActivityLog> {
+    return this.logActivity({
+      user_id: deletedByUserId,
+      user_email: deletedByUserEmail,
+      user_name: deletedByUserName,
+      user_role: deletedByUserRole,
+      action,
+      entity_type: entityType,
+      entity_id: entityId,
+      ip_address: ipAddress,
+      user_agent: userAgent,
+      description: entityDescription,
+      status: AuditStatus.SUCCESS,
+      module,
+      severity: AuditSeverity.WARNING,
+    });
+  }
+
   /**
    * Get activity logs with filters
    */

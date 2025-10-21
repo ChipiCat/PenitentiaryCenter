@@ -49,7 +49,7 @@ export class PrisionersController {
   async create(
     @Body() createDto: CreatePrisonerDTO,
     @CurrentUser() userId: string,
-  ): Promise<PrisonerResponseDTO> {
+                     ): Promise<PrisonerResponseDTO> {
     return this.prisionersService.create(createDto, userId);
   }
 
