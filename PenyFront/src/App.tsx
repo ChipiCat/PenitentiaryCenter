@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route } from "react-router";
 import "@mantine/core/styles.css";
 
@@ -9,13 +8,13 @@ import ProtectedRoute from "./shared/components/ProtectedRoute";
 import PublicRoute from "./shared/components/PublicRoute";
 import MainLayout from "./shared/layouts/MainLayout";
 import ReportsPage from "./features/reports";
-import PrisonersPage from "./features/prisoners";
-import NewPrisonerPage from "./features/prisoners/pages/NewPrisonerPage"; 
 import ProfilePage from "./features/profile";
 import UsersPage from "./features/users";
 import ActivityPage from "./features/activity";
 import { ROUTES } from "./shared/config/routes";
-import PrisonerProfilePage from "./features/prisoners/pages/PrisonerProfilePage"; // 🆕
+import { PrisonersPage } from "./features/prisoners/pages/PrisonersPage";
+import { NewPrisonerPage } from "./features/prisoners/pages/NewPrisonerPage";
+import { PrisonerProfilePage } from "./features/prisoners/pages/PrisonerProfilePage";
 
 function App() {
   const theme = createTheme({
@@ -36,6 +35,7 @@ function App() {
     },
     primaryColor: "darkblue",
   });
+
   return (
     <MantineProvider theme={theme} defaultColorScheme="light">
       <BrowserRouter>
@@ -45,6 +45,7 @@ function App() {
               <LoginPage />
             </PublicRoute>
           } />
+          
           <Route path={ROUTES.HOME} element={
             <ProtectedRoute>
               <MainLayout>
@@ -52,6 +53,8 @@ function App() {
               </MainLayout>
             </ProtectedRoute>
           } />
+          
+          {/* ✅ RUTA PRINCIPAL DE PRISONERS - Maneja lista y formularios */}
           <Route path={ROUTES.PRISONERS} element={
             <ProtectedRoute>
               <MainLayout>
@@ -59,6 +62,7 @@ function App() {
               </MainLayout>
             </ProtectedRoute>
           } />
+          
           <Route path={ROUTES.PRISONERS_NEW} element={
             <ProtectedRoute>
               <MainLayout>
@@ -66,6 +70,7 @@ function App() {
               </MainLayout>
             </ProtectedRoute>
           } />
+          
           <Route path={`${ROUTES.PRISONERS}/:id`} element={
             <ProtectedRoute>
               <MainLayout>
@@ -73,6 +78,7 @@ function App() {
               </MainLayout>
             </ProtectedRoute>
           } />
+          
           <Route path={ROUTES.REPORTS} element={
             <ProtectedRoute>
               <MainLayout>
@@ -80,13 +86,15 @@ function App() {
               </MainLayout>
             </ProtectedRoute>
           } />
-        <Route path={ROUTES.PROFILE} element={
+          
+          <Route path={ROUTES.PROFILE} element={
             <ProtectedRoute>
               <MainLayout>
                 <ProfilePage />
               </MainLayout>
             </ProtectedRoute>
           } />
+          
           <Route path={ROUTES.USERS} element={
             <ProtectedRoute>
               <MainLayout>
@@ -94,6 +102,7 @@ function App() {
               </MainLayout>
             </ProtectedRoute>
           } />
+          
           <Route path={ROUTES.ACTIVITY} element={
             <ProtectedRoute>
               <MainLayout>
