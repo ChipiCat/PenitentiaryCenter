@@ -166,6 +166,7 @@ export class IdentityService {
       userInfo?.role,
       ipAddress,
       userAgent,
+      prisonerId, // prisonerRelatedId
     );
 
     return this.mapToResponseDto(identity);
@@ -361,6 +362,7 @@ export class IdentityService {
         userInfo?.role,
         ipAddress,
         userAgent,
+        prisonerId, // prisonerRelatedId
       );
     }
 

@@ -102,6 +102,13 @@ export class CreateActivityLogDto {
   @IsOptional()
   @IsString()
   session_log_id?: string;
+
+  @ApiPropertyOptional({
+    description: 'Prisoner ID if action is related to a prisoner',
+  })
+  @IsOptional()
+  @IsString()
+  prisoner_related_id?: string;
 }
 
 // ============================================================

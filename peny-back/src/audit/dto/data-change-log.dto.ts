@@ -44,6 +44,13 @@ export class CreateDataChangeLogDto {
   @IsOptional()
   @IsString()
   reason?: string;
+
+  @ApiPropertyOptional({
+    description: 'Prisoner ID if change is related to a prisoner',
+  })
+  @IsOptional()
+  @IsString()
+  prisoner_related_id?: string;
 }
 
 // ============================================================

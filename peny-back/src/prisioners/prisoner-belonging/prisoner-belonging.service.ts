@@ -138,6 +138,7 @@ export class PrisonerBelongingService {
       userInfo?.role,
       ipAddress,
       userAgent,
+      prisonerId, // prisonerRelatedId
     );
 
     return this.mapToResponseDto(belonging);
@@ -309,6 +310,7 @@ export class PrisonerBelongingService {
         userInfo?.role,
         ipAddress,
         userAgent,
+        prisonerId, // prisonerRelatedId
       );
     }
 
@@ -371,6 +373,7 @@ export class PrisonerBelongingService {
       userInfo?.role,
       ipAddress,
       userAgent,
+      prisonerId, // prisonerRelatedId
     );
 
     return { message: 'Artículo personal eliminado exitosamente' };
@@ -490,6 +493,7 @@ export class PrisonerBelongingService {
       userInfo?.role,
       ipAddress,
       userAgent,
+      prisonerId, // prisonerRelatedId
     );
 
     return this.mapToResponseDto(updatedBelonging);

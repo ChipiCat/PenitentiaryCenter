@@ -155,6 +155,7 @@ export class PrisonerPenitentiaryService {
         userInfo?.role,
         ipAddress,
         userAgent,
+        prisonerId, // prisonerRelatedId
       );
 
       this.logger.log(
@@ -295,6 +296,7 @@ export class PrisonerPenitentiaryService {
           userInfo?.role,
           ipAddress,
           userAgent,
+          prisonerId, // prisonerRelatedId
         );
       }
 

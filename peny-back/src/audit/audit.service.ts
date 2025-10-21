@@ -54,6 +54,7 @@ export class AuditService {
           module: dto.module,
           severity: dto.severity ?? AuditSeverity.INFO,
           sessionLogId: dto.session_log_id,
+          prisonerRelatedId: dto.prisoner_related_id,
         },
       });
 
@@ -306,6 +307,7 @@ export class AuditService {
     createdByUserRole?: string,
     ipAddress?: string,
     userAgent?: string,
+    prisonerRelatedId?: string,
   ): Promise<{ activityLog: ActivityLog }> {
     // Create activity log
     const activityLog = await this.logActivity({
@@ -322,6 +324,7 @@ export class AuditService {
       status: AuditStatus.SUCCESS,
       module,
       severity: AuditSeverity.INFO,
+      prisoner_related_id: prisonerRelatedId,
     });
 
     return {
@@ -349,6 +352,7 @@ export class AuditService {
     updatedByUserRole?: string,
     ipAddress?: string,
     userAgent?: string,
+    prisonerRelatedId?: string,
   ): Promise<{ activityLog: ActivityLog; dataChanges: DataChangeLog[] }> {
     // Create activity log
     const activityLog = await this.logActivity({
@@ -365,6 +369,7 @@ export class AuditService {
       status: AuditStatus.SUCCESS,
       module,
       severity: AuditSeverity.INFO,
+      prisoner_related_id: prisonerRelatedId,
     });
 
     // Create data change logs if there are field changes
@@ -379,6 +384,7 @@ export class AuditService {
           old_value: change.old_value,
           new_value: change.new_value,
           changed_by: updatedByUserId,
+          prisoner_related_id: prisonerRelatedId,
         }),
       );
 
@@ -407,6 +413,7 @@ export class AuditService {
     deletedByUserRole?: string,
     ipAddress?: string,
     userAgent?: string,
+    prisonerRelatedId?: string,
   ): Promise<ActivityLog> {
     return this.logActivity({
       user_id: deletedByUserId,
@@ -422,6 +429,7 @@ export class AuditService {
       status: AuditStatus.SUCCESS,
       module,
       severity: AuditSeverity.WARNING,
+      prisoner_related_id: prisonerRelatedId,
     });
   }
 
@@ -698,6 +706,7 @@ export class AuditService {
               newValue: dto.new_value,
               changedBy: dto.changed_by,
               reason: dto.reason,
+              prisonerRelatedId: dto.prisoner_related_id,
             },
           }),
         ),
