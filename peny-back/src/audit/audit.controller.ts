@@ -7,6 +7,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuditService } from './audit.service';
 import {
@@ -31,6 +32,8 @@ import {
 /**
  * Controlador para endpoints de auditoría y trazabilidad
  */
+@ApiTags('audit')
+@ApiBearerAuth()
 @Controller('audit')
 @UseGuards(JwtAuthGuard)
 export class AuditController {
