@@ -71,7 +71,7 @@ const HomePage = () => {
   // Acciones rápidas
   const quickActions = [
     {
-      title: "Nuevo Interno",
+      title: "Nuevo Recluso",
       description: "Registrar nuevo interno",
       icon: Plus,
       color: "violet",

@@ -1,12 +1,14 @@
-// Imports para re-exportar
-import PrisonersPageComponent from './pages/PrisonersPage';
+// Páginas principales
+export { PrisonersPage } from './pages/PrisonersPage';
 
-// Named exports
-export { default as PrisonersPage } from './pages/PrisonersPage';
-export { default as NewPrisonerPage } from './pages/NewPrisonerPage';
-export { usePrisoners } from './hooks/usePrisoners';
-export { useNewPrisoner } from './hooks/useNewPrisoner';
-export * from './types';
+// Formularios
+export { PrisonerFormWizard } from './components/forms/PrisonerFormWizard';
 
-// Default export
-export default PrisonersPageComponent;
+// Componentes de formulario
+export { BasicInfoStep } from './components/forms/BasicInfoStep';
+export { PersonalInfoStep } from './components/forms/PersonalInfoStep';
+export { PenitentiaryInfoStep } from './components/forms/PenitentiaryInfoStep';
+export { LegalCaseStep } from './components/forms/LegalCaseStep';
+export { ContactsStep } from './components/forms/ContactsStep';
+export { FormStepper } from './components/forms/FormStepper';
+export { FormNavigation } from './components/forms/FormNavigation';
