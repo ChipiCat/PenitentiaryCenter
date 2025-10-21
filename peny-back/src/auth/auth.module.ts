@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule } from '@nestjs/config';
@@ -15,10 +15,10 @@ import { AuditModule } from '../audit/audit.module';
       secret: process.env.JWT_SECRET || 'fallback-secret-key',
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '15m' },
     }),
-    AuditModule,
+    forwardRef(() => AuditModule),
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
-  exports: [AuthService],
+  exports: [AuthService, PassportModule, JwtStrategy],
 })
 export class AuthModule {}

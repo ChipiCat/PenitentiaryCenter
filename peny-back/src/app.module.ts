@@ -17,8 +17,8 @@ import { AuditMetadataInterceptor } from './common/interceptors/audit-metadata.i
       isGlobal: true,
     }),
     PrismaModule,
+    AuthModule, // AuthModule debe ir ANTES que AuditModule
     AuditModule,
-    AuthModule,
     UserModule,
     PrisionersModule,
     PrisonerCaseModule,
