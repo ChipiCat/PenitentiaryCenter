@@ -10,11 +10,25 @@ import {
 } from '@mantine/core';
 import type { 
   CreatePrisonerData,
-} from '../../../../shared/types/prisoners';
+  MaritalStatus,
+  EducationLevel
+} from '../../../../shared/types';
+
+interface PersonalData {
+  gender?: string;
+  marital_status?: MaritalStatus;
+  id_document_type?: string;
+  id_document_number?: string;
+  education_level?: EducationLevel;
+  occupation?: string;
+  languages?: string;
+  father_name?: string;
+  mother_name?: string;
+}
 
 interface PersonalInfoStepProps {
-  data: Partial<CreatePrisonerData>;
-  onUpdate: (updates: Partial<CreatePrisonerData>) => void;
+  data: Partial<CreatePrisonerData> & { personal?: Partial<PersonalData> };
+  onUpdate: (updates: Partial<CreatePrisonerData> & { personal?: Partial<PersonalData> }) => void;
   errors?: Record<string, string>;
 }
 
@@ -23,7 +37,6 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
   onUpdate, 
   errors = {} 
 }) => {
-  
   // Handler para datos personales
   const handlePersonalChange = (field: string, value: any) => {
     onUpdate({
@@ -60,12 +73,13 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
               label="Estado Civil"
               placeholder="Seleccione el estado civil"
               value={data.personal?.marital_status || ''}
-              onChange={(value) => handlePersonalChange('marital_status', value)}
+              onChange={(value) => handlePersonalChange('marital_status', value as MaritalStatus)}
               data={[
                 { value: 'Soltero', label: 'Soltero/a' },
                 { value: 'Casado', label: 'Casado/a' },
                 { value: 'Viudo', label: 'Viudo/a' },
-                { value: 'Divorciado', label: 'Divorciado/a' }
+                { value: 'Divorciado', label: 'Divorciado/a' },
+                { value: 'Unión Libre', label: 'Unión Libre' }
               ]}
               error={errors['personal.marital_status']}
             />
@@ -94,11 +108,22 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
           </Group>
 
           <Group grow>
-            <TextInput
+            <Select
               label="Nivel de Educación"
-              placeholder="Ej: Primaria, Secundaria, Universitaria"
+              placeholder="Seleccione el nivel"
               value={data.personal?.education_level || ''}
-              onChange={(e) => handlePersonalChange('education_level', e.target.value)}
+              onChange={(value) => handlePersonalChange('education_level', value as EducationLevel)}
+              data={[
+                { value: 'Sin Educación', label: 'Sin Educación' },
+                { value: 'Primaria Incompleta', label: 'Primaria Incompleta' },
+                { value: 'Primaria Completa', label: 'Primaria Completa' },
+                { value: 'Secundaria Incompleta', label: 'Secundaria Incompleta' },
+                { value: 'Secundaria Completa', label: 'Secundaria Completa' },
+                { value: 'Técnico', label: 'Técnico' },
+                { value: 'Universitario Incompleto', label: 'Universitario Incompleto' },
+                { value: 'Universitario Completo', label: 'Universitario Completo' },
+                { value: 'Postgrado', label: 'Postgrado' }
+              ]}
               error={errors['personal.education_level']}
             />
             <TextInput

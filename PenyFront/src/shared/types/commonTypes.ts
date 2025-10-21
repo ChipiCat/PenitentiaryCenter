@@ -6,3 +6,32 @@ export interface Entity {
     createdBy: string | null;
     updatedBy: string | null;
 }
+
+export type Status = 'Activo' | 'Inactivo' | 'Pendiente' | 'Archivado';
+export type PrisonerStatus = 'Activo' | 'Trasladado' | 'Liberado' | 'Archivado';
+
+export interface BaseFilters {
+  search?: string;
+  status?: string;
+  date_from?: string;
+  date_to?: string;
+}
+
+export interface AuditInfo {
+  created_by?: string;
+  updated_by?: string;
+  deleted_at?: string;
+  deleted_by?: string;
+}
+
+export interface FileInfo {
+  url: string;
+  filename: string;
+  size: number;
+  mime_type?: string;
+  uploaded_at: string;
+}
+
+export type CitizenshipType = 'Hondureño' | 'Naturalizado' | 'Extranjero';
+export type MaritalStatus = 'Soltero' | 'Casado' | 'Divorciado' | 'Viudo' | 'Unión Libre';
+export type EducationLevel = 'Sin Educación' | 'Primaria Incompleta' | 'Primaria Completa' | 'Secundaria Incompleta' | 'Secundaria Completa' | 'Técnico'

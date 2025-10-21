@@ -8,11 +8,19 @@ import {
   Text
 } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
-import type { CreatePrisonerData } from '../../../../shared/types/prisoners';
+import type { CreatePrisonerData } from '../../../../shared/types';
+
+interface InitialCase {
+  case_number?: string;
+  crime?: string;
+  court_name?: string;
+  judge_name?: string;
+  start_date?: Date;
+}
 
 interface LegalCaseStepProps {
-  data: Partial<CreatePrisonerData>;
-  onUpdate: (updates: Partial<CreatePrisonerData>) => void;
+  data: Partial<CreatePrisonerData> & { initialCase?: InitialCase };
+  onUpdate: (updates: Partial<CreatePrisonerData> & { initialCase?: Partial<InitialCase> }) => void;
   errors?: Record<string, string>;
 }
 
@@ -21,19 +29,10 @@ export const LegalCaseStep: React.FC<LegalCaseStepProps> = ({
   onUpdate, 
   errors = {} 
 }) => {
-  
-  // ✅ CORREGIR: Handler para datos del caso inicial con valores seguros
   const handleInitialCaseChange = (field: string, value: any) => {
     onUpdate({
       initialCase: {
-        // ✅ Asegurar que case_number y crime siempre tengan valores
-        case_number: data.initialCase?.case_number || '',
-        crime: data.initialCase?.crime || '',
-        // Mantener campos opcionales
-        court_name: data.initialCase?.court_name,
-        judge_name: data.initialCase?.judge_name,
-        start_date: data.initialCase?.start_date,
-        // Aplicar el nuevo valor
+        ...data.initialCase,
         [field]: value
       }
     });
@@ -69,6 +68,7 @@ export const LegalCaseStep: React.FC<LegalCaseStepProps> = ({
               maxDate={new Date()}
             />
           </Group>
+
 
           <TextInput
             label="Delito/Causa Penal"

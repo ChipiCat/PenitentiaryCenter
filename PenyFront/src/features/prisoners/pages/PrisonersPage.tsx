@@ -3,12 +3,13 @@ import { Container, Stack, LoadingOverlay } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useNavigate } from "react-router-dom";
 import { PrisonerFormWizard } from "../components/forms/PrisonerFormWizard";
-import { prisonersApi, type PrisonerBase } from "../../../shared/services/prisonersApi";
 import { ROUTES } from "../../../shared/config/routes";
 import { PrisonersHeader } from "../components/list/PrisonersHeader";
 import { PrisonersStats } from "../components/list/PrisonersStats";
 import { PrisonersList } from "../components/list/PrisonersList";
 import { EmptyPrisonersState } from "../components/list/EmptyPrisonersState";
+import type { PrisonerBase } from "../../../shared/types";
+import { prisonersApi } from "../../../shared/services";
 
 type ViewMode = "list" | "create" | "edit";
 
@@ -29,7 +30,7 @@ interface Pagination {
 export const PrisonersPage: React.FC = () => {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>("list");
-  const [selectedPrisoner, setSelectedPrisoner] = useState<any>(null);
+  const [selectedPrisoner, setSelectedPrisoner] = useState<PrisonerBase | null>(null);
   const [prisoners, setPrisoners] = useState<(PrisonerBase & { fullName?: string })[]>([]);
   const [statistics, setStatistics] = useState<Statistics>({
     total: 0,
@@ -52,7 +53,7 @@ export const PrisonersPage: React.FC = () => {
     setViewMode("create");
   };
 
-  const handleEdit = (prisoner: any) => {
+  const handleEdit = (prisoner: PrisonerBase) => {
     setSelectedPrisoner(prisoner);
     setViewMode("edit");
   };
@@ -62,7 +63,7 @@ export const PrisonersPage: React.FC = () => {
     navigate(ROUTES.PRISONER_PROFILE.replace(":id", prisoner.id));
   };
 
-  const handleSuccess = (prisoner: any) => {
+  const handleSuccess = (prisoner: PrisonerBase) => {
     console.log("Prisionero guardado:", prisoner);
     setViewMode("list");
     loadData();
@@ -108,9 +109,9 @@ export const PrisonersPage: React.FC = () => {
 
       const stats = {
         total: allPrisoners.data.length,
-        activos: allPrisoners.data.filter((p) => p.status === "Activo").length,
-        preventivos: allPrisoners.data.filter((p) => p.status === "Activo").length,
-        condenados: allPrisoners.data.filter((p) => p.status === "Liberado").length,
+        activos: allPrisoners.data.filter((p: PrisonerBase) => p.status === "Activo").length,
+        preventivos: allPrisoners.data.filter((p: PrisonerBase) => p.status === "Prisión Preventiva").length,
+        condenados: allPrisoners.data.filter((p: PrisonerBase) => p.status === "Condenado").length,
       };
 
       setStatistics(stats);
@@ -128,7 +129,7 @@ export const PrisonersPage: React.FC = () => {
     return (
       <PrisonerFormWizard
         mode={viewMode}
-        initialData={selectedPrisoner}
+        initialData={selectedPrisoner || undefined}
         onSuccess={handleSuccess}
         onCancel={handleCancel}
       />

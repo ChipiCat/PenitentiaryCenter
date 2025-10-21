@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Stack, Alert, LoadingOverlay, Button, Group } from '@mantine/core';
+import { Container, Stack, Alert, Button, Group } from '@mantine/core';
 import { ArrowLeft, AlertCircle } from 'lucide-react';
-import { prisonersApi, type CompletePrisonerProfile } from '../../../shared/services/prisonersApi';
+import { completeProfileService } from '../../../shared/services';
+import type { CompletePrisonerProfile } from '../../../shared/types';
 import { ROUTES } from '../../../shared/config/routes';
 import { ProfileHeader } from '../components/profile/ProfileHeader';
 import { ProfileContent } from '../components/profile/ProfileContent';
@@ -29,7 +30,8 @@ export const PrisonerProfilePage: React.FC = () => {
         setError(null);
         console.log('🔍 Cargando perfil del prisionero:', id);
         
-        const data = await prisonersApi.getCompleteProfile(id);
+        // ✅ USAR SERVICIO MIGRADO
+        const data = await completeProfileService.getCompleteProfile(id);
         if (data) {
           setProfile(data);
           console.log('✅ Perfil cargado:', data);
