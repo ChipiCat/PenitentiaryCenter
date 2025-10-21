@@ -1,6 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, Scope } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import type { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
 import { FilesService } from '../../files/files.service';
+import { AuditService } from '../../audit/audit.service';
 import {
   CreateBelongingDto,
   UpdateBelongingDto,
@@ -9,12 +12,58 @@ import {
 import { File, PrisonerBelonging } from 'generated/prisma';
 import { UploadedFile } from '../../files/interfaces/uploaded-file.interface';
 
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class PrisonerBelongingService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly filesService: FilesService,
+    private readonly auditService: AuditService,
+    @Inject(REQUEST) private readonly request: Request,
   ) {}
+
+  /**
+   * Extraer metadatos de auditoría del request
+   */
+  private getAuditMetadata(): { ipAddress?: string; userAgent?: string } {
+    const auditMetadata = (this.request as any).auditMetadata;
+    return {
+      ipAddress: auditMetadata?.ipAddress,
+      userAgent: auditMetadata?.userAgent,
+    };
+  }
+
+  /**
+   * Obtener información completa del usuario actual para auditoría
+   */
+  private async getUserInfo(userId: string): Promise<{
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  } | null> {
+    // Cache en el request para evitar múltiples consultas
+    const cachedUser = (this.request as any).currentUser;
+    if (cachedUser && cachedUser.id === userId) {
+      return cachedUser;
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId, isDeleted: false },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+      },
+    });
+
+    if (user) {
+      // Cachear en el request
+      (this.request as any).currentUser = user;
+    }
+
+    return user;
+  }
 
   /**
    * Crear un nuevo artículo personal
@@ -24,6 +73,9 @@ export class PrisonerBelongingService {
     createDto: CreateBelongingDto,
     userId: string,
   ): Promise<BelongingResponseDto> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
+    const userInfo = await this.getUserInfo(userId);
+    
     // Verificar que el prisionero exista
     const prisoner = await this.prisma.prisoner.findUnique({
       where: { id: prisonerId, isDeleted: false },
@@ -50,6 +102,21 @@ export class PrisonerBelongingService {
         inventoryFile: true,
       },
     });
+
+    // Log audit
+    await this.auditService.logEntityCreated(
+      'BELONGING_REGISTERED',
+      'PRISONER_BELONGING',
+      belonging.id,
+      `Artículo personal registrado: ${createDto.description}`,
+      userId,
+      'BELONGINGS',
+      userInfo?.email,
+      userInfo?.name,
+      userInfo?.role,
+      ipAddress,
+      userAgent,
+    );
 
     return this.mapToResponseDto(belonging);
   }
@@ -121,6 +188,9 @@ export class PrisonerBelongingService {
     updateDto: UpdateBelongingDto,
     userId: string,
   ): Promise<BelongingResponseDto> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
+    const userInfo = await this.getUserInfo(userId);
+    
     // Verificar que el artículo exista
     const existingBelonging = await this.prisma.prisonerBelonging.findFirst({
       where: {
@@ -134,6 +204,57 @@ export class PrisonerBelongingService {
       throw new NotFoundException(
         `Artículo con ID ${belongingId} no encontrado para el prisionero ${prisonerId}`,
       );
+    }
+
+    // Build field changes array
+    const fieldChanges: Array<{
+      field_name: string;
+      old_value?: string;
+      new_value?: string;
+    }> = [];
+
+    if (
+      updateDto.description !== undefined &&
+      updateDto.description !== existingBelonging.description
+    ) {
+      fieldChanges.push({
+        field_name: 'description',
+        old_value: existingBelonging.description,
+        new_value: updateDto.description,
+      });
+    }
+
+    if (
+      updateDto.quantity !== undefined &&
+      updateDto.quantity !== existingBelonging.quantity
+    ) {
+      fieldChanges.push({
+        field_name: 'quantity',
+        old_value: existingBelonging.quantity.toString(),
+        new_value: updateDto.quantity.toString(),
+      });
+    }
+
+    if (
+      updateDto.condition !== undefined &&
+      updateDto.condition !== existingBelonging.condition
+    ) {
+      fieldChanges.push({
+        field_name: 'condition',
+        old_value: existingBelonging.condition ?? undefined,
+        new_value: updateDto.condition,
+      });
+    }
+
+    if (
+      updateDto.returned !== undefined &&
+      updateDto.returned !== existingBelonging.returned
+    ) {
+      fieldChanges.push({
+        field_name: 'returned',
+        old_value: existingBelonging.returned.toString(),
+        new_value: updateDto.returned.toString(),
+      });
     }
 
     // Actualizar el artículo
@@ -151,6 +272,24 @@ export class PrisonerBelongingService {
       },
     });
 
+    // Log audit with field changes
+    if (fieldChanges.length > 0) {
+      await this.auditService.logEntityUpdated(
+        'BELONGING_UPDATED',
+        'PRISONER_BELONGING',
+        belongingId,
+        `Artículo personal actualizado: ${updateDto.description ?? existingBelonging.description}`,
+        userId,
+        'BELONGINGS',
+        fieldChanges,
+        userInfo?.email,
+        userInfo?.name,
+        userInfo?.role,
+        ipAddress,
+        userAgent,
+      );
+    }
+
     return this.mapToResponseDto(updatedBelonging);
   }
 
@@ -162,6 +301,9 @@ export class PrisonerBelongingService {
     belongingId: string,
     userId: string,
   ): Promise<{ message: string }> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
+    const userInfo = await this.getUserInfo(userId);
+    
     // Verificar que el artículo exista
     const existingBelonging = await this.prisma.prisonerBelonging.findFirst({
       where: {
@@ -190,6 +332,21 @@ export class PrisonerBelongingService {
     if (existingBelonging.inventoryFileId) {
       await this.filesService.deleteFile(existingBelonging.inventoryFileId);
     }
+
+    // Log audit
+    await this.auditService.logEntityDeleted(
+      'BELONGING_UPDATED', // Using UPDATED since BELONGING_DELETED doesn't exist in AuditAction enum
+      'PRISONER_BELONGING',
+      belongingId,
+      `Artículo personal eliminado (soft delete): ${existingBelonging.description}`,
+      userId,
+      'BELONGINGS',
+      userInfo?.email,
+      userInfo?.name,
+      userInfo?.role,
+      ipAddress,
+      userAgent,
+    );
 
     return { message: 'Artículo personal eliminado exitosamente' };
   }
@@ -255,6 +412,9 @@ export class PrisonerBelongingService {
     belongingId: string,
     userId: string,
   ): Promise<BelongingResponseDto> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
+    const userInfo = await this.getUserInfo(userId);
+    
     // Verificar que el artículo exista
     const existingBelonging = await this.prisma.prisonerBelonging.findFirst({
       where: {
@@ -281,6 +441,28 @@ export class PrisonerBelongingService {
         inventoryFile: true,
       },
     });
+
+    // Log audit
+    await this.auditService.logEntityUpdated(
+      'BELONGING_RETURNED',
+      'PRISONER_BELONGING',
+      belongingId,
+      `Artículo personal devuelto: ${existingBelonging.description}`,
+      userId,
+      'BELONGINGS',
+      [
+        {
+          field_name: 'returned',
+          old_value: existingBelonging.returned.toString(),
+          new_value: 'true',
+        },
+      ],
+      userInfo?.email,
+      userInfo?.name,
+      userInfo?.role,
+      ipAddress,
+      userAgent,
+    );
 
     return this.mapToResponseDto(updatedBelonging);
   }
