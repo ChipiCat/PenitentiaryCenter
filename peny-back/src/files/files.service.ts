@@ -140,6 +140,8 @@ export class FilesService {
       config = UPLOAD_CONFIG.medical_file;
     } else if (fieldName === 'inventory') {
       config = UPLOAD_CONFIG.belonging_inventory;
+    } else if (fieldName === 'mandate_document') {
+      config = UPLOAD_CONFIG.mandate_document;
     } else {
       throw new BadRequestException('Invalid field name');
     }

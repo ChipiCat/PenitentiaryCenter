@@ -135,6 +135,8 @@ model Prisoner {
   contacts       PrisonerContact[]
   children       PrisonerChild[]
 
+  cases          PrisonerCase[]
+
   @@map("prisoners")
 }
 
@@ -323,9 +325,82 @@ model File {
   medicalRecords      MedicalRecord[]     @relation("MedicalFile")
   belongings          PrisonerBelonging[] @relation("BelongingInventory")
 
+  mandates            PrisonerMandate[] @relation("MandateDocument")
+
   @@index([entityType, entityId])
   @@index([entityType, entityId, fieldName])
   @@index([createdBy])
   @@index([deletedAt])
   @@map("files")
+}
+
+//////////////////////
+// Prisoner Cases & Mandates
+//////////////////////
+
+enum CaseStatus {
+  EnProceso
+  Condenado
+  Apelacion
+  Cerrado
+}
+
+enum MandateType {
+  Detencion
+  Condena
+  Libertad
+  Apelacion
+  Traslado
+}
+
+enum MandateStatus {
+  Vigente
+  Ejecutado
+  Anulado
+}
+
+model PrisonerCase {
+  id             String            @id @default(cuid())
+  prisonerId     String
+  caseNumber     String
+  crime          String
+  status         CaseStatus
+  startDate      DateTime
+  endDate        DateTime?
+  courtName      String?
+  judgeName      String?
+  sentenceYears  Int?
+  remarks        String?
+
+  isDeleted      Boolean           @default(false)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  createdBy      String?
+  updatedBy      String?
+
+  prisoner       Prisoner          @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+  mandates       PrisonerMandate[]
+
+  @@map("prisoner_cases")
+}
+
+model PrisonerMandate {
+  id          String         @id @default(cuid())
+  caseId      String
+  type        MandateType
+  issueDate   DateTime
+  fileId      String?
+  file        File?          @relation("MandateDocument", fields: [fileId], references: [id], onDelete: SetNull)
+  description String?
+  status      MandateStatus
+
+  isDeleted   Boolean        @default(false)
+  createdBy   String?
+  updatedBy   String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  case        PrisonerCase   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@map("prisoner_mandates")
 }
