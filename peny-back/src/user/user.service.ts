@@ -47,7 +47,10 @@ export class UserService {
     };
   }
 
-  async create(createUserDto: CreateUserDto, createdBy?: string): Promise<User> {
+  async create(
+    createUserDto: CreateUserDto,
+    createdBy?: string,
+  ): Promise<User> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
     const { email, password, name, role, photoUrl } = createUserDto;
 
@@ -295,10 +298,7 @@ export class UserService {
     return updatedUser;
   }
 
-  async remove(
-    id: string,
-    updatedBy?: string,
-  ): Promise<{ message: string }> {
+  async remove(id: string, updatedBy?: string): Promise<{ message: string }> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
     // Check if user exists
     const user = await this.findOne(id);
