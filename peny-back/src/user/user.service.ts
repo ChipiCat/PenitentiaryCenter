@@ -2,6 +2,8 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  Inject,
+  Scope,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -13,20 +15,37 @@ import { IPaginatedResponse } from '../common/interfaces/entity.interface';
 import { User, UserRole } from '../../generated/prisma';
 import * as bcrypt from 'bcryptjs';
 import { AuditService } from '../audit/audit.service';
+import { REQUEST } from '@nestjs/core';
+import type { Request } from 'express';
 
-@Injectable()
+interface AuditMetadata {
+  ipAddress?: string;
+  userAgent?: string;
+}
+
+@Injectable({ scope: Scope.REQUEST })
 export class UserService {
   constructor(
     private prisma: PrismaService,
     private auditService: AuditService,
+    @Inject(REQUEST) private readonly request: Request,
   ) {}
 
-  async create(
-    createUserDto: CreateUserDto,
-    createdBy?: string,
-    ipAddress?: string,
-    userAgent?: string,
-  ): Promise<User> {
+  /**
+   * Extraer metadatos de auditoría del request
+   */
+  private getAuditMetadata(): AuditMetadata {
+    const auditMetadata = (
+      this.request as Request & { auditMetadata?: AuditMetadata }
+    ).auditMetadata;
+    return {
+      ipAddress: auditMetadata?.ipAddress,
+      userAgent: auditMetadata?.userAgent,
+    };
+  }
+
+  async create(createUserDto: CreateUserDto, createdBy?: string): Promise<User> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
     const { email, password, name, role, photoUrl } = createUserDto;
 
     // Check if user already exists
@@ -165,9 +184,8 @@ export class UserService {
     id: string,
     updateUserDto: UpdateUserDto,
     updatedBy?: string,
-    ipAddress?: string,
-    userAgent?: string,
   ): Promise<User> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
     const { email, name, role, photoUrl } = updateUserDto;
 
     // Check if user exists
@@ -274,12 +292,8 @@ export class UserService {
     return updatedUser;
   }
 
-  async remove(
-    id: string,
-    updatedBy?: string,
-    ipAddress?: string,
-    userAgent?: string,
-  ): Promise<{ message: string }> {
+  async remove(id: string, updatedBy?: string): Promise<{ message: string }> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
     // Check if user exists
     const user = await this.findOne(id);
 

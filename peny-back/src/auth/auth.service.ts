@@ -3,6 +3,8 @@ import {
   UnauthorizedException,
   ConflictException,
   NotFoundException,
+  Inject,
+  Scope,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
@@ -15,20 +17,38 @@ import {
 import * as bcrypt from 'bcryptjs';
 import { UserRole, LogoutReason } from '../../generated/prisma';
 import { AuditService } from '../audit/audit.service';
+import { REQUEST } from '@nestjs/core';
+import type { Request } from 'express';
 
-@Injectable()
+interface AuditMetadata {
+  ipAddress?: string;
+  userAgent?: string;
+}
+
+@Injectable({ scope: Scope.REQUEST })
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
     private auditService: AuditService,
+    @Inject(REQUEST) private readonly request: Request,
   ) {}
 
-  async register(
-    registerDto: RegisterDto,
-    ipAddress?: string,
-    userAgent?: string,
-  ): Promise<AuthResponseDto> {
+  /**
+   * Extraer metadatos de auditoría del request
+   */
+  private getAuditMetadata(): AuditMetadata {
+    const auditMetadata = (
+      this.request as Request & { auditMetadata?: AuditMetadata }
+    ).auditMetadata;
+    return {
+      ipAddress: auditMetadata?.ipAddress,
+      userAgent: auditMetadata?.userAgent,
+    };
+  }
+
+  async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
     const { email, password, name, role, photoUrl } = registerDto;
     const existingUser = await this.prisma.user.findFirst({
       where: { email },
@@ -93,11 +113,8 @@ export class AuthService {
     };
   }
 
-  async login(
-    loginDto: LoginDto,
-    ipAddress?: string,
-    userAgent?: string,
-  ): Promise<AuthResponseDto> {
+  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
     const { email, password } = loginDto;
     const user = await this.prisma.user.findFirst({
       where: { email, isDeleted: false },
@@ -171,11 +188,8 @@ export class AuthService {
     };
   }
 
-  async refresh(
-    refreshDto: RefreshTokenDto,
-    ipAddress?: string,
-    userAgent?: string,
-  ): Promise<AuthResponseDto> {
+  async refresh(refreshDto: RefreshTokenDto): Promise<AuthResponseDto> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
     const { refreshToken } = refreshDto;
 
     try {
@@ -233,9 +247,8 @@ export class AuthService {
   async logout(
     refreshToken: string,
     userId?: string,
-    ipAddress?: string,
-    userAgent?: string,
   ): Promise<{ message: string }> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
     // Get user info from refresh token if userId not provided
     let user: { id: string; email: string; name: string; role: string } | null =
       null;

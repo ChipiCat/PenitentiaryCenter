@@ -5,8 +5,6 @@ import {
   UseGuards,
   Get,
   Request,
-  Ip,
-  Headers,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -37,36 +35,24 @@ export class AuthController {
   @ApiOperation({ summary: 'Register a new user' })
   @ApiBody({ type: RegisterDto })
   @ApiResponse({ status: 201, description: 'User registered successfully.' })
-  async register(
-    @Body() registerDto: RegisterDto,
-    @Ip() ipAddress: string,
-    @Headers('user-agent') userAgent?: string,
-  ) {
-    return this.authService.register(registerDto, ipAddress, userAgent);
+  async register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto);
   }
 
   @Post('login')
   @ApiOperation({ summary: 'Login user' })
   @ApiBody({ type: LoginDto })
   @ApiResponse({ status: 200, description: 'User logged in.' })
-  async login(
-    @Body() loginDto: LoginDto,
-    @Ip() ipAddress: string,
-    @Headers('user-agent') userAgent?: string,
-  ) {
-    return this.authService.login(loginDto, ipAddress, userAgent);
+  async login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
   }
 
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh access token' })
   @ApiBody({ type: RefreshTokenDto })
   @ApiResponse({ status: 200, description: 'Token refreshed.' })
-  async refresh(
-    @Body() refreshDto: RefreshTokenDto,
-    @Ip() ipAddress: string,
-    @Headers('user-agent') userAgent?: string,
-  ) {
-    return this.authService.refresh(refreshDto, ipAddress, userAgent);
+  async refresh(@Body() refreshDto: RefreshTokenDto) {
+    return this.authService.refresh(refreshDto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -77,16 +63,9 @@ export class AuthController {
   async logout(
     @Body() logoutDto: LogoutDto,
     @Request() req: AuthenticatedRequest,
-    @Ip() ipAddress: string,
-    @Headers('user-agent') userAgent?: string,
   ) {
     const userId = req.user?.id;
-    return this.authService.logout(
-      logoutDto.refreshToken,
-      userId,
-      ipAddress,
-      userAgent,
-    );
+    return this.authService.logout(logoutDto.refreshToken, userId);
   }
 
   @UseGuards(JwtAuthGuard)
