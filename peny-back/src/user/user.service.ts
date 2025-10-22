@@ -5,6 +5,8 @@ import {
   Inject,
   Scope,
 } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import type { Request } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreateUserDto,
@@ -15,10 +17,11 @@ import { IPaginatedResponse } from '../common/interfaces/entity.interface';
 import { User, UserRole } from '../../generated/prisma';
 import * as bcrypt from 'bcryptjs';
 import { AuditService } from '../audit/audit.service';
-import { REQUEST } from '@nestjs/core';
-import type { Request } from 'express';
 
-interface AuditMetadata {
+/**
+ * Interfaz para los metadatos de auditoría extraídos del request
+ */
+export interface AuditMetadata {
   ipAddress?: string;
   userAgent?: string;
 }
@@ -292,7 +295,10 @@ export class UserService {
     return updatedUser;
   }
 
-  async remove(id: string, updatedBy?: string): Promise<{ message: string }> {
+  async remove(
+    id: string,
+    updatedBy?: string,
+  ): Promise<{ message: string }> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
     // Check if user exists
     const user = await this.findOne(id);

@@ -6,6 +6,8 @@ import {
   Inject,
   Scope,
 } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import type { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -17,10 +19,11 @@ import {
 import * as bcrypt from 'bcryptjs';
 import { UserRole, LogoutReason } from '../../generated/prisma';
 import { AuditService } from '../audit/audit.service';
-import { REQUEST } from '@nestjs/core';
-import type { Request } from 'express';
 
-interface AuditMetadata {
+/**
+ * Interfaz para los metadatos de auditoría extraídos del request
+ */
+export interface AuditMetadata {
   ipAddress?: string;
   userAgent?: string;
 }
@@ -329,17 +332,5 @@ export class AuthService {
       expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     });
     return { accessToken, refreshToken };
-  }
-
-  async validateUser(userId: string) {
-    const user = await this.prisma.user.findFirst({
-      where: { id: userId, isDeleted: false },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    return user;
   }
 }
