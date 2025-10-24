@@ -45,8 +45,8 @@ export const PrisonersPage: React.FC = () => {
     archivados: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [statusFilter] = useState<string>("all");
+  const [searchTerm] = useState<string>("");
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     limit: 10,
