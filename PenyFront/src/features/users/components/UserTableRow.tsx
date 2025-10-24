@@ -1,6 +1,6 @@
 import { Table, Group, Avatar, Text, Badge, ActionIcon } from '@mantine/core';
 import { Edit, Trash2 } from 'lucide-react';
-import type { User, UserActions } from '../types/userTypes';
+import type { User, UserActions } from '../../../shared/types/users/userTypes';
 import { getUserInitials, getRoleColor, getStatusColor, getStatusLabel } from '../utils/userUtils';
 
 interface UserTableRowProps {
