@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Group, Title, ThemeIcon, Grid, Stack, Text, Badge, Alert } from '@mantine/core';
 import { Phone } from 'lucide-react';
-import type { Contact } from '../../../../../shared/services/prisonersApi';
+import type { Contact } from '../../../../../shared/types';
 
 interface ContactsCardProps {
   contacts: Contact[];

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Group, Title, ThemeIcon, Stack, Text, Badge, Alert } from '@mantine/core';
 import { User } from 'lucide-react';
-import type { Identity } from '../../../../../shared/services/prisonersApi';
+import type { Identity } from '../../../../../shared/types';
 
 interface IdentityCardProps {
   identity?: Identity;

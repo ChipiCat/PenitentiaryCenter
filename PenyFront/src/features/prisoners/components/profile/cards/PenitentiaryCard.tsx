@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Group, Title, ThemeIcon, Stack, Text, Badge, Alert } from '@mantine/core';
 import { Building, MapPin } from 'lucide-react';
-import type { Penitentiary } from '../../../../../shared/services/prisonersApi';
+import type { Penitentiary } from '../../../../../shared/types';
 
 interface PenitentiaryCardProps {
   penitentiary?: Penitentiary;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Group, ActionIcon, Avatar, Title, Text, Badge, Button, Tooltip } from '@mantine/core';
 import { ArrowLeft, Edit, User, Shield } from 'lucide-react';
-import type { CompletePrisonerProfile } from '../../../../shared/services/prisonersApi';
+import type { CompletePrisonerProfile } from '../../../../shared/types';
 
 interface ProfileHeaderProps {
   profile: CompletePrisonerProfile;
