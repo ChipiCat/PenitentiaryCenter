@@ -26,8 +26,10 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
   onUpdate,
   errors = {},
 }) => {
-  // Handler para datos personales
-  const handlePersonalChange = (field: keyof Personal, value: any) => {
+  const handlePersonalChange = (
+    field: keyof Personal,
+    value: string | number | Date | undefined
+  ) => {
     onUpdate({
       personal: {
         ...data.personal,
@@ -38,7 +40,6 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
 
   return (
     <Stack gap="lg">
-      {/* 👤 INFORMACIÓN PERSONAL */}
       <Card withBorder padding="lg">
         <Title order={4} size="h5" mb="md" c="purple">
           👤 Información Personal

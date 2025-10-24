@@ -29,14 +29,17 @@ export const LegalCaseStep: React.FC<LegalCaseStepProps> = ({
   onUpdate, 
   errors = {} 
 }) => {
-  const handleInitialCaseChange = (field: string, value: any) => {
-    onUpdate({
-      initialCase: {
-        ...data.initialCase,
-        [field]: value
-      }
-    });
-  };
+  const handleInitialCaseChange = (
+  field: keyof InitialCase,
+  value: string | Date | undefined
+) => {
+  onUpdate({
+    initialCase: {
+      ...data.initialCase,
+      [field]: value
+    }
+  });
+};
 
   return (
     <Stack gap="lg">
@@ -63,7 +66,7 @@ export const LegalCaseStep: React.FC<LegalCaseStepProps> = ({
               label="Fecha de Inicio"
               placeholder="Fecha del caso"
               value={data.initialCase?.start_date || null}
-              onChange={(date) => handleInitialCaseChange('start_date', date)}
+              onChange={(date) => handleInitialCaseChange('start_date', date ?? undefined)}
               error={errors['initialCase.start_date']}
               maxDate={new Date()}
             />

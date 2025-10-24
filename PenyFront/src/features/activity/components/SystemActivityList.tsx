@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActivityList } from '../../../shared/components/activity/ActivityList';
-import type { ActivityRecordData, ActivityUser } from '../../../shared/components/activity/ActivityRecord';
+import type { ActivityRecordData } from '../../../shared/components/activity/ActivityRecord';
+import type { ActivityUser } from '../../../shared/types/commonTypes';
 
 interface SystemActivityListProps {
   activities: ActivityRecordData[];

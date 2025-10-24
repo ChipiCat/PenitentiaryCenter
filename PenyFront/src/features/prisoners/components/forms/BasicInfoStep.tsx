@@ -43,11 +43,17 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
   onUpdate,
   errors = {},
 }) => {
-  const handleMainDataChange = (field: string, value: any) => {
+  const handleMainDataChange = (
+    field: string,
+    value: string | Date | number | undefined
+  ) => {
     onUpdate({ [field]: value });
   };
 
-  const handleIdentityChange = (field: string, value: any) => {
+  const handleIdentityChange = (
+    field: keyof NonNullable<BasicInfoStepProps["data"]["identity"]>,
+    value: string | Date | undefined
+  ) => {
     onUpdate({
       identity: {
         ...data.identity,
@@ -80,7 +86,7 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               label="Fecha de Ingreso"
               placeholder="Seleccione la fecha"
               value={data.admission_date || null}
-              onChange={(date) => handleMainDataChange("admission_date", date)}
+              onChange={(date) => handleMainDataChange("admission_date", date ?? undefined)}
               required
               error={errors.admission_date}
               maxDate={new Date()}
@@ -134,7 +140,7 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               label="Fecha de Nacimiento"
               placeholder="Seleccione la fecha"
               value={data.identity?.birth_date || null}
-              onChange={(date) => handleIdentityChange("birth_date", date)}
+              onChange={(date) => handleIdentityChange("birth_date", date ?? undefined)}
               maxDate={new Date()}
               error={errors["identity.birth_date"]}
             />
