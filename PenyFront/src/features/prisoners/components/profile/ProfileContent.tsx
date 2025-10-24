@@ -1,6 +1,6 @@
 import React from 'react';
 import { Grid } from '@mantine/core';
-import type { CompletePrisonerProfile } from '../../../../shared/services/prisonersApi';
+import type { CompletePrisonerProfile } from '../../../../shared/types';
 import { BasicInfoCard } from './cards/BasicInfoCard';
 import { IdentityCard } from './cards/IdentityCard';
 import { PersonalInfoCard } from './cards/PersonalInfoCard';

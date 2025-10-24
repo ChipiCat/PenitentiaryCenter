@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Group, Title, ThemeIcon, Stack, Text } from '@mantine/core';
 import { FileText, Calendar, Clock } from 'lucide-react';
-import type { PrisonerBase } from '../../../../../shared/services/prisonersApi';
+import type { PrisonerBase } from '../../../../../shared/types';
 
 interface BasicInfoCardProps {
   prisoner: PrisonerBase;
@@ -45,7 +45,7 @@ export const BasicInfoCard: React.FC<BasicInfoCardProps> = ({ prisoner }) => {
           <Group gap={4}>
             <Clock size={14} />
             <Text size="sm">
-              {new Date(prisoner.created_at).toLocaleDateString('es-ES')}
+              {new Date(prisoner.createdAt).toLocaleDateString('es-ES')}
             </Text>
           </Group>
         </Group>

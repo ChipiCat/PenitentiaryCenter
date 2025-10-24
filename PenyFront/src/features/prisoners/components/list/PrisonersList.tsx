@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Table, Group, Avatar, Text, Badge, ActionIcon, Tooltip } from '@mantine/core';
 import { Eye, Edit } from 'lucide-react';
-import type { PrisonerBase } from '../../../../shared/services/prisonersApi';
+import type { PrisonerBase } from '../../../../shared/types';
 
 interface PrisonersListProps {
   prisoners: (PrisonerBase & { fullName?: string })[];
