@@ -1,6 +1,6 @@
 import { Paper, Title, Stack } from '@mantine/core';
 import { ReportTypeCard } from './ReportTypeCard';
-import type { ReportType } from '../types/reportTypes';
+import type { ReportType } from '../../../shared/types/report/reportTypes';
 
 interface ReportGenerationSectionProps {
   reportTypes: ReportType[];
