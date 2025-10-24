@@ -2,8 +2,11 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
-  NotFoundException,
+  Inject,
+  Scope,
 } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import type { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -13,18 +16,43 @@ import {
   AuthResponseDto,
 } from './dto/auth.dto';
 import * as bcrypt from 'bcryptjs';
-import { UserRole } from '../../generated/prisma';
+import { UserRole, LogoutReason } from '../../generated/prisma';
+import { AuditService } from '../audit/audit.service';
 
-@Injectable()
+/**
+ * Interfaz para los metadatos de auditoría extraídos del request
+ */
+export interface AuditMetadata {
+  ipAddress?: string;
+  userAgent?: string;
+}
+
+@Injectable({ scope: Scope.REQUEST })
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private auditService: AuditService,
+    @Inject(REQUEST) private readonly request: Request,
   ) {}
 
+  /**
+   * Extraer metadatos de auditoría del request
+   */
+  private getAuditMetadata(): AuditMetadata {
+    const auditMetadata = (
+      this.request as Request & { auditMetadata?: AuditMetadata }
+    ).auditMetadata;
+    return {
+      ipAddress: auditMetadata?.ipAddress,
+      userAgent: auditMetadata?.userAgent,
+    };
+  }
+
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
     const { email, password, name, role, photoUrl } = registerDto;
-    const existingUser = await this.prisma.user.findUnique({
+    const existingUser = await this.prisma.user.findFirst({
       where: { email },
     });
 
@@ -61,6 +89,19 @@ export class AuthService {
       },
     });
 
+    // Log user creation
+    await this.auditService.logUserCreated(
+      result.id,
+      result.email,
+      result.name,
+      undefined, // createdBy is undefined for self-registration
+      undefined,
+      undefined,
+      undefined,
+      ipAddress,
+      userAgent,
+    );
+
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
@@ -75,13 +116,21 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
     const { email, password } = loginDto;
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       where: { email, isDeleted: false },
       include: { userAuth: true },
     });
 
     if (!user || !user.userAuth) {
+      // Log failed login attempt
+      await this.auditService.logLoginFailed(
+        email,
+        'Invalid credentials',
+        ipAddress,
+        userAgent,
+      );
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -90,6 +139,13 @@ export class AuthService {
       user.userAuth.passwordHash,
     );
     if (!isPasswordValid) {
+      // Log failed login attempt
+      await this.auditService.logLoginFailed(
+        email,
+        'Invalid password',
+        ipAddress,
+        userAgent,
+      );
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -102,6 +158,24 @@ export class AuthService {
         tokenExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       },
     });
+
+    // Create session log
+    const sessionLog = await this.auditService.createSession({
+      user_id: user.id,
+      ip_address: ipAddress || 'unknown',
+      user_agent: userAgent || 'unknown',
+    });
+
+    // Log successful login
+    await this.auditService.logLogin(
+      user.id,
+      user.email,
+      user.name,
+      user.role,
+      ipAddress,
+      userAgent,
+      sessionLog.id,
+    );
 
     return {
       accessToken: tokens.accessToken,
@@ -117,6 +191,7 @@ export class AuthService {
   }
 
   async refresh(refreshDto: RefreshTokenDto): Promise<AuthResponseDto> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
     const { refreshToken } = refreshDto;
 
     try {
@@ -145,6 +220,16 @@ export class AuthService {
         },
       });
 
+      // Log token refresh
+      await this.auditService.logTokenRefresh(
+        userAuth.user.id,
+        userAuth.user.email,
+        userAuth.user.name,
+        userAuth.user.role,
+        ipAddress,
+        userAgent,
+      );
+
       return {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
@@ -161,7 +246,42 @@ export class AuthService {
     }
   }
 
-  async logout(refreshToken: string): Promise<{ message: string }> {
+  async logout(
+    refreshToken: string,
+    userId?: string,
+  ): Promise<{ message: string }> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
+    // Get user info from refresh token if userId not provided
+    let user: { id: string; email: string; name: string; role: string } | null =
+      null;
+    if (userId) {
+      const foundUser = await this.prisma.user.findFirst({
+        where: { id: userId },
+      });
+      if (foundUser) {
+        user = {
+          id: foundUser.id,
+          email: foundUser.email,
+          name: foundUser.name,
+          role: foundUser.role,
+        };
+      }
+    } else {
+      const userAuth = await this.prisma.userAuth.findFirst({
+        where: { refreshToken },
+        include: { user: true },
+      });
+      if (userAuth) {
+        user = {
+          id: userAuth.user.id,
+          email: userAuth.user.email,
+          name: userAuth.user.name,
+          role: userAuth.user.role,
+        };
+      }
+    }
+
+    // Clear refresh token
     await this.prisma.userAuth.updateMany({
       where: { refreshToken },
       data: {
@@ -169,6 +289,33 @@ export class AuthService {
         tokenExpiry: null,
       },
     });
+
+    // If user found, log the logout and close session
+    if (user) {
+      // Get active session
+      const activeSession = await this.auditService.getActiveSession(user.id);
+
+      if (activeSession) {
+        // Close session
+        await this.auditService.updateSession(activeSession.id, {
+          logout_at: new Date(),
+          is_active: false,
+          logout_reason: LogoutReason.USER_LOGOUT,
+        });
+
+        // Log logout
+        await this.auditService.logLogout(
+          user.id,
+          user.email,
+          user.name,
+          user.role,
+          LogoutReason.USER_LOGOUT,
+          ipAddress,
+          userAgent,
+          activeSession.id,
+        );
+      }
+    }
 
     return { message: 'Logged out successfully' };
   }
@@ -184,17 +331,5 @@ export class AuthService {
       expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     });
     return { accessToken, refreshToken };
-  }
-
-  async validateUser(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId, isDeleted: false },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    return user;
   }
 }
