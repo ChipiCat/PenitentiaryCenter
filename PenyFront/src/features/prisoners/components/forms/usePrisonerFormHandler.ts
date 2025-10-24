@@ -10,12 +10,11 @@ interface PrisonerFormWizardProps {
 }
 
 
-export function usePrisonerFormHandlers({ mode, initialData, onSuccess, onCancel }: PrisonerFormWizardProps) {
+export function usePrisonerFormHandlers({ initialData, onCancel }: PrisonerFormWizardProps) {
   const steps = usePrisonerFormSteps();
   const [formData, setFormData] = useState<Partial<CreatePrisonerData>>(adaptInitialData(initialData));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [activeStep, setActiveStep] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Adaptar datos iniciales
   function adaptInitialData(data: Partial<CreatePrisonerData> | PrisonerBase | undefined): Partial<CreatePrisonerData> {
@@ -30,16 +29,12 @@ export function usePrisonerFormHandlers({ mode, initialData, onSuccess, onCancel
   };
 }
 
-  // Handlers y validaciones (igual que tu código actual, pero modularizado)
-  // ...handleDataUpdate, isStepValid, validateStepWithErrors, handleNext, handlePrevious, handleCancel, handleSubmit...
-
-  // Ejemplo de handleDataUpdate:
   const handleDataUpdate = useCallback((updates: Partial<CreatePrisonerData>) => {
     setFormData(prev => ({
       ...prev,
       ...updates
     }));
-    // Limpiar errores del campo actualizado
+
     const updatedFields = Object.keys(updates);
     setErrors(prev => {
       const newErrors = { ...prev };
@@ -55,14 +50,12 @@ export function usePrisonerFormHandlers({ mode, initialData, onSuccess, onCancel
     });
   }, []);
 
-  // ...Resto de handlers y lógica igual que tu código actual...
-
   return {
     formData,
     errors,
     activeStep,
-    isSubmitting,
-    canGoNext: true, // Calcula según tu lógica
+    isSubmitting: false,
+    canGoNext: true, 
     handleDataUpdate,
     handlePrevious: () => setActiveStep(prev => Math.max(prev - 1, 0)),
     handleNext: () => setActiveStep(prev => Math.min(prev + 1, steps.length - 1)),

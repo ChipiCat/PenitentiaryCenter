@@ -10,7 +10,6 @@ interface SystemActivityStatsProps {
 export const SystemActivityStats: React.FC<SystemActivityStatsProps> = ({ 
   period = 'today' 
 }) => {
-  // Datos mock que cambiarían según el período
   const getStatsForPeriod = (timePeriod: string): StatCardData[] => {
     switch (timePeriod) {
       case 'week':
