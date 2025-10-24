@@ -79,7 +79,7 @@ export const useSystemActivity = () => {
 
       return matchesAction && matchesSearch;
     });
-  }, [allActivities, actionFilter, timeFilter, searchTerm]);
+  }, [allActivities, actionFilter, searchTerm]);
 
   return {
     actionFilter,
