@@ -1,6 +1,8 @@
 import type { Entity } from "./commonTypes";
 import type { PaginationParams } from "./axiosTypes";
-
+import type { Personal } from "./personalTypes";
+import type { Penitentiary } from "./penitentiaryTypes";
+import type { Contact } from "./contactTypes";
 export interface PrisonerBase extends Entity {
   registration_number: string;
   admission_date: string;
@@ -13,6 +15,10 @@ export interface CreatePrisonerData {
   admission_date: string;
   fiscal_file_number?: string;
   status?: string;
+
+  personal?: Partial<Personal>;
+  penitentiary?: Partial<Penitentiary>;
+  contacts?: Partial<Contact>[];
 }
 
 export interface UpdatePrisonerData {
@@ -20,6 +26,10 @@ export interface UpdatePrisonerData {
   admission_date?: string;
   fiscal_file_number?: string;
   status?: string;
+
+  personal?: Personal;
+  penitentiary?: Penitentiary;
+  contacts?: Contact[];
 }
 
 export interface GetPrisonersParams extends PaginationParams {

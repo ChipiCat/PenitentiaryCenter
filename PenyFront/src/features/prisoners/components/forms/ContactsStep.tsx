@@ -11,7 +11,6 @@ import {
   Text,
 } from '@mantine/core';
 import { Plus, Trash2, Users, AlertCircle } from 'lucide-react';
-import type { CreateContactData } from '../../../../shared/types';
 
 interface Contact {
   name: string;

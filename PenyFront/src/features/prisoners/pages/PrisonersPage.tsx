@@ -8,16 +8,17 @@ import { PrisonersHeader } from "../components/list/PrisonersHeader";
 import { PrisonersStats } from "../components/list/PrisonersStats";
 import { PrisonersList } from "../components/list/PrisonersList";
 import { EmptyPrisonersState } from "../components/list/EmptyPrisonersState";
-import type { PrisonerBase } from "../../../shared/types";
-import { prisonersApi } from "../../../shared/services";
+import type { PrisonerBase } from "../../../shared/types/prisonerTypes";
+import { prisonersService } from "../../../shared/services/prisonersService";
 
 type ViewMode = "list" | "create" | "edit";
 
 interface Statistics {
   total: number;
   activos: number;
-  preventivos: number;
-  condenados: number;
+  trasladados: number;
+  liberados: number;
+  archivados: number;
 }
 
 interface Pagination {
@@ -30,13 +31,18 @@ interface Pagination {
 export const PrisonersPage: React.FC = () => {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>("list");
-  const [selectedPrisoner, setSelectedPrisoner] = useState<PrisonerBase | null>(null);
-  const [prisoners, setPrisoners] = useState<(PrisonerBase & { fullName?: string })[]>([]);
+  const [selectedPrisoner, setSelectedPrisoner] = useState<PrisonerBase | null>(
+    null
+  );
+  const [prisoners, setPrisoners] = useState<
+    (PrisonerBase & { fullName?: string })[]
+  >([]);
   const [statistics, setStatistics] = useState<Statistics>({
     total: 0,
     activos: 0,
-    preventivos: 0,
-    condenados: 0,
+    trasladados: 0,
+    liberados: 0,
+    archivados: 0,
   });
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -63,8 +69,8 @@ export const PrisonersPage: React.FC = () => {
     navigate(ROUTES.PRISONER_PROFILE.replace(":id", prisoner.id));
   };
 
-  const handleSuccess = (prisoner: PrisonerBase) => {
-    console.log("Prisionero guardado:", prisoner);
+  const handleSuccess = (result: { prisoner: PrisonerBase; id: string }) => {
+    console.log("Prisionero guardado:", result.prisoner);
     setViewMode("list");
     loadData();
     loadStats();
@@ -78,7 +84,7 @@ export const PrisonersPage: React.FC = () => {
     try {
       setLoading(true);
 
-      const response = await prisonersApi.getPrisonersWithNames({
+      const response = await prisonersService.getPrisoners({
         page: pagination.page,
         limit: pagination.limit,
         status: statusFilter === "all" ? undefined : statusFilter,
@@ -105,13 +111,22 @@ export const PrisonersPage: React.FC = () => {
 
   const loadStats = useCallback(async () => {
     try {
-      const allPrisoners = await prisonersApi.getPrisoners({ limit: 1000 });
+      const allPrisoners = await prisonersService.getPrisoners({ limit: 1000 });
 
       const stats = {
         total: allPrisoners.data.length,
-        activos: allPrisoners.data.filter((p: PrisonerBase) => p.status === "Activo").length,
-        preventivos: allPrisoners.data.filter((p: PrisonerBase) => p.status === "Prisión Preventiva").length,
-        condenados: allPrisoners.data.filter((p: PrisonerBase) => p.status === "Condenado").length,
+        activos: allPrisoners.data.filter(
+          (p: PrisonerBase) => p.status === "Activo"
+        ).length,
+        trasladados: allPrisoners.data.filter(
+          (p: PrisonerBase) => p.status === "Trasladado"
+        ).length,
+        liberados: allPrisoners.data.filter(
+          (p: PrisonerBase) => p.status === "Liberado"
+        ).length,
+        archivados: allPrisoners.data.filter(
+          (p: PrisonerBase) => p.status === "Archivado"
+        ).length,
       };
 
       setStatistics(stats);
@@ -142,7 +157,7 @@ export const PrisonersPage: React.FC = () => {
 
       <Stack gap="lg">
         <PrisonersHeader onCreateNew={handleCreateNew} />
-        
+
         <PrisonersStats statistics={statistics} />
 
         {prisoners.length === 0 && !loading ? (
