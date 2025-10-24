@@ -4,9 +4,10 @@ import { StorageService } from './storage.service';
 import { CloudinaryProvider } from './providers/cloudinary.provider';
 import { S3Provider } from './providers/s3.provider';
 import { PrismaModule } from '../prisma/prisma.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AuditModule],
   providers: [FilesService, StorageService, CloudinaryProvider, S3Provider],
   exports: [FilesService],
 })

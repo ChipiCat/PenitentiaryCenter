@@ -1,5 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, Scope } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import type { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
+import { AuditService } from '../../audit/audit.service';
 import {
   CreateCaseDto,
   UpdateCaseDto,
@@ -13,12 +16,84 @@ import {
   Prisma,
   PrisonerCase,
   PrisonerMandate,
+  AuditAction,
+  AuditModule,
+  EntityType,
 } from '../../../generated/prisma';
 import { PaginationMetaDto } from '../../common/interfaces/entity.interface';
 
-@Injectable()
+/**
+ * Interfaz para los metadatos de auditoría extraídos del request
+ */
+interface AuditMetadata {
+  ipAddress?: string;
+  userAgent?: string;
+}
+
+/**
+ * Tipo extendido de Request para incluir metadatos de auditoría y usuario cacheado
+ */
+type RequestWithAuditData = Request & {
+  auditMetadata?: AuditMetadata;
+  currentUser?: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+};
+
+@Injectable({ scope: Scope.REQUEST })
 export class PrisonerCaseService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
+    @Inject(REQUEST) private readonly request: Request,
+  ) {}
+
+  /**
+   * Extraer metadatos de auditoría del request
+   */
+  private getAuditMetadata(): AuditMetadata {
+    const req = this.request as RequestWithAuditData;
+    const auditMetadata = req.auditMetadata;
+    return {
+      ipAddress: auditMetadata?.ipAddress,
+      userAgent: auditMetadata?.userAgent,
+    };
+  }
+
+  /**
+   * Obtener información completa del usuario actual para auditoría
+   */
+  private async getUserInfo(userId: string): Promise<{
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  } | null> {
+    const req = this.request as RequestWithAuditData;
+    const cachedUser = req.currentUser;
+    if (cachedUser && cachedUser.id === userId) {
+      return cachedUser;
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, isDeleted: false },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+      },
+    });
+
+    if (user) {
+      req.currentUser = user;
+    }
+
+    return user;
+  }
 
   /**
    * Crear un nuevo caso judicial para un prisionero
@@ -28,8 +103,11 @@ export class PrisonerCaseService {
     createDto: CreateCaseDto,
     userId: string,
   ): Promise<CaseResponseDto> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
+    const userInfo = await this.getUserInfo(userId);
+
     // Verificar que el prisionero existe
-    const prisoner = await this.prisma.prisoner.findUnique({
+    const prisoner = await this.prisma.prisoner.findFirst({
       where: { id: prisonerId, isDeleted: false },
     });
 
@@ -55,6 +133,22 @@ export class PrisonerCaseService {
         updatedBy: userId,
       },
     });
+
+    // Log audit - creación sin DataChangeLog
+    await this.auditService.logEntityCreated(
+      AuditAction.CREATE,
+      EntityType.PRISONER_CASE,
+      prisonerCase.id,
+      `Caso judicial creado: ${prisonerCase.caseNumber} - ${prisonerCase.crime}`,
+      userId,
+      AuditModule.CASES,
+      userInfo?.email,
+      userInfo?.name,
+      userInfo?.role,
+      ipAddress,
+      userAgent,
+      prisonerId, // prisonerRelatedId
+    );
 
     return this.mapToResponseDto(prisonerCase);
   }
@@ -115,7 +209,7 @@ export class PrisonerCaseService {
    * Obtener un caso por ID
    */
   async findOne(caseId: string): Promise<CaseResponseDto> {
-    const prisonerCase = await this.prisma.prisonerCase.findUnique({
+    const prisonerCase = await this.prisma.prisonerCase.findFirst({
       where: { id: caseId, isDeleted: false },
     });
 
@@ -134,12 +228,122 @@ export class PrisonerCaseService {
     updateDto: UpdateCaseDto,
     userId: string,
   ): Promise<CaseResponseDto> {
-    const existing = await this.prisma.prisonerCase.findUnique({
+    const { ipAddress, userAgent } = this.getAuditMetadata();
+    const userInfo = await this.getUserInfo(userId);
+
+    const existing = await this.prisma.prisonerCase.findFirst({
       where: { id: caseId, isDeleted: false },
     });
 
     if (!existing) {
       throw new NotFoundException(`Caso con ID ${caseId} no encontrado`);
+    }
+
+    // Build field changes array
+    const fieldChanges: Array<{
+      field_name: string;
+      old_value?: string;
+      new_value?: string;
+    }> = [];
+
+    if (
+      updateDto.case_number !== undefined &&
+      updateDto.case_number !== existing.caseNumber
+    ) {
+      fieldChanges.push({
+        field_name: 'case_number',
+        old_value: existing.caseNumber,
+        new_value: updateDto.case_number,
+      });
+    }
+
+    if (updateDto.crime !== undefined && updateDto.crime !== existing.crime) {
+      fieldChanges.push({
+        field_name: 'crime',
+        old_value: existing.crime,
+        new_value: updateDto.crime,
+      });
+    }
+
+    if (
+      updateDto.status !== undefined &&
+      updateDto.status !== existing.status
+    ) {
+      fieldChanges.push({
+        field_name: 'status',
+        old_value: existing.status,
+        new_value: updateDto.status,
+      });
+    }
+
+    if (updateDto.start_date !== undefined) {
+      const newStartDate = new Date(updateDto.start_date).toISOString();
+      const oldStartDate = existing.startDate.toISOString();
+      if (newStartDate !== oldStartDate) {
+        fieldChanges.push({
+          field_name: 'start_date',
+          old_value: oldStartDate,
+          new_value: newStartDate,
+        });
+      }
+    }
+
+    if (updateDto.end_date !== undefined) {
+      const newEndDate = updateDto.end_date
+        ? new Date(updateDto.end_date).toISOString()
+        : null;
+      const oldEndDate = existing.endDate?.toISOString() || null;
+      if (newEndDate !== oldEndDate) {
+        fieldChanges.push({
+          field_name: 'end_date',
+          old_value: oldEndDate || 'null',
+          new_value: newEndDate || 'null',
+        });
+      }
+    }
+
+    if (
+      updateDto.court_name !== undefined &&
+      updateDto.court_name !== existing.courtName
+    ) {
+      fieldChanges.push({
+        field_name: 'court_name',
+        old_value: existing.courtName || 'null',
+        new_value: updateDto.court_name || 'null',
+      });
+    }
+
+    if (
+      updateDto.judge_name !== undefined &&
+      updateDto.judge_name !== existing.judgeName
+    ) {
+      fieldChanges.push({
+        field_name: 'judge_name',
+        old_value: existing.judgeName || 'null',
+        new_value: updateDto.judge_name || 'null',
+      });
+    }
+
+    if (
+      updateDto.sentence_years !== undefined &&
+      updateDto.sentence_years !== existing.sentenceYears
+    ) {
+      fieldChanges.push({
+        field_name: 'sentence_years',
+        old_value: existing.sentenceYears?.toString() || 'null',
+        new_value: updateDto.sentence_years?.toString() || 'null',
+      });
+    }
+
+    if (
+      updateDto.remarks !== undefined &&
+      updateDto.remarks !== existing.remarks
+    ) {
+      fieldChanges.push({
+        field_name: 'remarks',
+        old_value: existing.remarks || 'null',
+        new_value: updateDto.remarks || 'null',
+      });
     }
 
     const prisonerCase = await this.prisma.prisonerCase.update({
@@ -160,14 +364,36 @@ export class PrisonerCaseService {
       },
     });
 
+    // Log audit with field changes
+    if (fieldChanges.length > 0) {
+      await this.auditService.logEntityUpdated(
+        AuditAction.UPDATE,
+        EntityType.PRISONER_CASE,
+        prisonerCase.id,
+        `Caso judicial actualizado: ${prisonerCase.caseNumber}`,
+        userId,
+        AuditModule.CASES,
+        fieldChanges,
+        userInfo?.email,
+        userInfo?.name,
+        userInfo?.role,
+        ipAddress,
+        userAgent,
+        existing.prisonerId, // prisonerRelatedId
+      );
+    }
+
     return this.mapToResponseDto(prisonerCase);
   }
 
   /**
    * Eliminar (soft delete) un caso
    */
-  async remove(caseId: string): Promise<void> {
-    const existing = await this.prisma.prisonerCase.findUnique({
+  async remove(caseId: string, userId: string): Promise<void> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
+    const userInfo = await this.getUserInfo(userId);
+
+    const existing = await this.prisma.prisonerCase.findFirst({
       where: { id: caseId, isDeleted: false },
     });
 
@@ -177,8 +403,24 @@ export class PrisonerCaseService {
 
     await this.prisma.prisonerCase.update({
       where: { id: caseId },
-      data: { isDeleted: true },
+      data: { isDeleted: true, updatedBy: userId },
     });
+
+    // Log audit
+    await this.auditService.logEntityDeleted(
+      AuditAction.DELETE,
+      EntityType.PRISONER_CASE,
+      existing.id,
+      `Caso judicial eliminado: ${existing.caseNumber} - ${existing.crime}`,
+      userId,
+      AuditModule.CASES,
+      userInfo?.email,
+      userInfo?.name,
+      userInfo?.role,
+      ipAddress,
+      userAgent,
+      existing.prisonerId, // prisonerRelatedId
+    );
   }
 
   /**

@@ -1,20 +1,96 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, Scope } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import type { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
 import { FilesService } from '../../files/files.service';
+import { AuditService } from '../../audit/audit.service';
 import {
   CreateMedicalRecordDto,
   UpdateMedicalRecordDto,
   MedicalRecordResponseDto,
 } from './dto/medical-record.dto';
-import { File, MedicalRecord } from 'generated/prisma';
+import {
+  File,
+  MedicalRecord,
+  AuditAction,
+  AuditModule,
+  EntityType,
+} from 'generated/prisma';
 import { UploadedFile } from '../../files/interfaces/uploaded-file.interface';
 
-@Injectable()
+/**
+ * Interfaz para los metadatos de auditoría extraídos del request
+ */
+interface AuditMetadata {
+  ipAddress?: string;
+  userAgent?: string;
+}
+
+/**
+ * Tipo extendido de Request para incluir metadatos de auditoría y usuario cacheado
+ */
+type RequestWithAuditData = Request & {
+  auditMetadata?: AuditMetadata;
+  currentUser?: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+};
+
+@Injectable({ scope: Scope.REQUEST })
 export class PrisonerMedicalRecordService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly filesService: FilesService,
+    private readonly auditService: AuditService,
+    @Inject(REQUEST) private readonly request: Request,
   ) {}
+
+  /**
+   * Extraer metadatos de auditoría del request
+   */
+  private getAuditMetadata(): AuditMetadata {
+    const req = this.request as RequestWithAuditData;
+    const auditMetadata = req.auditMetadata;
+    return {
+      ipAddress: auditMetadata?.ipAddress,
+      userAgent: auditMetadata?.userAgent,
+    };
+  }
+
+  /**
+   * Obtener información completa del usuario actual para auditoría
+   */
+  private async getUserInfo(userId: string): Promise<{
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  } | null> {
+    const req = this.request as RequestWithAuditData;
+    const cachedUser = req.currentUser;
+    if (cachedUser && cachedUser.id === userId) {
+      return cachedUser;
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, isDeleted: false },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+      },
+    });
+
+    if (user) {
+      req.currentUser = user;
+    }
+
+    return user;
+  }
 
   /**
    * Crear un nuevo registro médico
@@ -24,8 +100,11 @@ export class PrisonerMedicalRecordService {
     createDto: CreateMedicalRecordDto,
     userId: string,
   ): Promise<MedicalRecordResponseDto> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
+    const userInfo = await this.getUserInfo(userId);
+
     // Verificar que el prisionero exista
-    const prisoner = await this.prisma.prisoner.findUnique({
+    const prisoner = await this.prisma.prisoner.findFirst({
       where: { id: prisonerId, isDeleted: false },
     });
 
@@ -53,6 +132,22 @@ export class PrisonerMedicalRecordService {
       },
     });
 
+    // Log audit - creación sin DataChangeLog
+    await this.auditService.logEntityCreated(
+      AuditAction.CREATE,
+      EntityType.MEDICAL_RECORD,
+      medicalRecord.id,
+      `Registro médico creado: Dr. ${medicalRecord.doctorName || 'N/A'}`,
+      userId,
+      AuditModule.MEDICAL,
+      userInfo?.email,
+      userInfo?.name,
+      userInfo?.role,
+      ipAddress,
+      userAgent,
+      prisonerId, // prisonerRelatedId
+    );
+
     return this.mapToResponseDto(medicalRecord);
   }
 
@@ -61,7 +156,7 @@ export class PrisonerMedicalRecordService {
    */
   async findAll(prisonerId: string): Promise<MedicalRecordResponseDto[]> {
     // Verificar que el prisionero exista
-    const prisoner = await this.prisma.prisoner.findUnique({
+    const prisoner = await this.prisma.prisoner.findFirst({
       where: { id: prisonerId, isDeleted: false },
     });
 
@@ -123,6 +218,9 @@ export class PrisonerMedicalRecordService {
     updateDto: UpdateMedicalRecordDto,
     userId: string,
   ): Promise<MedicalRecordResponseDto> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
+    const userInfo = await this.getUserInfo(userId);
+
     // Verificar que el registro exista
     const existingRecord = await this.prisma.medicalRecord.findFirst({
       where: {
@@ -136,6 +234,60 @@ export class PrisonerMedicalRecordService {
       throw new NotFoundException(
         `Registro médico con ID ${recordId} no encontrado para el prisionero ${prisonerId}`,
       );
+    }
+
+    // Build field changes array
+    const fieldChanges: Array<{
+      field_name: string;
+      old_value?: string;
+      new_value?: string;
+    }> = [];
+
+    if (
+      updateDto.doctor_name !== undefined &&
+      updateDto.doctor_name !== existingRecord.doctorName
+    ) {
+      fieldChanges.push({
+        field_name: 'doctor_name',
+        old_value: existingRecord.doctorName || 'null',
+        new_value: updateDto.doctor_name || 'null',
+      });
+    }
+
+    if (updateDto.examination_date !== undefined) {
+      const newDate = updateDto.examination_date
+        ? new Date(updateDto.examination_date).toISOString()
+        : null;
+      const oldDate = existingRecord.examinationDate?.toISOString() || null;
+      if (newDate !== oldDate) {
+        fieldChanges.push({
+          field_name: 'examination_date',
+          old_value: oldDate || 'null',
+          new_value: newDate || 'null',
+        });
+      }
+    }
+
+    if (
+      updateDto.reference_number !== undefined &&
+      updateDto.reference_number !== existingRecord.referenceNumber
+    ) {
+      fieldChanges.push({
+        field_name: 'reference_number',
+        old_value: existingRecord.referenceNumber || 'null',
+        new_value: updateDto.reference_number || 'null',
+      });
+    }
+
+    if (
+      updateDto.notes !== undefined &&
+      updateDto.notes !== existingRecord.notes
+    ) {
+      fieldChanges.push({
+        field_name: 'notes',
+        old_value: existingRecord.notes || 'null',
+        new_value: updateDto.notes || 'null',
+      });
     }
 
     // Actualizar el registro
@@ -155,6 +307,25 @@ export class PrisonerMedicalRecordService {
       },
     });
 
+    // Log audit with field changes
+    if (fieldChanges.length > 0) {
+      await this.auditService.logEntityUpdated(
+        AuditAction.UPDATE,
+        EntityType.MEDICAL_RECORD,
+        updatedRecord.id,
+        `Registro médico actualizado: Dr. ${updatedRecord.doctorName || 'N/A'}`,
+        userId,
+        AuditModule.MEDICAL,
+        fieldChanges,
+        userInfo?.email,
+        userInfo?.name,
+        userInfo?.role,
+        ipAddress,
+        userAgent,
+        prisonerId, // prisonerRelatedId
+      );
+    }
+
     return this.mapToResponseDto(updatedRecord);
   }
 
@@ -166,6 +337,9 @@ export class PrisonerMedicalRecordService {
     recordId: string,
     userId: string,
   ): Promise<{ message: string }> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
+    const userInfo = await this.getUserInfo(userId);
+
     // Verificar que el registro exista
     const existingRecord = await this.prisma.medicalRecord.findFirst({
       where: {
@@ -192,8 +366,24 @@ export class PrisonerMedicalRecordService {
 
     // Si tiene archivo asociado, marcarlo como eliminado
     if (existingRecord.fileId) {
-      await this.filesService.deleteFile(existingRecord.fileId);
+      await this.filesService.deleteFile(existingRecord.fileId, userId);
     }
+
+    // Log audit
+    await this.auditService.logEntityDeleted(
+      AuditAction.DELETE,
+      EntityType.MEDICAL_RECORD,
+      existingRecord.id,
+      `Registro médico eliminado: Dr. ${existingRecord.doctorName || 'N/A'}`,
+      userId,
+      AuditModule.MEDICAL,
+      userInfo?.email,
+      userInfo?.name,
+      userInfo?.role,
+      ipAddress,
+      userAgent,
+      prisonerId, // prisonerRelatedId
+    );
 
     return { message: 'Registro médico eliminado exitosamente' };
   }
@@ -224,7 +414,7 @@ export class PrisonerMedicalRecordService {
 
     // Si ya tiene archivo, eliminar el anterior
     if (existingRecord.fileId) {
-      await this.filesService.deleteFile(existingRecord.fileId);
+      await this.filesService.deleteFile(existingRecord.fileId, userId);
     }
 
     // Subir el nuevo archivo

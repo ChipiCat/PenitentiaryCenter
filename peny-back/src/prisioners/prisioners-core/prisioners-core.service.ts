@@ -1,8 +1,27 @@
+/**
+ * Tipo extendido de Request para incluir currentUser cacheado
+ */
+type RequestWithCurrentUser = Request & {
+  currentUser?: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+};
 import {
   Injectable,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+
+/**
+ * Interfaz para los metadatos de auditoría extraídos del request
+ */
+export interface AuditMetadata {
+  ipAddress?: string;
+  userAgent?: string;
+}
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   Prisoner,
@@ -16,6 +35,9 @@ import {
   PrisonerChild,
   File,
   Prisma,
+  AuditAction,
+  AuditModule,
+  EntityType,
 } from '../../../generated/prisma';
 import {
   CreatePrisonerDTO,
@@ -34,10 +56,66 @@ import { BelongingResponseDto } from '../prisoner-belonging/dto/belonging.dto';
 import { ContactResponseDto } from '../prisoner-contact/dto/contact.dto';
 import { ChildResponseDto } from '../prisoner-children/dto/childre.dto';
 import { FileResponseDto } from 'src/files/dto/file.dto';
+import { AuditService } from '../../audit/audit.service';
+import { Inject, Scope } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import type { Request } from 'express';
 
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class PrisionersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
+    @Inject(REQUEST) private readonly request: Request,
+  ) {}
+
+  /**
+   * Extraer metadatos de auditoría del request
+   */
+  private getAuditMetadata(): AuditMetadata {
+    // El tipo Request no incluye auditMetadata, así que extendemos el tipo aquí
+    const auditMetadata = (
+      this.request as Request & { auditMetadata?: AuditMetadata }
+    ).auditMetadata;
+    return {
+      ipAddress: auditMetadata?.ipAddress,
+      userAgent: auditMetadata?.userAgent,
+    };
+  }
+
+  /**
+   * Obtener información completa del usuario actual para auditoría
+   */
+  private async getUserInfo(userId: string): Promise<{
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  } | null> {
+    // Cache en el request para evitar múltiples consultas
+    const req = this.request as RequestWithCurrentUser;
+    const cachedUser = req.currentUser;
+    if (cachedUser && cachedUser.id === userId) {
+      return cachedUser;
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, isDeleted: false },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+      },
+    });
+
+    if (user) {
+      // Cachear en el request
+      (this.request as RequestWithCurrentUser).currentUser = user;
+    }
+
+    return user;
+  }
 
   /**
    * Crea un nuevo prisionero
@@ -46,8 +124,11 @@ export class PrisionersService {
     createDto: CreatePrisonerDTO,
     userId: string,
   ): Promise<PrisonerResponseDTO> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
+    const userInfo = await this.getUserInfo(userId);
+
     // Verificar que el número de registro no exista
-    const existing = await this.prisma.prisoner.findUnique({
+    const existing = await this.prisma.prisoner.findFirst({
       where: { registrationNumber: createDto.registration_number },
     });
 
@@ -67,6 +148,22 @@ export class PrisionersService {
         updatedBy: userId,
       },
     });
+
+    // Log prisoner registration
+    await this.auditService.logEntityCreated(
+      AuditAction.PRISONER_REGISTERED,
+      EntityType.PRISONER,
+      prisoner.id,
+      `Prisoner ${prisoner.registrationNumber} registered`,
+      userId,
+      AuditModule.PRISONERS,
+      userInfo?.email,
+      userInfo?.name,
+      userInfo?.role,
+      ipAddress,
+      userAgent,
+      prisoner.id, // prisonerRelatedId
+    );
 
     return this.mapToResponseDto(prisoner);
   }
@@ -123,7 +220,7 @@ export class PrisionersService {
    * Obtiene un prisionero por ID
    */
   async findOne(id: string): Promise<PrisonerResponseDTO> {
-    const prisoner = await this.prisma.prisoner.findUnique({
+    const prisoner = await this.prisma.prisoner.findFirst({
       where: { id },
     });
 
@@ -142,8 +239,11 @@ export class PrisionersService {
     updateDto: UpdatePrisonerDto,
     userId: string,
   ): Promise<PrisonerResponseDTO> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
+    const userInfo = await this.getUserInfo(userId);
+
     // Verificar que existe
-    const existing = await this.prisma.prisoner.findUnique({
+    const existing = await this.prisma.prisoner.findFirst({
       where: { id },
     });
 
@@ -156,7 +256,7 @@ export class PrisionersService {
       updateDto.registration_number &&
       updateDto.registration_number !== existing.registrationNumber
     ) {
-      const duplicate = await this.prisma.prisoner.findUnique({
+      const duplicate = await this.prisma.prisoner.findFirst({
         where: { registrationNumber: updateDto.registration_number },
       });
 
@@ -177,6 +277,62 @@ export class PrisionersService {
       },
     });
 
+    // Build field changes for audit
+    const fieldChanges: Array<{
+      field_name: string;
+      old_value?: string;
+      new_value?: string;
+    }> = [];
+
+    if (
+      updateDto.registration_number &&
+      updateDto.registration_number !== existing.registrationNumber
+    ) {
+      fieldChanges.push({
+        field_name: 'registration_number',
+        old_value: existing.registrationNumber,
+        new_value: updateDto.registration_number,
+      });
+    }
+
+    if (
+      updateDto.fiscal_file_number !== undefined &&
+      updateDto.fiscal_file_number !== existing.fiscalFileNumber
+    ) {
+      fieldChanges.push({
+        field_name: 'fiscal_file_number',
+        old_value: existing.fiscalFileNumber || 'null',
+        new_value: updateDto.fiscal_file_number || 'null',
+      });
+    }
+
+    if (updateDto.status && updateDto.status !== existing.status) {
+      fieldChanges.push({
+        field_name: 'status',
+        old_value: existing.status,
+        new_value: updateDto.status,
+      });
+    }
+
+    // Log update if there are changes
+    if (fieldChanges.length > 0) {
+      await this.auditService.logEntityUpdated(
+        AuditAction.UPDATE,
+        EntityType.PRISONER,
+        prisoner.id,
+        `Prisoner ${prisoner.registrationNumber} updated`,
+        userId,
+        AuditModule.PRISONERS,
+        fieldChanges,
+        userInfo?.email,
+        userInfo?.name,
+        userInfo?.role,
+        ipAddress,
+        userAgent,
+        prisoner.id, // prisonerRelatedId
+      );
+    }
+
     return this.mapToResponseDto(prisoner);
   }
 
@@ -184,7 +340,10 @@ export class PrisionersService {
    * Elimina un prisionero (soft delete)
    */
   async remove(id: string, userId: string): Promise<void> {
-    const existing = await this.prisma.prisoner.findUnique({
+    const { ipAddress, userAgent } = this.getAuditMetadata();
+    const userInfo = await this.getUserInfo(userId);
+
+    const existing = await this.prisma.prisoner.findFirst({
       where: { id },
     });
 
@@ -199,6 +358,22 @@ export class PrisionersService {
         updatedBy: userId,
       },
     });
+
+    // Log deletion
+    await this.auditService.logEntityDeleted(
+      AuditAction.DELETE,
+      EntityType.PRISONER,
+      existing.id,
+      `Prisoner ${existing.registrationNumber} deleted`,
+      userId,
+      AuditModule.PRISONERS,
+      userInfo?.email,
+      userInfo?.name,
+      userInfo?.role,
+      ipAddress,
+      userAgent,
+      existing.id, // prisonerRelatedId
+    );
   }
 
   /**

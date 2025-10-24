@@ -16,6 +16,16 @@ import {
 } from './dto/auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
+interface AuthenticatedRequest {
+  user?: {
+    id?: string;
+    name?: string;
+    email?: string;
+    role?: string;
+    photoUrl?: string;
+  };
+}
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
@@ -45,30 +55,24 @@ export class AuthController {
     return this.authService.refresh(refreshDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('logout')
   @ApiOperation({ summary: 'Logout user' })
   @ApiBody({ type: LogoutDto })
   @ApiResponse({ status: 200, description: 'User logged out.' })
-  async logout(@Body() logoutDto: LogoutDto) {
-    return this.authService.logout(logoutDto.refreshToken);
+  async logout(
+    @Body() logoutDto: LogoutDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user?.id;
+    return this.authService.logout(logoutDto.refreshToken, userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Current user profile.' })
-  async getProfile(
-    @Request()
-    req: {
-      user?: {
-        id?: string;
-        name?: string;
-        email?: string;
-        role?: string;
-        photoUrl?: string;
-      };
-    },
-  ) {
+  async getProfile(@Request() req: AuthenticatedRequest) {
     // Await a resolved Promise to satisfy require-await rule
     await Promise.resolve();
     const user = req.user ?? {};

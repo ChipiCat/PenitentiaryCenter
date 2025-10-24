@@ -88,7 +88,7 @@ export class PrisonerMandateService {
    * Obtener un mandato por ID
    */
   async findOne(mandateId: string): Promise<MandateResponseDto> {
-    const mandate = await this.prisma.prisonerMandate.findUnique({
+    const mandate = await this.prisma.prisonerMandate.findFirst({
       where: { id: mandateId, isDeleted: false },
       include: { file: true },
     });
@@ -108,7 +108,7 @@ export class PrisonerMandateService {
     updateDto: UpdateMandateDto,
     userId: string,
   ): Promise<MandateResponseDto> {
-    const existing = await this.prisma.prisonerMandate.findUnique({
+    const existing = await this.prisma.prisonerMandate.findFirst({
       where: { id: mandateId, isDeleted: false },
     });
 
@@ -137,7 +137,7 @@ export class PrisonerMandateService {
    * Eliminar (soft delete) un mandato
    */
   async remove(mandateId: string): Promise<void> {
-    const existing = await this.prisma.prisonerMandate.findUnique({
+    const existing = await this.prisma.prisonerMandate.findFirst({
       where: { id: mandateId, isDeleted: false },
     });
 
@@ -160,7 +160,7 @@ export class PrisonerMandateService {
     userId: string,
   ): Promise<MandateResponseDto> {
     // Verificar que el mandato existe
-    const mandate = await this.prisma.prisonerMandate.findUnique({
+    const mandate = await this.prisma.prisonerMandate.findFirst({
       where: { id: mandateId, isDeleted: false },
     });
 
@@ -179,7 +179,7 @@ export class PrisonerMandateService {
 
     // Si existía un archivo anterior, eliminarla
     if (mandate.fileId) {
-      await this.filesService.deleteFile(mandate.fileId);
+      await this.filesService.deleteFile(mandate.fileId, userId);
     }
 
     // Actualizar el mandato con el nuevo file
@@ -198,8 +198,8 @@ export class PrisonerMandateService {
   /**
    * Eliminar archivo del mandato
    */
-  async deleteFile(mandateId: string): Promise<void> {
-    const mandate = await this.prisma.prisonerMandate.findUnique({
+  async deleteFile(mandateId: string, userId: string): Promise<void> {
+    const mandate = await this.prisma.prisonerMandate.findFirst({
       where: { id: mandateId, isDeleted: false },
     });
 
@@ -212,7 +212,7 @@ export class PrisonerMandateService {
     }
 
     // Eliminar el archivo
-    await this.filesService.deleteFile(mandate.fileId);
+    await this.filesService.deleteFile(mandate.fileId, userId);
 
     // Actualizar el mandato para quitar la referencia
     await this.prisma.prisonerMandate.update({

@@ -2,7 +2,11 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  Inject,
+  Scope,
 } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import type { Request } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreateUserDto,
@@ -12,19 +16,46 @@ import {
 import { IPaginatedResponse } from '../common/interfaces/entity.interface';
 import { User, UserRole } from '../../generated/prisma';
 import * as bcrypt from 'bcryptjs';
+import { AuditService } from '../audit/audit.service';
 
-@Injectable()
+/**
+ * Interfaz para los metadatos de auditoría extraídos del request
+ */
+export interface AuditMetadata {
+  ipAddress?: string;
+  userAgent?: string;
+}
+
+@Injectable({ scope: Scope.REQUEST })
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private auditService: AuditService,
+    @Inject(REQUEST) private readonly request: Request,
+  ) {}
+
+  /**
+   * Extraer metadatos de auditoría del request
+   */
+  private getAuditMetadata(): AuditMetadata {
+    const auditMetadata = (
+      this.request as Request & { auditMetadata?: AuditMetadata }
+    ).auditMetadata;
+    return {
+      ipAddress: auditMetadata?.ipAddress,
+      userAgent: auditMetadata?.userAgent,
+    };
+  }
 
   async create(
     createUserDto: CreateUserDto,
     createdBy?: string,
   ): Promise<User> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
     const { email, password, name, role, photoUrl } = createUserDto;
 
     // Check if user already exists
-    const existingUser = await this.prisma.user.findUnique({
+    const existingUser = await this.prisma.user.findFirst({
       where: { email },
     });
 
@@ -57,6 +88,40 @@ export class UserService {
 
       return user;
     });
+
+    // Get creator info if createdBy provided
+    let creatorInfo: {
+      id: string;
+      email: string;
+      name: string;
+      role: string;
+    } | null = null;
+    if (createdBy) {
+      const creator = await this.prisma.user.findFirst({
+        where: { id: createdBy },
+      });
+      if (creator) {
+        creatorInfo = {
+          id: creator.id,
+          email: creator.email,
+          name: creator.name,
+          role: creator.role,
+        };
+      }
+    }
+
+    // Log user creation
+    await this.auditService.logUserCreated(
+      result.id,
+      result.email,
+      result.name,
+      creatorInfo?.id,
+      creatorInfo?.email,
+      creatorInfo?.name,
+      creatorInfo?.role,
+      ipAddress,
+      userAgent,
+    );
 
     return result;
   }
@@ -110,7 +175,7 @@ export class UserService {
   }
 
   async findOne(id: string): Promise<User> {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       where: { id, isDeleted: false },
     });
 
@@ -126,6 +191,7 @@ export class UserService {
     updateUserDto: UpdateUserDto,
     updatedBy?: string,
   ): Promise<User> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
     const { email, name, role, photoUrl } = updateUserDto;
 
     // Check if user exists
@@ -133,7 +199,7 @@ export class UserService {
 
     // If email is being updated, check for conflicts
     if (email && email !== existingUser.email) {
-      const emailExists = await this.prisma.user.findUnique({
+      const emailExists = await this.prisma.user.findFirst({
         where: { email },
       });
 
@@ -153,12 +219,89 @@ export class UserService {
       },
     });
 
+    // Get updater info if updatedBy provided
+    let updaterInfo: {
+      id: string;
+      email: string;
+      name: string;
+      role: string;
+    } | null = null;
+    if (updatedBy) {
+      const updater = await this.prisma.user.findFirst({
+        where: { id: updatedBy },
+      });
+      if (updater) {
+        updaterInfo = {
+          id: updater.id,
+          email: updater.email,
+          name: updater.name,
+          role: updater.role,
+        };
+      }
+    }
+
+    // Build field-level changes array for DataChangeLog
+    const fieldChanges: Array<{
+      field_name: string;
+      old_value?: string;
+      new_value?: string;
+    }> = [];
+
+    if (name && name !== existingUser.name) {
+      fieldChanges.push({
+        field_name: 'name',
+        old_value: existingUser.name,
+        new_value: name,
+      });
+    }
+
+    if (email && email !== existingUser.email) {
+      fieldChanges.push({
+        field_name: 'email',
+        old_value: existingUser.email,
+        new_value: email,
+      });
+    }
+
+    if (role && role !== existingUser.role) {
+      fieldChanges.push({
+        field_name: 'role',
+        old_value: existingUser.role,
+        new_value: role,
+      });
+    }
+
+    if (photoUrl !== undefined && photoUrl !== existingUser.photoUrl) {
+      fieldChanges.push({
+        field_name: 'photoUrl',
+        old_value: existingUser.photoUrl ?? 'null',
+        new_value: photoUrl ?? 'null',
+      });
+    }
+
+    // Log user update with field-level changes if updatedBy is provided
+    if (updatedBy && fieldChanges.length > 0) {
+      await this.auditService.logUserUpdatedWithChanges(
+        updatedUser.id,
+        updatedUser.email,
+        updatedUser.name,
+        updatedBy,
+        updaterInfo?.email,
+        updaterInfo?.name,
+        updaterInfo?.role,
+        fieldChanges,
+        ipAddress,
+        userAgent,
+      );
+    }
+
     return updatedUser;
   }
 
   async remove(id: string, updatedBy?: string): Promise<{ message: string }> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
     // Check if user exists
-    await this.findOne(id);
+    const user = await this.findOne(id);
 
     // Soft delete
     await this.prisma.user.update({
@@ -168,6 +311,40 @@ export class UserService {
         updatedBy,
       },
     });
+
+    // Get deleter info if updatedBy provided
+    let deleterInfo: {
+      id: string;
+      email: string;
+      name: string;
+      role: string;
+    } | null = null;
+    if (updatedBy) {
+      const deleter = await this.prisma.user.findFirst({
+        where: { id: updatedBy },
+      });
+      if (deleter) {
+        deleterInfo = {
+          id: deleter.id,
+          email: deleter.email,
+          name: deleter.name,
+          role: deleter.role,
+        };
+      }
+    }
+
+    // Log user deletion
+    await this.auditService.logUserDeleted(
+      user.id,
+      user.email,
+      user.name,
+      deleterInfo?.id,
+      deleterInfo?.email,
+      deleterInfo?.name,
+      deleterInfo?.role,
+      ipAddress,
+      userAgent,
+    );
 
     return { message: 'User deleted successfully' };
   }
