@@ -32,6 +32,6 @@ export interface FileInfo {
   uploaded_at: string;
 }
 
-export type CitizenshipType = 'Hondureño' | 'Naturalizado' | 'Extranjero';
+export type CitizenshipType = 'Local' | 'Ciudadano Nacional' | 'Ciudadano Extranjero';
 export type MaritalStatus = 'Soltero' | 'Casado' | 'Divorciado' | 'Viudo' | 'Unión Libre';
 export type EducationLevel = 'Sin Educación' | 'Primaria Incompleta' | 'Primaria Completa' | 'Secundaria Incompleta' | 'Secundaria Completa' | 'Técnico'

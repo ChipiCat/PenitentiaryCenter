@@ -4,8 +4,9 @@ import { Group, Card, Text, Badge } from '@mantine/core';
 interface Statistics {
   total: number;
   activos: number;
-  preventivos: number;
-  condenados: number;
+  trasladados: number;
+  liberados: number;
+  archivados: number;
 }
 
 interface PrisonersStatsProps {
@@ -26,6 +27,22 @@ export const PrisonersStats: React.FC<PrisonersStatsProps> = ({ statistics }) =>
             </Text>
           </div>
           <Badge color="blue" variant="light">
+            Total
+          </Badge>
+        </Group>
+      </Card>
+
+      <Card withBorder padding="md">
+        <Group justify="space-between">
+          <div>
+            <Text size="sm" c="dimmed">
+              Activos
+            </Text>
+            <Text size="xl" fw={700} c="green">
+              {statistics.activos}
+            </Text>
+          </div>
+          <Badge color="green" variant="light">
             Activo
           </Badge>
         </Group>
@@ -35,14 +52,14 @@ export const PrisonersStats: React.FC<PrisonersStatsProps> = ({ statistics }) =>
         <Group justify="space-between">
           <div>
             <Text size="sm" c="dimmed">
-              Preventivos
+              Trasladados
             </Text>
             <Text size="xl" fw={700} c="orange">
-              {statistics.preventivos}
+              {statistics.trasladados}
             </Text>
           </div>
           <Badge color="orange" variant="light">
-            Preventivo
+            Trasladado
           </Badge>
         </Group>
       </Card>
@@ -51,14 +68,30 @@ export const PrisonersStats: React.FC<PrisonersStatsProps> = ({ statistics }) =>
         <Group justify="space-between">
           <div>
             <Text size="sm" c="dimmed">
-              Condenados
+              Liberados
             </Text>
-            <Text size="xl" fw={700} c="red">
-              {statistics.condenados}
+            <Text size="xl" fw={700} c="teal">
+              {statistics.liberados}
             </Text>
           </div>
-          <Badge color="red" variant="light">
-            Condenado
+          <Badge color="teal" variant="light">
+            Liberado
+          </Badge>
+        </Group>
+      </Card>
+
+      <Card withBorder padding="md">
+        <Group justify="space-between">
+          <div>
+            <Text size="sm" c="dimmed">
+              Archivados
+            </Text>
+            <Text size="xl" fw={700} c="gray">
+              {statistics.archivados}
+            </Text>
+          </div>
+          <Badge color="gray" variant="light">
+            Archivado
           </Badge>
         </Group>
       </Card>

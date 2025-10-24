@@ -1,4 +1,4 @@
-import type { SelectOption } from '../types/reportTypes';
+import type { SelectOption } from '../../../shared/types/report/reportTypes';
 
 export const crimeTypeOptions: SelectOption[] = [
   { value: 'all', label: 'Todos los delitos' },
