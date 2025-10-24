@@ -1,4 +1,4 @@
-import type { UserStat, User } from '../types/userTypes';
+import type { UserStat, User } from '../../../shared/types/users/userTypes';
 import { Users, Shield } from 'lucide-react';
 
 export const useUsers = () => {
