@@ -1,5 +1,5 @@
 import { Grid } from '@mantine/core';
-import type { UserStat } from '../types/userTypes';
+import type { UserStat } from '../../../shared/types/users/userTypes';
 import { UserStatCard } from './UserStatCard';
 
 interface UsersStatsSectionProps {

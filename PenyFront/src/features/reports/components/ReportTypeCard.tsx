@@ -1,6 +1,6 @@
 import { Paper, Group, ThemeIcon, Text, Button } from '@mantine/core';
 import { Download } from 'lucide-react';
-import type { ReportType } from '../types/reportTypes';
+import type { ReportType } from '../../../shared/types/report/reportTypes';
 
 interface ReportTypeCardProps {
   report: ReportType;
