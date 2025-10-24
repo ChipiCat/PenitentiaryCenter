@@ -3,12 +3,7 @@ import { Group, Text, Divider } from '@mantine/core';
 import { Clock } from 'lucide-react';
 import { UserAvatar } from '../user/UserAvatar';
 import { ActionBadge, type ActionType } from './ActionBadge';
-
-export interface ActivityUser {
-  name: string;
-  role: string;
-  avatar?: string;
-}
+import type { ActivityUser } from '../../types/commonTypes'; 
 
 export interface ActivityRecordData {
   id: string;
@@ -19,6 +14,14 @@ export interface ActivityRecordData {
   timestamp: string;
   type: ActionType;
 }
+
+export interface ActivityRecordProps {
+  activity: ActivityRecordData;
+  showDivider?: boolean;
+  onUserClick?: (user: ActivityUser) => void;
+  onTargetClick?: (target: string) => void;
+}
+
 
 export interface ActivityRecordProps {
   activity: ActivityRecordData;

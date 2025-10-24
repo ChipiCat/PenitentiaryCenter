@@ -3,6 +3,8 @@ import { SystemActivityStats } from './components/SystemActivityStats';
 import { SystemActivityFilters } from './components/SystemActivityFilters';
 import { SystemActivityList } from './components/SystemActivityList';
 import { useSystemActivity } from './hooks/useSystemActivity';
+import type { ActivityUser } from '../../shared/types/commonTypes';
+import type { PeriodType } from '../../shared/types/commonTypes';
 
 const ActivityPage = () => {
   const {
@@ -15,7 +17,7 @@ const ActivityPage = () => {
     filteredActivities
   } = useSystemActivity();
 
-  const handleUserClick = (user: any) => {
+  const handleUserClick = (user: ActivityUser) => {
     // Lógica para manejar click en usuario
     console.log('User clicked:', user);
   };
@@ -49,10 +51,8 @@ const ActivityPage = () => {
           </Group>
         </div>
 
-        {/* Estadísticas */}
-        <SystemActivityStats period={timeFilter as any} />
+        <SystemActivityStats period={timeFilter as PeriodType} />
 
-        {/* Lista de Actividades */}
         <SystemActivityList
           activities={filteredActivities}
           onUserClick={handleUserClick}

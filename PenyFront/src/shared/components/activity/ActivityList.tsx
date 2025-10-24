@@ -1,6 +1,7 @@
 import React from 'react';
 import { Paper, Group, Title, Stack, Text } from '@mantine/core';
-import { ActivityRecord, type ActivityRecordData, type ActivityUser } from './ActivityRecord';
+import { ActivityRecord, type ActivityRecordData } from './ActivityRecord';
+import type { ActivityUser } from '../../types/commonTypes';
 
 export interface ActivityListProps {
   title: string;
