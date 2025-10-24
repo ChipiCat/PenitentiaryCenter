@@ -1,11 +1,17 @@
+import React from 'react';
 import { 
   Group, 
   Button, 
-  Text,
-  ActionIcon,
-  Tooltip
+  ActionIcon, 
+  Tooltip,
+  Text
 } from '@mantine/core';
-import { ArrowLeft, ArrowRight, Save, X } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  ArrowRight, 
+  X, 
+  Save 
+} from 'lucide-react';
 
 interface FormNavigationProps {
   activeStep: number;
@@ -16,9 +22,13 @@ interface FormNavigationProps {
   onNext: () => void;
   onCancel: () => void;
   onFinish: () => void;
+  finishButtonText?: string;
+  nextButtonText?: string;
+  previousButtonText?: string;
+  cancelButtonText?: string;
 }
 
-export const FormNavigation = ({
+export const FormNavigation: React.FC<FormNavigationProps> = ({
   activeStep,
   totalSteps,
   isSubmitting,
@@ -26,8 +36,12 @@ export const FormNavigation = ({
   onPrevious,
   onNext,
   onCancel,
-  onFinish
-}: FormNavigationProps) => {
+  onFinish,
+  finishButtonText = "Registrar recluso",
+  nextButtonText = "Siguiente",
+  previousButtonText = "Anterior",
+  cancelButtonText = "Cancelar"
+}) => {
   const isFirstStep = activeStep === 0;
   const isLastStep = activeStep === totalSteps - 1;
 
@@ -42,16 +56,17 @@ export const FormNavigation = ({
             variant="subtle"
             leftSection={<ArrowLeft size={16} />}
             onClick={onPrevious}
+            disabled={isSubmitting}
           >
-            Anterior
+            {previousButtonText}
           </Button>
         ) : (
-          <div /> // Placeholder para mantener el espacio
+          <div />
         )}
       </Group>
 
       {/* Center - Step indicator for mobile */}
-      <Group gap="xs" visibleFrom="xs" hiddenFrom="sm">
+      <Group gap="xs" hiddenFrom="sm">
         {Array.from({ length: totalSteps }).map((_, index) => (
           <ActionIcon
             key={index}
@@ -59,8 +74,13 @@ export const FormNavigation = ({
             color={index <= activeStep ? 'blue' : 'gray'}
             size="sm"
             radius="xl"
+            style={{ cursor: 'default' }}
           >
-            {index < activeStep ? <ArrowRight size={12} /> : <Text size="xs">{index + 1}</Text>}
+            {index < activeStep ? (
+              <ArrowRight size={12} />
+            ) : (
+              <Text size="xs">{index + 1}</Text>
+            )}
           </ActionIcon>
         ))}
       </Group>
@@ -73,8 +93,9 @@ export const FormNavigation = ({
             color="red"
             leftSection={<X size={16} />}
             onClick={onCancel}
+            disabled={isSubmitting}
           >
-            Cancelar
+            {cancelButtonText}
           </Button>
         </Tooltip>
         
@@ -86,18 +107,18 @@ export const FormNavigation = ({
             gradient={{ from: 'blue', to: 'cyan', deg: 45 }}
             variant="gradient"
           >
-            Registrar recluso
+            {finishButtonText}
           </Button>
         ) : (
           <Button 
             rightSection={<ArrowRight size={16} />}
             onClick={onNext}
-            disabled={!canGoNext}
+            disabled={!canGoNext || isSubmitting}
           >
-            Siguiente
+            {nextButtonText}
           </Button>
         )}
       </Group>
-    </Group>
+    </Group> 
   );
-};
+}

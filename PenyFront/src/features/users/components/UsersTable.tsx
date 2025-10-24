@@ -1,5 +1,5 @@
 import { Paper, Title, Table } from '@mantine/core';
-import type { User, UserActions } from '../types/userTypes';
+import type { User, UserActions } from '../../../shared/types/users/userTypes';
 import { UserTableRow } from './UserTableRow';
 
 interface UsersTableProps {

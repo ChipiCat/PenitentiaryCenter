@@ -11,7 +11,7 @@ import {
   Button 
 } from '@mantine/core';
 import { Calendar, Download } from 'lucide-react';
-import type { ReportFilters } from '../types/reportTypes';
+import type { ReportFilters } from '../../../shared/types/report/reportTypes';
 import { crimeTypeOptions, processStatusOptions, genderOptions } from '../constants/reportConstants';
 
 interface FiltersSectionProps {

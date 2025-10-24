@@ -1,5 +1,5 @@
 import { Paper, Group, Text, ThemeIcon } from '@mantine/core';
-import type { SystemStat } from '../types/reportTypes';
+import type { SystemStat } from '../../../shared/types/report/reportTypes';
 
 interface SystemStatsCardProps {
   stat: SystemStat;

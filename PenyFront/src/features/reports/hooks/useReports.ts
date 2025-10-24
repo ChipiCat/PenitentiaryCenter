@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { ReportFilters, SystemStat, ReportType } from '../types/reportTypes';
+import type { ReportFilters, SystemStat, ReportType } from '../../../shared/types/report/reportTypes';
 import { Users, UserCheck, Scale, CheckCircle, FileText, Shield, Activity, Heart } from 'lucide-react';
 
 export const useReports = () => {

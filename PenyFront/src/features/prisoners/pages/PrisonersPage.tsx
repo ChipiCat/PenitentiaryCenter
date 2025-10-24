@@ -1,83 +1,175 @@
-import { Container, Stack } from '@mantine/core';
-import { useState } from 'react';
-import type { ViewMode } from '../types';
-import { usePrisoners } from '../hooks/usePrisoners'; 
-import { PrisonersHeader } from '../components/PrisonersHeader';
-import { PrisonersControls } from '../components/PrisonersControls';
-import { PrisonersTable } from '../components/PrisonersTable';
-import { PrisonersCards } from '../components/PrisonersCards';
-import { EmptyState } from '../components/EmptyState';
+import React, { useState, useCallback, useEffect } from "react";
+import { Container, Stack, LoadingOverlay } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
+import { useNavigate } from "react-router-dom";
+import { PrisonerFormWizard } from "../components/forms/PrisonerFormWizard";
+import { ROUTES } from "../../../shared/config/routes";
+import { PrisonersHeader } from "../components/list/PrisonersHeader";
+import { PrisonersStats } from "../components/list/PrisonersStats";
+import { PrisonersList } from "../components/list/PrisonersList";
+import { EmptyPrisonersState } from "../components/list/EmptyPrisonersState";
+import type { PrisonerBase } from "../../../shared/types/prisonerTypes";
+import { prisonersService } from "../../../shared/services/prisonersService";
 
-const PrisonersPage = () => {
-  const [viewMode, setViewMode] = useState<ViewMode>('table');
-  
-  const {
-    searchTerm,
-    setSearchTerm,
-    statusFilter,
-    setStatusFilter,
-    activePage,
-    setActivePage,
-    filteredPrisoners,
-    paginatedPrisoners,
-    totalPages,
-    handleNewPrisoner,
-    handleViewPrisoner,
-    handleEditPrisoner,
-    handleDeletePrisoner,
-    handleDownloadPrisoner
-  } = usePrisoners(); 
+type ViewMode = "list" | "create" | "edit";
 
-  const hasFilters = Boolean(searchTerm || statusFilter);
+interface Statistics {
+  total: number;
+  activos: number;
+  trasladados: number;
+  liberados: number;
+  archivados: number;
+}
 
-  const renderPrisonersView = () => {
-    if (filteredPrisoners.length === 0) {
-      return (
-        <EmptyState
-          hasFilters={hasFilters}
-          onNewPrisoner={handleNewPrisoner}
-        />
-      );
-    }
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
 
-    const commonProps = {
-      prisoners: paginatedPrisoners,
-      totalPages,
-      activePage,
-      onPageChange: setActivePage,
-      onViewPrisoner: handleViewPrisoner,
-      onEditPrisoner: handleEditPrisoner,
-      onDeletePrisoner: handleDeletePrisoner,
-      onDownloadPrisoner: handleDownloadPrisoner
-    };
+export const PrisonersPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [selectedPrisoner, setSelectedPrisoner] = useState<PrisonerBase | null>(
+    null
+  );
+  const [prisoners, setPrisoners] = useState<
+    (PrisonerBase & { fullName?: string })[]
+  >([]);
+  const [statistics, setStatistics] = useState<Statistics>({
+    total: 0,
+    activos: 0,
+    trasladados: 0,
+    liberados: 0,
+    archivados: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [statusFilter] = useState<string>("all");
+  const [searchTerm] = useState<string>("");
+  const [pagination, setPagination] = useState<Pagination>({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+  });
 
-    return viewMode === 'table' ? (
-      <PrisonersTable {...commonProps} />
-    ) : (
-      <PrisonersCards {...commonProps} />
-    );
+  const handleCreateNew = () => {
+    setSelectedPrisoner(null);
+    setViewMode("create");
   };
 
+  const handleEdit = (prisoner: PrisonerBase) => {
+    setSelectedPrisoner(prisoner);
+    setViewMode("edit");
+  };
+
+  const handleViewProfile = (prisoner: PrisonerBase) => {
+    console.log("🔍 Navegando al perfil de:", prisoner.id);
+    navigate(ROUTES.PRISONER_PROFILE.replace(":id", prisoner.id));
+  };
+
+  const handleSuccess = (result: { prisoner: PrisonerBase; id: string }) => {
+    console.log("Prisionero guardado:", result.prisoner);
+    setViewMode("list");
+    loadData();
+    loadStats();
+  };
+
+  const handleCancel = () => {
+    setViewMode("list");
+  };
+
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      const response = await prisonersService.getPrisoners({
+        page: pagination.page,
+        limit: pagination.limit,
+        status: statusFilter === "all" ? undefined : statusFilter,
+        search: searchTerm || undefined,
+      });
+
+      setPrisoners(response.data);
+      setPagination((prev) => ({
+        ...prev,
+        total: response.pagination.total,
+        totalPages: response.pagination.totalPages,
+      }));
+    } catch (error) {
+      console.error("Error cargando prisioneros:", error);
+      notifications.show({
+        title: "Error",
+        message: "No se pudieron cargar los prisioneros",
+        color: "red",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [pagination.page, pagination.limit, statusFilter, searchTerm]);
+
+  const loadStats = useCallback(async () => {
+    try {
+      const allPrisoners = await prisonersService.getPrisoners({ limit: 1000 });
+
+      const stats = {
+        total: allPrisoners.data.length,
+        activos: allPrisoners.data.filter(
+          (p: PrisonerBase) => p.status === "Activo"
+        ).length,
+        trasladados: allPrisoners.data.filter(
+          (p: PrisonerBase) => p.status === "Trasladado"
+        ).length,
+        liberados: allPrisoners.data.filter(
+          (p: PrisonerBase) => p.status === "Liberado"
+        ).length,
+        archivados: allPrisoners.data.filter(
+          (p: PrisonerBase) => p.status === "Archivado"
+        ).length,
+      };
+
+      setStatistics(stats);
+    } catch (error) {
+      console.error("Error cargando estadísticas:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+    loadStats();
+  }, [loadData, loadStats]);
+
+  if (viewMode === "create" || viewMode === "edit") {
+    return (
+      <PrisonerFormWizard
+        mode={viewMode}
+        initialData={selectedPrisoner || undefined}
+        onSuccess={handleSuccess}
+        onCancel={handleCancel}
+      />
+    );
+  }
+
   return (
-    <Container size="xl" py="md">
+    <Container size="xl">
+      <LoadingOverlay visible={loading} overlayProps={{ blur: 2 }} />
+
       <Stack gap="lg">
-        <PrisonersHeader />
+        <PrisonersHeader onCreateNew={handleCreateNew} />
 
-        <PrisonersControls
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-          filteredPrisoners={filteredPrisoners}
-          onNewPrisoner={handleNewPrisoner}
-        />
+        <PrisonersStats statistics={statistics} />
 
-        {renderPrisonersView()}
+        {prisoners.length === 0 && !loading ? (
+          <EmptyPrisonersState onCreateNew={handleCreateNew} />
+        ) : (
+          <PrisonersList
+            prisoners={prisoners}
+            onViewProfile={handleViewProfile}
+            onEdit={handleEdit}
+          />
+        )}
       </Stack>
     </Container>
   );
 };
-
-export default PrisonersPage;
