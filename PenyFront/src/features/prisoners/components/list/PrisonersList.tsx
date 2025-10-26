@@ -1,10 +1,10 @@
 import React from 'react';
 import { Card, Table, Group, Avatar, Text, Badge, ActionIcon, Tooltip } from '@mantine/core';
 import { Eye, Edit } from 'lucide-react';
-import type { PrisonerBase } from '../../../../shared/types';
+import type { PrisionerListItem, PrisonerBase } from '../../../../shared/types';
 
 interface PrisonersListProps {
-  prisoners: (PrisonerBase & { fullName?: string })[];
+  prisoners: PrisionerListItem[];
   onViewProfile: (prisoner: PrisonerBase) => void;
   onEdit: (prisoner: PrisonerBase) => void;
 }
@@ -30,7 +30,7 @@ export const PrisonersList: React.FC<PrisonersListProps> = ({
         <Table.Tbody>
           {prisoners.map((prisoner) => (
             <PrisonerRow
-              key={prisoner.id}
+              key={prisoner.prisoner.id}
               prisoner={prisoner}
               onViewProfile={onViewProfile}
               onEdit={onEdit}
@@ -43,7 +43,7 @@ export const PrisonersList: React.FC<PrisonersListProps> = ({
 };
 
 interface PrisonerRowProps {
-  prisoner: PrisonerBase & { fullName?: string };
+  prisoner: PrisionerListItem;
   onViewProfile: (prisoner: PrisonerBase) => void;
   onEdit: (prisoner: PrisonerBase) => void;
 }
@@ -57,49 +57,49 @@ const PrisonerRow: React.FC<PrisonerRowProps> = ({
     <Table.Tr>
       <Table.Td>
         <Group gap="sm">
-          <Avatar size="sm" color="blue">
-            {prisoner.fullName?.charAt(0) || "?"}
+          <Avatar size="sm" color="blue" src={prisoner.identity?.photo_file?.url || undefined}>
+            {prisoner.identity?.first_name?.charAt(0) || "S"} {prisoner.identity?.surname?.charAt(0) || "N"}
           </Avatar>
           <div>
             <Text size="sm" fw={500}>
-              {prisoner.fullName || "Sin nombre"}
+               {prisoner.identity?.first_name || "Sin nombre"} {prisoner.identity?.surname || ""}
             </Text>
             <Text size="xs" c="dimmed">
-              ID: {prisoner.id}
+              ID: {prisoner.identity?.nationality || "Desconocida"}
             </Text>
           </div>
         </Group>
       </Table.Td>
       <Table.Td>
         <Text size="sm" ff="monospace">
-          {prisoner.registration_number}
+          {prisoner.prisoner.registration_number}
         </Text>
       </Table.Td>
       <Table.Td>
         <Text size="sm" ff="monospace">
-          {prisoner.fiscal_file_number || "N/A"}
+          {prisoner.prisoner.fiscal_file_number || "N/A"}
         </Text>
       </Table.Td>
       <Table.Td>
         <Badge
           color={
-            prisoner.status === "Activo"
+            prisoner.prisoner.status === "Activo"
               ? "blue"
-              : prisoner.status === "Trasladado"
+              : prisoner.prisoner.status === "Trasladado"
               ? "orange"
-              : prisoner.status === "Liberado"
+              : prisoner.prisoner.status === "Liberado"
               ? "green"
               : "gray"
           }
           variant="light"
           size="sm"
         >
-          {prisoner.status}
+          {prisoner.prisoner.status}
         </Badge>
       </Table.Td>
       <Table.Td>
         <Text size="sm">
-          {new Date(prisoner.admission_date).toLocaleDateString()}
+          {new Date(prisoner.prisoner.admission_date).toLocaleDateString()}
         </Text>
       </Table.Td>
       <Table.Td>
@@ -108,7 +108,7 @@ const PrisonerRow: React.FC<PrisonerRowProps> = ({
             <ActionIcon
               variant="subtle"
               size="sm"
-              onClick={() => onViewProfile(prisoner)}
+              onClick={() => onViewProfile(prisoner.prisoner)}
               color="blue"
             >
               <Eye size={16} />
@@ -118,7 +118,7 @@ const PrisonerRow: React.FC<PrisonerRowProps> = ({
             <ActionIcon
               variant="subtle"
               size="sm"
-              onClick={() => onEdit(prisoner)}
+              onClick={() => onEdit(prisoner.prisoner)}
               color="gray"
             >
               <Edit size={16} />
