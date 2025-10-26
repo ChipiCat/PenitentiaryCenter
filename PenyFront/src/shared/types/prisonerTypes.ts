@@ -3,8 +3,11 @@ import type { PaginationParams } from "./axiosTypes";
 import type { Personal } from "./personalTypes";
 import type { Penitentiary } from "./penitentiaryTypes";
 import type { Contact } from "./contactTypes";
+import type { Identity } from "./identityTypes";
+import type { Case } from "./caseTypes";
 import type { Belonging } from "./belongingTypes";
 import type { Child } from "./childTypes";
+import type { MedicalRecord } from "./medicalRecordTypes";
 
 export interface PrisonerBase extends Entity {
   registration_number: string;
@@ -24,6 +27,8 @@ export interface CreatePrisonerData {
   contacts?: Partial<Contact>[];
   belonging?: Partial<Belonging>;
   child?: Partial<Child>[];
+  legal?: Partial<Case>;
+  medical_record?: Partial<MedicalRecord>[];
 }
 
 export interface UpdatePrisonerData {
@@ -40,4 +45,11 @@ export interface UpdatePrisonerData {
 export interface GetPrisonersParams extends PaginationParams {
   status?: string;
   search?: string;
+}
+
+export interface PrisionerListItem  {
+  prisoner: PrisonerBase;
+  identity: Identity;
+  cases: Case[];
+  penitentiary: Penitentiary;
 }

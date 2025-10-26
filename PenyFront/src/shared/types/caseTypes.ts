@@ -1,6 +1,7 @@
 import type { Entity } from "./commonTypes";
 
 export interface Case extends Entity {
+  crime: string;
   prisoner_id: string;
   case_number: string;
   case_type: string;
@@ -34,6 +35,7 @@ export interface CreateCaseData {
   start_date: string;
   end_date?: string;
   description?: string;
+  attachment_url?: string;
 }
 
 export interface UpdateCaseData {

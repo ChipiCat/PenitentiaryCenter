@@ -1,0 +1,106 @@
+### ========================================
+### API de Búsqueda Avanzada de Prisioneros
+### ========================================
+
+@baseUrl = http://localhost:3000/api
+@token = YOUR_JWT_TOKEN_HERE
+
+### 1. Búsqueda simple por nombre
+GET {{baseUrl}}/prisoners/search?query=Juan&page=1&limit=10
+Authorization: Bearer {{token}}
+
+### 2. Búsqueda con filtro de estado activo
+GET {{baseUrl}}/prisoners/search?page=1&limit=20&filters[status]=Activo
+Authorization: Bearer {{token}}
+
+### 3. Búsqueda por género y estado civil
+GET {{baseUrl}}/prisoners/search?filters[gender]=Masculino&filters[maritalStatus]=Soltero
+Authorization: Bearer {{token}}
+
+### 4. Búsqueda por rango de fechas de admisión
+GET {{baseUrl}}/prisoners/search?filters[admissionDateFrom]=2024-01-01&filters[admissionDateTo]=2024-12-31
+Authorization: Bearer {{token}}
+
+### 5. Búsqueda de texto con múltiples filtros
+GET {{baseUrl}}/prisoners/search?query=García&filters[status]=Activo&filters[category]=DerechoComun&orderBy=surname&orderDirection=asc
+Authorization: Bearer {{token}}
+
+### 6. Búsqueda por ubicación penitenciaria
+GET {{baseUrl}}/prisoners/search?filters[buildingNumber]=A&filters[cellNumber]=101
+Authorization: Bearer {{token}}
+
+### 7. Búsqueda por nacionalidad y ciudadanía
+GET {{baseUrl}}/prisoners/search?filters[citizenshipType]=CiudadanoExtranjero&filters[countryOfOrigin]=México
+Authorization: Bearer {{token}}
+
+### 8. Búsqueda por categoría penitenciaria
+GET {{baseUrl}}/prisoners/search?filters[category]=PrisionPreventiva&filters[status]=Activo
+Authorization: Bearer {{token}}
+
+### 9. Búsqueda compleja combinando múltiples criterios
+GET {{baseUrl}}/prisoners/search?query=Juan&filters[status]=Activo&filters[gender]=Masculino&filters[category]=PrisionPreventiva&filters[admissionDateFrom]=2024-01-01&filters[buildingNumber]=A&orderBy=admissionDate&orderDirection=desc&page=1&limit=20
+Authorization: Bearer {{token}}
+
+### 10. Búsqueda por crimen (en casos judiciales)
+GET {{baseUrl}}/prisoners/search?query=Robo
+Authorization: Bearer {{token}}
+
+### 11. Búsqueda con ordenamiento por apellido
+GET {{baseUrl}}/prisoners/search?query=García&orderBy=surname&orderDirection=asc&page=1&limit=10
+Authorization: Bearer {{token}}
+
+### 12. Búsqueda con ordenamiento por fecha de admisión
+GET {{baseUrl}}/prisoners/search?filters[status]=Activo&orderBy=admissionDate&orderDirection=desc
+Authorization: Bearer {{token}}
+
+### 12. Búsqueda por número de documento
+GET {{baseUrl}}/prisoners/search?query=12345678
+Authorization: Bearer {{token}}
+
+### 13. Búsqueda por número de registro
+GET {{baseUrl}}/prisoners/search?query=REG-001
+Authorization: Bearer {{token}}
+
+### 14. Búsqueda incluyendo eliminados (soft delete)
+GET {{baseUrl}}/prisoners/search?query=Juan&includeDeleted=true
+Authorization: Bearer {{token}}
+
+### 15. Búsqueda con paginación grande
+GET {{baseUrl}}/prisoners/search?filters[status]=Activo&page=1&limit=50
+Authorization: Bearer {{token}}
+
+### ========================================
+### Comparación con endpoints existentes
+### ========================================
+
+### Obtener lista simple (endpoint anterior)
+GET {{baseUrl}}/prisoners?page=1&limit=10&status=Activo
+Authorization: Bearer {{token}}
+
+### Obtener perfil completo de un prisionero específico
+GET {{baseUrl}}/prisoners/complete-profile/PRISONER_ID_HERE
+Authorization: Bearer {{token}}
+
+### ========================================
+### Tests de validación
+### ========================================
+
+### Test: Límite máximo (debe aceptar 100)
+GET {{baseUrl}}/prisoners/search?limit=100
+Authorization: Bearer {{token}}
+
+### Test: Límite mayor al máximo (debería usar 100)
+GET {{baseUrl}}/prisoners/search?limit=200
+Authorization: Bearer {{token}}
+
+### Test: Sin parámetros (debería devolver primeros 10 activos)
+GET {{baseUrl}}/prisoners/search
+Authorization: Bearer {{token}}
+
+### Test: Solo query de búsqueda
+GET {{baseUrl}}/prisoners/search?query=test
+Authorization: Bearer {{token}}
+
+### Test: Filtros vacíos (debería ignorarlos)
+GET {{baseUrl}}/prisoners/search?filters[status]=&page=1
+Authorization: Bearer {{token}}
