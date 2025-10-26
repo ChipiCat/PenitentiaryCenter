@@ -122,37 +122,19 @@ export function CustomHeader() {
             <Group gap="sm" wrap="nowrap">
               {/* Buscador rápido */}
 
-              <Box style={{ minWidth: 220, maxWidth: 260 }}>
+              <Box style={{ minWidth: 240, maxWidth: 260 }}>
                 <Group gap={0} style={{ position: 'relative' }}>
                   <TextInput
                     ref={searchInputRef}
                     placeholder="Search"
                     size="sm"
-                    leftSection={<Search size={16} style={{ color: 'var(--mantine-color-dimmed)' }} />}
+                    leftSection={<Search size={16} style={{ color: 'var(--mantine-color-dimmed)', width: "100%" }} />}
                     onClick={() => setSearchOpened(true)}
                   />
                 </Group>
               </Box>
 
-            <Indicator inline label="3" size={16} color="red" offset={7}>
-              <ActionIcon 
-                variant="subtle" 
-                size="lg" 
-                color="gray"
-                className={classes.actionButton}
-              >
-                <Bell size={18} />
-              </ActionIcon>
-            </Indicator>
-
-            <ActionIcon 
-              variant="subtle" 
-              size="lg" 
-              color="gray"
-              className={classes.actionButton}
-            >
-              <Sun size={18} />
-            </ActionIcon>
+            
 
             <Divider />
             <Menu
