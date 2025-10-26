@@ -134,7 +134,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
       default:
         return null;
     }
-  }, [activeStep, formData, errors, handleDataUpdate]);
+  }, [activeStep, formData, errors, handleDataUpdate, handleFileUpdate]);
 
   return (
     <Container size="lg">
