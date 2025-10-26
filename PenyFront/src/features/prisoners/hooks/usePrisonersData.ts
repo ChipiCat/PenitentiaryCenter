@@ -48,7 +48,7 @@ export const usePrisonersData = () => {
         search: searchTerm || undefined,
       });
 
-      setPrisoners(response.data);
+      setPrisoners(response.items);
       setPagination((prev) => ({
         ...prev,
         total: response.pagination.total,
@@ -71,11 +71,11 @@ export const usePrisonersData = () => {
     const allPrisoners = await prisonersService.getPrisoners({ limit: 1000 });
 
     const stats = {
-      total: allPrisoners.data.length,
-      activos: allPrisoners.data.filter((p: PrisonerBase) => p.status === "Activo").length,
-      trasladados: allPrisoners.data.filter((p: PrisonerBase) => p.status === "Trasladado").length,
-      liberados: allPrisoners.data.filter((p: PrisonerBase) => p.status === "Liberado").length,
-      archivados: allPrisoners.data.filter((p: PrisonerBase) => p.status === "Archivado").length,
+      total: allPrisoners.items.length,
+      activos: allPrisoners.items.filter((p: PrisonerBase) => p.status === "Activo").length,
+      trasladados: allPrisoners.items.filter((p: PrisonerBase) => p.status === "Trasladado").length,
+      liberados: allPrisoners.items.filter((p: PrisonerBase) => p.status === "Liberado").length,
+      archivados: allPrisoners.items.filter((p: PrisonerBase) => p.status === "Archivado").length,
     };
 
     setStatistics(stats);

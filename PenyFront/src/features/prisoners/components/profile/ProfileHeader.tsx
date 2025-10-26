@@ -71,7 +71,16 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           >
             {prisoner.status}
           </Badge>
-          
+          <Tooltip label="Exportar PDF de toda la información">
+            <Button 
+              leftSection={<Shield size={16} />} 
+              onClick={() => window.dispatchEvent(new CustomEvent('SIGEPEN-export-recluso-pdf'))}
+              variant="light"
+              color="red"
+            >
+              Exportar PDF
+            </Button>
+          </Tooltip>
           <Tooltip label="Editar información del prisionero">
             <Button 
               leftSection={<Edit size={16} />}

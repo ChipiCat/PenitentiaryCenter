@@ -34,14 +34,12 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Prevent infinite retry loops
     if (originalRequest._retry) {
       console.error("[API] Retry limit reached, rejecting request");
       tokenManager.clearTokens();
       window.location.href = "/login";
       return Promise.reject(error);
     }
-
     // Handle 401 Unauthorized with refresh token available
     if (error.response?.status === 401) {
       const refreshToken = tokenManager.getRefreshToken();
@@ -52,11 +50,8 @@ api.interceptors.response.use(
         window.location.href = "/login";
         return Promise.reject(error);
       }
-
       originalRequest._retry = true;
-
       try {
-        console.log("[API] 401 received, attempting token refresh...");
 
         // Use token manager to queue refresh and avoid race conditions
         const newAccessToken = await tokenManager.queueRefresh(async () => {
@@ -69,32 +64,24 @@ api.interceptors.response.use(
               timeout: 5000
             }
           );
-
-          console.log("[API] Token refresh successful");
-
           // IMPORTANT: Update BOTH tokens if backend returns new refresh token
           if (res.data.accessToken) {
             tokenManager.setAccessToken(res.data.accessToken);
           } else {
             throw new Error("No access token received from refresh");
           }
-          
           if (res.data.refreshToken) {
             tokenManager.setRefreshToken(res.data.refreshToken);
-            console.log("[API] New refresh token stored");
+            console.log("[API] New refresh token stored:", res.data.refreshToken);
           }
-
           return res.data.accessToken;
         });
-
         if (!newAccessToken) {
           throw new Error("Failed to obtain new access token");
         }
-
         // Update the failed request with new token and retry
         originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
         return api(originalRequest);
-
       } catch (refreshError) {
         console.error("[API] Token refresh failed:", refreshError);
         // Clear tokens on refresh failure
@@ -108,9 +95,9 @@ api.interceptors.response.use(
     } else {
       console.error("[API] Request error:", error.message);
     }
-
     return Promise.reject(error);
   }
+  
 );
 
 

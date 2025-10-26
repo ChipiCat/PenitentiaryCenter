@@ -5,4 +5,8 @@ export interface User extends Entity {
     email: string;
     role: string;
     photoUrl: string;
+    celular?: string;
+    ci?: string;
+    departamento?: string;
+    unidadDireccionDepartamental?: string;
 }
