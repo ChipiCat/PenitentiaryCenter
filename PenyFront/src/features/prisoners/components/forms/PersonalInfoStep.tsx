@@ -6,7 +6,6 @@ import {
   educationLevelOptions,
   genderOptions,
   occupationList,
-  booleanOptions,
 } from "../../../../shared/types/users/userEnumTypes";
 import { InputGroup } from "../../../../shared/components/InputGroup";
 import { GenericCombobox } from "../../../../shared/components/GenericCombobox";
@@ -14,18 +13,18 @@ import { SelectField } from "../../../../shared/components/SelectField";
 import { TextInputField } from "../../../../shared/components/TextInputField";
 import { TextareaField } from "../../../../shared/components/TextareaField";
 import { SelectWithOther } from "../../../../shared/components/SelectWithOther";
-import { BelongingDropzone } from "../../../../shared/components/BelongingDropzone";
 import { DynamicListForm } from "../../../../shared/components/DynamicListForm";
+import { BelongingsListForm } from "./BelongingsListForm";
 
 interface PersonalInfoStepProps {
   data: {
     personal?: Partial<Personal>;
-    belonging?: Partial<Belonging>;
+    belongings?: Partial<Belonging>[];
     child?: Partial<Child>[];
   };
   onUpdate: (updates: {
     personal?: Partial<Personal>;
-    belonging?: Partial<Belonging>;
+    belongings?: Partial<Belonging>[];
     child?: Partial<Child>[];
   }) => void;
   errors?: Record<string, string>;
@@ -64,24 +63,44 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
     });
   };
 
-  const belonging: Partial<Belonging> = {
-    description: data.belonging?.description ?? "",
-    quantity: data.belonging?.quantity ?? 1,
-    condition: data.belonging?.condition ?? "",
-    is_returned: data.belonging?.is_returned ?? false,
-    attachment_url: data.belonging?.attachment_url ?? "",
+  const belongings: Partial<Belonging>[] = data.belongings || [];
+
+  const handleAddBelonging = () => {
+    onUpdate({
+      personal: data.personal,
+      belongings: [
+        ...belongings,
+        {
+          description: "",
+          quantity: 1,
+          condition: "",
+          is_returned: false,
+          attachment_url: "",
+        },
+      ],
+      child: data.child,
+    });
+  };
+
+  const handleRemoveBelonging = (index: number) => {
+    const updated = belongings.filter((_, i) => i !== index);
+    onUpdate({
+      personal: data.personal,
+      belongings: updated,
+      child: data.child,
+    });
   };
 
   const handleBelongingChange = (
+    index: number,
     field: keyof Belonging,
-    value: string | number | boolean
+    value: string | number | boolean | undefined
   ) => {
+    const updated = [...belongings];
+    updated[index] = { ...updated[index], [field]: value };
     onUpdate({
       personal: data.personal,
-      belonging: {
-        ...belonging,
-        [field]: value,
-      },
+      belongings: updated,
       child: data.child,
     });
   };
@@ -91,7 +110,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
   const handleAddChild = () => {
     onUpdate({
       personal: data.personal,
-      belonging: data.belonging,
+      belongings: data.belongings,
       child: [...children, { name: "", birth_date: "" }],
     });
   };
@@ -108,7 +127,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
     };
     onUpdate({
       personal: data.personal,
-      belonging: data.belonging,
+      belongings: data.belongings,
       child: updatedChildren,
     });
   };
@@ -117,7 +136,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
     const updatedChildren = children.filter((_, i) => i !== index);
     onUpdate({
       personal: data.personal,
-      belonging: data.belonging,
+      belongings: data.belongings,
       child: updatedChildren,
     });
   };
@@ -222,68 +241,14 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
         addLabel="Agregar hijo/a"
         getSubtitle="Hijo/a"
       />
-      <Card withBorder padding="lg">
-        <Title order={4} size="h5" mb="md">
-          Pertenencias
-        </Title>
-        <Stack gap="md">
-          <InputGroup>
-            <TextInputField
-              label="Descripción"
-              value={belonging.description}
-              onChange={(e) =>
-                handleBelongingChange("description", e.target.value)
-              }
-              error={errors["personal.belonging.description"]}
-              required
-              placeholder="Ej: Reloj de pulsera"
-            />
-            <TextInputField
-              label="Cantidad de Objetos"
-              value={String(belonging.quantity)}
-              onChange={(e) =>
-                handleBelongingChange("quantity", Number(e.target.value))
-              }
-              error={errors["personal.belonging.quantity"]}
-              required
-              placeholder="Ej: 1"
-              type="number"
-              min={1}
-            />
-          </InputGroup>
-          <InputGroup>
-            <TextInputField
-              label="Condición"
-              value={belonging.condition}
-              onChange={(e) =>
-                handleBelongingChange("condition", e.target.value)
-              }
-              error={errors["personal.belonging.condition"]}
-              required
-              placeholder="Ej: Buen estado"
-            />
-            <SelectField
-              label="¿Devuelto?"
-              value={belonging.is_returned ? "Sí" : "No"}
-              onChange={(value) =>
-                handleBelongingChange("is_returned", value === "Sí")
-              }
-              data={booleanOptions}
-              error={errors["personal.belonging.returned"]}
-              required
-              placeholder="Seleccione"
-            />
-          </InputGroup>
-          <InputGroup>
-            <BelongingDropzone
-              onFile={(file) => {
-                const url = file ? URL.createObjectURL(file) : "";
-                handleBelongingChange("attachment_url", url);
-              }}
-            />
-          </InputGroup>
-        </Stack>
-      </Card>
+      <BelongingsListForm
+        items={belongings}
+        onAdd={handleAddBelonging}
+        onRemove={handleRemoveBelonging}
+        onChange={handleBelongingChange}
+        errors={errors}
+        addLabel="Agregar pertenencia"
+      />
     </Stack>
   );
 };
