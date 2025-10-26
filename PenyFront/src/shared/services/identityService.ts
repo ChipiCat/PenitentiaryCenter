@@ -45,7 +45,7 @@ export const identityService = {
   async uploadPhoto(prisonerId: string, file: File): Promise<UploadResponse> {
     try {
       const formData = new FormData();
-      formData.append('photo', file);
+      formData.append('file', file);
 
       const response = await api.post<UploadResponse>(
         `/prisoners/${prisonerId}/identity/upload-photo`,
@@ -65,7 +65,7 @@ export const identityService = {
   async uploadFingerprint(prisonerId: string, file: File, hand: HandType): Promise<UploadResponse> {
     try {
       const formData = new FormData();
-      formData.append('fingerprint', file);
+      formData.append('file', file);
       formData.append('hand', hand);
 
       const response = await api.post<UploadResponse>(
