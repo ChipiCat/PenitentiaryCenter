@@ -15,7 +15,7 @@ export function useUsers(params?: GetUsersParams) {
     usersService.getUsers(params)
       .then((res) => {
         setData(res);
-        const usuarios = res.items ?? [];
+        const usuarios = res.data ?? [];
         setStats({
           total: usuarios.length,
           activos: usuarios.filter((u: User) => !u.isDeleted).length,
@@ -50,7 +50,7 @@ export function useUsers(params?: GetUsersParams) {
 
   return {
     stats,
-    users: data?.items ?? [],
+    users: data?.data ?? [],
     handleNewUser,
     handleEditUser,
     handleDeleteUser,
