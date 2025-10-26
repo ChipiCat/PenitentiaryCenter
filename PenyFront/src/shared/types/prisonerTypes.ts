@@ -25,7 +25,7 @@ export interface CreatePrisonerData {
   personal?: Partial<Personal>;
   penitentiary?: Partial<Penitentiary>;
   contacts?: Partial<Contact>[];
-  belonging?: Partial<Belonging>;
+  belongings?: Partial<Belonging>[];
   child?: Partial<Child>[];
   legal?: Partial<Case>;
   medical_record?: Partial<MedicalRecord>[];
