@@ -1,4 +1,12 @@
-import { Card, Stack, Title, Group, Button, ActionIcon, Text } from "@mantine/core";
+import {
+  Card,
+  Stack,
+  Title,
+  Group,
+  Button,
+  ActionIcon,
+  Text,
+} from "@mantine/core";
 import { Plus, Trash2 } from "lucide-react";
 import { InputGroup } from "../../../../shared/components/InputGroup";
 import { TextInputField } from "../../../../shared/components/TextInputField";
@@ -11,7 +19,11 @@ interface BelongingsListFormProps {
   items: Partial<Belonging>[];
   onAdd: () => void;
   onRemove: (index: number) => void;
-  onChange: (index: number, field: keyof Belonging, value: any) => void;
+  onChange: (
+    index: number,
+    field: keyof Belonging,
+    value: string | number | boolean | undefined
+  ) => void;
   errors?: Record<string, string>;
   addLabel?: string;
 }
@@ -26,12 +38,16 @@ export function BelongingsListForm({
 }: BelongingsListFormProps) {
   return (
     <Card withBorder padding="lg">
-      <Title order={4} size="h5" mb="md">Pertenencias</Title>
+      <Title order={4} size="h5" mb="md">
+        Pertenencias
+      </Title>
       <Stack gap="md">
         {items.map((belonging, index) => (
           <Card key={index} withBorder padding="md">
             <Group justify="space-between" mb="sm">
-              <Text size="sm" fw={500}>Pertenencia {index + 1}</Text>
+              <Text size="sm" fw={500}>
+                Pertenencia {index + 1}
+              </Text>
               <ActionIcon
                 color="red"
                 variant="light"
@@ -46,7 +62,9 @@ export function BelongingsListForm({
                 <TextInputField
                   label="Descripción"
                   value={belonging.description}
-                  onChange={e => onChange(index, "description", e.target.value)}
+                  onChange={(e) =>
+                    onChange(index, "description", e.target.value)
+                  }
                   error={errors[`belonging.${index}.description`]}
                   required
                   placeholder="Ej: Reloj de pulsera"
@@ -54,7 +72,9 @@ export function BelongingsListForm({
                 <TextInputField
                   label="Cantidad de Objetos"
                   value={String(belonging.quantity)}
-                  onChange={e => onChange(index, "quantity", Number(e.target.value))}
+                  onChange={(e) =>
+                    onChange(index, "quantity", Number(e.target.value))
+                  }
                   error={errors[`belonging.${index}.quantity`]}
                   required
                   placeholder="Ej: 1"
@@ -66,7 +86,7 @@ export function BelongingsListForm({
                 <TextInputField
                   label="Condición"
                   value={belonging.condition}
-                  onChange={e => onChange(index, "condition", e.target.value)}
+                  onChange={(e) => onChange(index, "condition", e.target.value)}
                   error={errors[`belonging.${index}.condition`]}
                   required
                   placeholder="Ej: Buen estado"
@@ -74,7 +94,9 @@ export function BelongingsListForm({
                 <SelectField
                   label="¿Devuelto?"
                   value={belonging.is_returned ? "Sí" : "No"}
-                  onChange={value => onChange(index, "is_returned", value === "Sí")}
+                  onChange={(value) =>
+                    onChange(index, "is_returned", value === "Sí")
+                  }
                   data={booleanOptions}
                   error={errors[`belonging.${index}.is_returned`]}
                   required
@@ -83,7 +105,7 @@ export function BelongingsListForm({
               </InputGroup>
               <InputGroup>
                 <BelongingDropzone
-                  onFile={file => {
+                  onFile={(file) => {
                     const url = file ? URL.createObjectURL(file) : "";
                     onChange(index, "attachment_url", url);
                   }}
@@ -92,7 +114,11 @@ export function BelongingsListForm({
             </Stack>
           </Card>
         ))}
-        <Button leftSection={<Plus size={16} />} onClick={onAdd} variant="light">
+        <Button
+          leftSection={<Plus size={16} />}
+          onClick={onAdd}
+          variant="light"
+        >
           {addLabel}
         </Button>
       </Stack>

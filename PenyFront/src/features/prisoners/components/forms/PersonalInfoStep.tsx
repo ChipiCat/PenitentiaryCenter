@@ -63,7 +63,6 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
     });
   };
 
-
   const belongings: Partial<Belonging>[] = data.belongings || [];
 
   const handleAddBelonging = () => {
@@ -95,7 +94,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
   const handleBelongingChange = (
     index: number,
     field: keyof Belonging,
-    value: any
+    value: string | number | boolean | undefined
   ) => {
     const updated = [...belongings];
     updated[index] = { ...updated[index], [field]: value };
