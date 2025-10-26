@@ -53,7 +53,7 @@ const UsageStatsCard = () => {
         setStats(res.data);
         setLoading(false);
       })
-      .catch(_ => {
+      .catch(() => {
         setError('No se pudo cargar las estadísticas');
         setLoading(false);
       });
