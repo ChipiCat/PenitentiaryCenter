@@ -40,10 +40,6 @@ const routeTitles: Record<string, { title: string; description: string }> = {
     title: "Gestión de Usuarios",
     description: "Administra los usuarios del sistema penitenciario",
   },
-  [ROUTES.REPORTS]: {
-    title: "Reportes y Estadísticas",
-    description: "Genera y consulta reportes del sistema",
-  },
   [ROUTES.ACTIVITY]: {
     title: "Actividad Global",
     description: "Monitoreo completo de todas las acciones realizadas",
