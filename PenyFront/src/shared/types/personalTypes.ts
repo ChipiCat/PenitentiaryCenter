@@ -16,12 +16,15 @@ export interface Personal extends Entity {
 }
 
 export interface CreatePersonalData {
-  marital_status?: string;
-  education_level?: string;
-  occupation?: string;
-  emergency_contact?: string;
-  emergency_phone?: string;
-  observations?: string;
+  gender: "Masculino" | "Femenino" | "Otro",
+  father_name: string,
+  mother_name: string,
+  education_level: string,
+  occupation: string,
+  languages: string,
+  marital_status: "Soltero",
+  id_document_type: "CedulaDeIdentidad",
+  id_document_number: "string"
 }
 
 export interface UpdatePersonalData {
