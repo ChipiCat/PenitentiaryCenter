@@ -4,7 +4,6 @@ export const ROUTES = {
   PRISONERS: "/reclusos",
   PRISONERS_NEW: "/reclusos/nuevo-recluso",
   PRISONER_PROFILE: "/reclusos/:id",
-  REPORTS: "/reportes",
   USERS: "/usuarios",
   ACTIVITY: "/actividad-global",
   PROFILE: "/perfil",
@@ -18,7 +17,6 @@ export type UserRole = "admin" | "secretario general";
 export type Permission =
   | "view_dashboard"
   | "manage_prisoners"
-  | "view_reports"
   | "manage_users"
   | "view_activity"
   | "manage_profile";
@@ -28,7 +26,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   admin: [
     "view_dashboard",
     "manage_prisoners",
-    "view_reports",
     "manage_users",
     "view_activity",
     "manage_profile",
@@ -36,7 +33,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   "secretario general": [
     "view_dashboard",
     "manage_prisoners",
-    "view_reports",
     "manage_profile",
   ],
 };
@@ -44,7 +40,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 export const NAV_LINKS = [
   { path: ROUTES.HOME, label: "Panel principal", permission: "view_dashboard" },
   { path: ROUTES.PRISONERS, label: "Reclusos", permission: "manage_prisoners" },
-  { path: ROUTES.REPORTS, label: "Reportes", permission: "view_reports" },
   { path: ROUTES.USERS, label: "Usuarios", permission: "manage_users" },
   {
     path: ROUTES.ACTIVITY,
@@ -74,12 +69,6 @@ export const ALL_NAV_LINKS: NavLink[] = [
     label: "Reclusos",
     permission: "manage_prisoners",
     icon: "users",
-  },
-  {
-    path: ROUTES.REPORTS,
-    label: "Reportes",
-    permission: "view_reports",
-    icon: "file-text",
   },
   {
     path: ROUTES.USERS,

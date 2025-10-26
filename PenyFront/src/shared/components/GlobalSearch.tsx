@@ -70,7 +70,7 @@ export function GlobalSearch({ opened, onClose, onSelectResult }: GlobalSearchPr
                 'admissionDate',
                 'desc'
             );
-            setResults(response.data);
+            setResults(response.items);
             setTotal(response.pagination.total);
         } catch (error) {
             console.error('Error searching prisoners:', error);

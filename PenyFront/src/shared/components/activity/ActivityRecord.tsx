@@ -2,8 +2,9 @@ import React from 'react';
 import { Group, Text, Divider } from '@mantine/core';
 import { Clock } from 'lucide-react';
 import { UserAvatar } from '../user/UserAvatar';
-import { ActionBadge, type ActionType } from './ActionBadge';
-import type { ActivityUser } from '../../types/commonTypes'; 
+import { ActionBadge } from './ActionBadge';
+import type { ActivityUser } from '../../types/activityLogTypes'; 
+import type { ActionType } from '../../types/activityLogTypes';
 
 export interface ActivityRecordData {
   id: string;
@@ -21,7 +22,6 @@ export interface ActivityRecordProps {
   onUserClick?: (user: ActivityUser) => void;
   onTargetClick?: (target: string) => void;
 }
-
 
 export interface ActivityRecordProps {
   activity: ActivityRecordData;
