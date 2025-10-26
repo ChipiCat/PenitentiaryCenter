@@ -1,7 +1,6 @@
 import type { Entity } from "./commonTypes";
 
 export interface Belonging extends Entity {
-  prisoner_id: string;
   description: string;
   quantity: number;
   condition?: string;

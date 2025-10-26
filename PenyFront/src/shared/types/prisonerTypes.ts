@@ -5,6 +5,9 @@ import type { Penitentiary } from "./penitentiaryTypes";
 import type { Contact } from "./contactTypes";
 import type { Identity } from "./identityTypes";
 import type { Case } from "./caseTypes";
+import type { Belonging } from "./belongingTypes";
+import type { Child } from "./childTypes";
+import type { MedicalRecord } from "./medicalRecordTypes";
 
 export interface PrisonerBase extends Entity {
   registration_number: string;
@@ -22,6 +25,10 @@ export interface CreatePrisonerData {
   personal?: Partial<Personal>;
   penitentiary?: Partial<Penitentiary>;
   contacts?: Partial<Contact>[];
+  belonging?: Partial<Belonging>;
+  child?: Partial<Child>[];
+  legal?: Partial<Case>;
+  medical_record?: Partial<MedicalRecord>[];
 }
 
 export interface UpdatePrisonerData {
