@@ -4,7 +4,6 @@ import { Text, ActionIcon, Tooltip } from '@mantine/core';
 import { 
   Home, 
   Users, 
-  FileText, 
   Activity, 
   UserCog,
   ChevronLeft,
@@ -17,7 +16,6 @@ import classes from '../styles/NavbarSimple.module.css';
 const navigationData = [
   { link: ROUTES.HOME, label: 'Panel Principal', icon: Home },
   { link: ROUTES.PRISONERS, label: 'Reclusos', icon: Users },
-  { link: ROUTES.REPORTS, label: 'Reportes', icon: FileText },
   { link: ROUTES.ACTIVITY, label: 'Actividades', icon: Activity },
   { link: ROUTES.USERS, label: 'Usuarios', icon: UserCog },
 ];
