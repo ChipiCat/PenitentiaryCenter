@@ -1,6 +1,6 @@
 import React from 'react';
 import { Group, Title, Text, Button, ActionIcon, Tooltip } from '@mantine/core';
-import { Plus, Users, Search, Filter, Download, Settings } from 'lucide-react';
+import { Plus, Users, Search, Filter } from 'lucide-react';
 
 interface PrisonersHeaderProps {
   onCreateNew: () => void;
@@ -35,16 +35,7 @@ export const PrisonersHeader: React.FC<PrisonersHeaderProps> = ({ onCreateNew })
               <Filter size={18} />
             </ActionIcon>
           </Tooltip>
-          <Tooltip label="Exportar datos">
-            <ActionIcon variant="subtle" size="lg">
-              <Download size={18} />
-            </ActionIcon>
-          </Tooltip>
-          <Tooltip label="Configuración">
-            <ActionIcon variant="subtle" size="lg">
-              <Settings size={18} />
-            </ActionIcon>
-          </Tooltip>
+         
         </Group>
 
         <Button
