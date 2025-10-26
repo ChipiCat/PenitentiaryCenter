@@ -8,6 +8,7 @@ import { ROUTES } from '../../../shared/config/routes';
 import { ProfileHeader } from '../components/profile/ProfileHeader';
 import { ProfileContent } from '../components/profile/ProfileContent';
 import { LoadingState } from '../../../shared/components/LoadingState';
+import { exportPrisonerPdf } from '../components/profile/exportPrisonerPdf';
 
 export const PrisonerProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -30,7 +31,6 @@ export const PrisonerProfilePage: React.FC = () => {
         setError(null);
         console.log('🔍 Cargando perfil del prisionero:', id);
         
-        // ✅ USAR SERVICIO MIGRADO
         const data = await completeProfileService.getCompleteProfile(id);
         if (data) {
           setProfile(data);
@@ -48,6 +48,17 @@ export const PrisonerProfilePage: React.FC = () => {
 
     loadProfile();
   }, [id]);
+
+  useEffect(() => {
+  const handleExportPDF = () => {
+    if (profile) {
+      const fecha = new Date().toISOString().slice(0, 19).replace('T', '_').replace(/:/g, '-');
+      exportPrisonerPdf(profile, fecha);
+    }
+  };
+  window.addEventListener('SIGEPEN-export-recluso-pdf', handleExportPDF);
+  return () => window.removeEventListener('SIGEPEN-export-recluso-pdf', handleExportPDF);
+}, [profile]);
 
   const handleBack = () => {
     navigate(ROUTES.PRISONERS);

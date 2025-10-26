@@ -24,7 +24,7 @@ export interface PaginationParams {
 }
 
 export interface PaginationResponse<T> {
-  data: T[];
+  items: T[];
   page: number;
   size: number;
   total: number;

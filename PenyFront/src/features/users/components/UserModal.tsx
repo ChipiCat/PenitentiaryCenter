@@ -15,9 +15,7 @@ import { ProfilePhotoDropzone } from "../../../shared/components/BelongingDropzo
 
 const roleOptions = [
   { value: "ADMIN", label: "Administrador" },
-  { value: "DIRECTOR", label: "Director" },
   { value: "SECRETARY", label: "Secretario" },
-  { value: "USER", label: "Usuario" },
 ];
 
 interface UserModalProps {
