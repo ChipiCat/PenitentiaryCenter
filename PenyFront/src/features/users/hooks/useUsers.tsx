@@ -10,7 +10,6 @@ export function useUsers(params?: GetUsersParams) {
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<UserStats>({ total: 0, activos: 0, inactivos: 0 });
 
-  // Cargar usuarios y stats
   const fetchUsers = useCallback(() => {
     setLoading(true);
     usersService.getUsers(params)
@@ -25,7 +24,7 @@ export function useUsers(params?: GetUsersParams) {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [JSON.stringify(params)]);
+  }, [params]);
 
   useEffect(() => {
     fetchUsers();

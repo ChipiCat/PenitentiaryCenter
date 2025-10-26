@@ -1,6 +1,6 @@
-import React from 'react';
-import { Group, Select, TextInput } from '@mantine/core';
-import { Search } from 'lucide-react';
+import React from "react";
+import { Group, Select, TextInput } from "@mantine/core";
+import { Search } from "lucide-react";
 
 export interface FilterOption {
   value: string;
@@ -30,7 +30,7 @@ export const ActivityFiltersSimple: React.FC<ActivityFiltersSimpleProps> = ({
   actionOptions,
   timeOptions,
   showSearch = false,
-  searchPlaceholder = "Buscar actividades..."
+  searchPlaceholder = "Buscar actividades...",
 }) => {
   return (
     <Group gap="xs">
@@ -38,24 +38,24 @@ export const ActivityFiltersSimple: React.FC<ActivityFiltersSimpleProps> = ({
         <TextInput
           placeholder={searchPlaceholder}
           leftSection={<Search size={16} />}
-          value={searchTerm || ''}
+          value={searchTerm || ""}
           onChange={(event) => onSearchChange(event.currentTarget.value)}
           style={{ minWidth: 200 }}
         />
       )}
-      
+
       <Select
         placeholder="Filtrar acciones"
         value={actionFilter}
-        onChange={(value) => onActionFilterChange(value || 'all')}
+        onChange={(value) => onActionFilterChange(value || "all")}
         data={actionOptions}
         style={{ minWidth: 180 }}
       />
-      
+
       <Select
         placeholder="Periodo"
         value={timeFilter}
-        onChange={(value) => onTimeFilterChange(value || 'today')}
+        onChange={(value) => onTimeFilterChange(value || "today")}
         data={timeOptions}
         style={{ minWidth: 120 }}
       />
