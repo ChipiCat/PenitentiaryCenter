@@ -194,6 +194,7 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = React.memo(({
             minRows={2}
             error={errors["identity.residence"]}
             required
+            debounce={true}
           />
           <InputGroup>
             <SelectField

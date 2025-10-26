@@ -64,6 +64,7 @@ export const PenitentiaryInfoStep: React.FC<PenitentiaryInfoStepProps> = ({
               }
               error={errors["penitentiary.building_number"]}
               required
+              debounce={true}
             />
             <TextInputField
               label="Número de Celda"
@@ -74,6 +75,7 @@ export const PenitentiaryInfoStep: React.FC<PenitentiaryInfoStepProps> = ({
               }
               error={errors["penitentiary.cell_number"]}
               required
+              debounce={true}
             />
           </InputGroup>
           <InputGroup>
@@ -87,6 +89,7 @@ export const PenitentiaryInfoStep: React.FC<PenitentiaryInfoStepProps> = ({
               error={errors["penitentiary.bed_number"]}
               description="Número de cama dentro de la celda"
               required
+              debounce={true}
             />
           </InputGroup>
         </Stack>

@@ -175,6 +175,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
               options={occupationList}
               error={errors["personal.occupation"]}
               required
+              debounce={true}
             />
           </InputGroup>
           <InputGroup>
@@ -187,6 +188,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
               error={errors["personal.observations"]}
               minRows={2}
               placeholder="Observaciones adicionales"
+              debounce={true}
             />
           </InputGroup>
           <InputGroup>
@@ -198,6 +200,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
               }
               error={errors["personal.father_name"]}
               placeholder="Nombre completo del padre"
+              debounce={true}
             />
             <TextInputField
               label="Nombre de la Madre"
@@ -207,6 +210,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
               }
               error={errors["personal.mother_name"]}
               placeholder="Nombre completo de la madre"
+              debounce={true}
             />
           </InputGroup>
         </Stack>
@@ -237,6 +241,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
               error={errors["personal.belonging.description"]}
               required
               placeholder="Ej: Reloj de pulsera"
+              debounce={true}
             />
             <TextInputField
               label="Cantidad de Objetos"
@@ -249,6 +254,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
               placeholder="Ej: 1"
               type="number"
               min={1}
+              debounce={true}
             />
           </InputGroup>
           <InputGroup>
@@ -261,6 +267,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
               error={errors["personal.belonging.condition"]}
               required
               placeholder="Ej: Buen estado"
+              debounce={true}
             />
             <SelectField
               label="¿Devuelto?"
