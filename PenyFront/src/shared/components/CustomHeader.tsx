@@ -7,8 +7,6 @@ import {
   Menu, 
   UnstyledButton, 
   Loader,
-  ActionIcon,
-  Indicator,
   Badge,
   Divider,
   Paper,
@@ -20,9 +18,7 @@ import {
   LogOut, 
   Settings, 
   User,
-  Bell,
-  Search,
-  Sun
+  Search
 } from 'lucide-react';
 import { useGlobalContext } from '../hooks/useGlobalContext';
 import { useGlobalSearch } from '../hooks/useGlobalSearch';

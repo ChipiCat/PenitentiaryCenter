@@ -281,11 +281,12 @@ export function usePrisonerFormHandlers({
             message: 'La información de identidad se guardó correctamente',
             color: 'green'
           });
-        } catch (error: any) {
+        } catch (error: unknown) {
           // Si falla la identidad, mostrar error pero no bloquear
+          const errMsg = error instanceof Error ? error.message : 'Ocurrió un error al guardar la identidad';
           notifications.show({
             title: 'Error al guardar identidad',
-            message: error.message || 'Ocurrió un error al guardar la identidad',
+            message: errMsg,
             color: 'orange'
           });
         }
@@ -300,10 +301,11 @@ export function usePrisonerFormHandlers({
             message: 'La foto de perfil se subió correctamente',
             color: 'green'
           });
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const errMsg = error instanceof Error ? error.message : 'No se pudo subir la foto';
           notifications.show({
             title: 'Error al subir foto',
-            message: error.message || 'No se pudo subir la foto',
+            message: errMsg,
             color: 'orange'
           });
         }
@@ -317,10 +319,11 @@ export function usePrisonerFormHandlers({
             message: 'La huella dactilar derecha se subió correctamente',
             color: 'green'
           });
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const errMsg = error instanceof Error ? error.message : 'No se pudo subir la huella';
           notifications.show({
             title: 'Error al subir huella derecha',
-            message: error.message || 'No se pudo subir la huella',
+            message: errMsg,
             color: 'orange'
           });
         }
@@ -334,10 +337,11 @@ export function usePrisonerFormHandlers({
             message: 'La huella dactilar izquierda se subió correctamente',
             color: 'green'
           });
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const errMsg = error instanceof Error ? error.message : 'No se pudo subir la huella';
           notifications.show({
             title: 'Error al subir huella izquierda',
-            message: error.message || 'No se pudo subir la huella',
+            message: errMsg,
             color: 'orange'
           });
         }
@@ -350,10 +354,11 @@ export function usePrisonerFormHandlers({
       }));
 
       return { success: true, prisonerId };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : 'Ocurrió un error al guardar la información';
       notifications.show({
         title: 'Error al guardar',
-        message: error.message || 'Ocurrió un error al guardar la información',
+        message: errMsg,
         color: 'red'
       });
       return { success: false };
@@ -410,10 +415,11 @@ export function usePrisonerFormHandlers({
             message: 'La información personal se guardó correctamente',
             color: 'green'
           });
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const errMsg = error instanceof Error ? error.message : 'Ocurrió un error al guardar';
           notifications.show({
             title: 'Error al guardar información personal',
-            message: error.message || 'Ocurrió un error al guardar',
+            message: errMsg,
             color: 'orange'
           });
         }
@@ -430,7 +436,8 @@ export function usePrisonerFormHandlers({
               };
 
               await childrenService.createChild(prisonerId, childData);
-            } catch (error: any) {
+            } catch (error: unknown) {
+              console.log(error);
               notifications.show({
                 title: 'Error al guardar hijo',
                 message: `No se pudo guardar: ${child.name}`,
@@ -460,7 +467,8 @@ export function usePrisonerFormHandlers({
               };
 
               await belongingsService.createBelonging(prisonerId, belongingData);
-            } catch (error: any) {
+            } catch (error: unknown) {
+              console.log(error);
               notifications.show({
                 title: 'Error al guardar pertenencia',
                 message: `No se pudo guardar: ${belonging.description}`,
@@ -484,10 +492,11 @@ export function usePrisonerFormHandlers({
       }));
 
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : 'Ocurrió un error al guardar la información personal';
       notifications.show({
         title: 'Error al guardar',
-        message: error.message || 'Ocurrió un error al guardar la información personal',
+        message: errMsg,
         color: 'red'
       });
       return { success: false };
@@ -528,7 +537,8 @@ export function usePrisonerFormHandlers({
               };
 
               await medicalRecordsService.createMedicalRecord(prisonerId, medicalData);
-            } catch (error: any) {
+            } catch (error: unknown) {
+              console.log(error);
               notifications.show({
                 title: 'Error al guardar registro médico',
                 message: `No se pudo guardar el registro del Dr. ${record.doctor_name}`,
@@ -552,10 +562,11 @@ export function usePrisonerFormHandlers({
       }));
 
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : 'Ocurrió un error al guardar los registros médicos';
       notifications.show({
         title: 'Error al guardar',
-        message: error.message || 'Ocurrió un error al guardar los registros médicos',
+        message: errMsg,
         color: 'red'
       });
       return { success: false };
@@ -602,10 +613,11 @@ export function usePrisonerFormHandlers({
             message: 'La ubicación del prisionero se guardó correctamente',
             color: 'green'
           });
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const errMsg = error instanceof Error ? error.message : 'Ocurrió un error al guardar';
           notifications.show({
             title: 'Error al guardar información penitenciaria',
-            message: error.message || 'Ocurrió un error al guardar',
+            message: errMsg,
             color: 'orange'
           });
         }
@@ -618,10 +630,11 @@ export function usePrisonerFormHandlers({
       }));
 
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : 'Ocurrió un error al guardar la información penitenciaria';
       notifications.show({
         title: 'Error al guardar',
-        message: error.message || 'Ocurrió un error al guardar la información penitenciaria',
+        message: errMsg,
         color: 'red'
       });
       return { success: false };
@@ -659,7 +672,8 @@ export function usePrisonerFormHandlers({
               };
 
               await contactsService.createContact(prisonerId, contactData);
-            } catch (error: any) {
+            } catch (error: unknown) {
+              console.log(error);
               notifications.show({
                 title: 'Error al guardar contacto',
                 message: `No se pudo guardar: ${contact.name}`,
@@ -683,10 +697,11 @@ export function usePrisonerFormHandlers({
       }));
 
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : 'Ocurrió un error al guardar los contactos';
       notifications.show({
         title: 'Error al guardar',
-        message: error.message || 'Ocurrió un error al guardar los contactos',
+        message: errMsg,
         color: 'red'
       });
       return { success: false };
@@ -869,10 +884,11 @@ export function usePrisonerFormHandlers({
           id: formState.prisonerId
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : 'Ocurrió un error al finalizar el registro';
       notifications.show({
         title: 'Error',
-        message: error.message || 'Ocurrió un error al finalizar el registro',
+        message: errMsg,
         color: 'red'
       });
     } finally {

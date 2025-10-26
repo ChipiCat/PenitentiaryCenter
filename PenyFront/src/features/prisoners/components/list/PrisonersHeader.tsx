@@ -1,6 +1,6 @@
 import React from 'react';
-import { Group, Title, Text, Button, ActionIcon, Tooltip } from '@mantine/core';
-import { Plus, Users, Search, Filter } from 'lucide-react';
+import { Group, Title, Text, Button } from '@mantine/core';
+import { Plus, Users} from 'lucide-react';
 
 interface PrisonersHeaderProps {
   onCreateNew: () => void;
