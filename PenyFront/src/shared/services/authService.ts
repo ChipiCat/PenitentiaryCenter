@@ -19,9 +19,24 @@ export const login = async (email: string, password: string): Promise<AuthRespon
     try {
         const response = await api.post<AuthResponse>(`/auth/login`, { email, password });
         
+        // Validate response has tokens
+        if (!response.data || !response.data.accessToken || !response.data.refreshToken) {
+            console.error("[AuthService] Invalid login response: missing tokens");
+            throw new Error("Respuesta de login inválida");
+        }
+        
         // Store tokens using token manager
         tokenManager.setAccessToken(response.data.accessToken);
         tokenManager.setRefreshToken(response.data.refreshToken);
+        
+        // Verify tokens were stored successfully
+        const storedAccess = tokenManager.getAccessToken();
+        const storedRefresh = tokenManager.getRefreshToken();
+        
+        if (!storedAccess || !storedRefresh) {
+            console.error("[AuthService] Tokens were not stored correctly");
+            throw new Error("Error al guardar las credenciales");
+        }
         
         return response.data;
     } catch (error) {
