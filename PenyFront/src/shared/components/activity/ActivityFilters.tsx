@@ -1,6 +1,15 @@
-import React from 'react';
-import { Card, Group, ThemeIcon, Text, Badge, Grid, TextInput, Select } from '@mantine/core';
-import { Search, Filter } from 'lucide-react';
+import React from "react";
+import {
+  Card,
+  Group,
+  ThemeIcon,
+  Text,
+  Badge,
+  Grid,
+  TextInput,
+  Select,
+} from "@mantine/core";
+import { Search, Filter } from "lucide-react";
 
 export interface ActivityFilter {
   value: string;
@@ -39,7 +48,7 @@ export const ActivityFilters: React.FC<ActivityFiltersProps> = ({
   onFilterChange,
   filterOptions,
   searchPlaceholder = "Buscar actividades...",
-  filterPlaceholder = "Filtrar por tipo"
+  filterPlaceholder = "Filtrar por tipo",
 }) => {
   return (
     <Card withBorder padding="lg">

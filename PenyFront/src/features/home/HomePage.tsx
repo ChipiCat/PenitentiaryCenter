@@ -8,7 +8,6 @@ import {
   Stack,
   Button,
   ThemeIcon,
-  Timeline,
 } from "@mantine/core";
 import {
   Users,
@@ -19,20 +18,16 @@ import {
   Search,
   FileText,
   Eye,
-  User,
-  Calendar,
-  Shield,
-  FileCheck,
 } from "lucide-react";
 import { useGlobalContext } from "../../shared/hooks/useGlobalContext";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../shared/config/routes";
+import { RecentActivityCard } from "../profile/components";
 
 const HomePage = () => {
   const { user } = useGlobalContext();
   const navigate = useNavigate();
 
-  // Datos de estadísticas (estos vendrían de tu API)
   const stats = [
     {
       title: "Total de Internos",
@@ -100,48 +95,8 @@ const HomePage = () => {
     },
   ];
 
-  // Actividad reciente (esto vendría de tu API)
-  const recentActivity = [
-    {
-      title: "Nuevo interno registrado: Juan Carlos Pérez",
-      description: "Por: María Elena Rodríguez",
-      time: "Hace 2 horas",
-      icon: User,
-      color: "blue",
-    },
-    {
-      title: "Expediente actualizado: Ana García Silva",
-      description: "Por: Carlos Alberto Díaz",
-      time: "Hace 4 horas",
-      icon: FileCheck,
-      color: "green",
-    },
-    {
-      title: "Mandamiento de liberación procesado",
-      description: "Por: William García Vargas",
-      time: "Hace 6 horas",
-      icon: Shield,
-      color: "teal",
-    },
-    {
-      title: "Reporte mensual generado",
-      description: "Por: María Elena Rodríguez",
-      time: "Hace 1 día",
-      icon: Calendar,
-      color: "violet",
-    },
-    {
-      title: "Nuevo usuario creado: Luis Fernando",
-      description: "Por: William García Vargas",
-      time: "Hace 2 días",
-      icon: User,
-      color: "blue",
-    },
-  ];
-
   return (
     <Container size="xl" py="md">
-      {/* Encabezado de bienvenida */}
       <Stack gap="xl">
         <div>
           <Title order={2} mb={4}>
@@ -155,7 +110,6 @@ const HomePage = () => {
           <Text c="dimmed">Resumen general del centro penitenciario</Text>
         </div>
 
-        {/* Estadísticas principales */}
         <Grid>
           {stats.map((stat, index) => (
             <Grid.Col key={index} span={{ base: 12, xs: 6, md: 3 }}>
@@ -190,9 +144,7 @@ const HomePage = () => {
           ))}
         </Grid>
 
-        {/* Sección principal con acciones y actividad */}
         <Grid>
-          {/* Acciones rápidas */}
           <Grid.Col span={{ base: 12, md: 6 }}>
             <Paper p="lg" radius="md" withBorder h="100%">
               <Title order={4} mb="md">
@@ -216,41 +168,8 @@ const HomePage = () => {
               </Stack>
             </Paper>
           </Grid.Col>
-
-          {/* Actividad reciente */}
           <Grid.Col span={{ base: 12, md: 6 }}>
-            <Paper p="lg" radius="md" withBorder h="100%">
-              <Title order={4} mb="md">
-                Actividad Reciente
-              </Title>
-              <Timeline active={-1} bulletSize={24} lineWidth={2}>
-                {recentActivity.map((activity, index) => (
-                  <Timeline.Item
-                    key={index}
-                    bullet={
-                      <ThemeIcon
-                        size={22}
-                        variant="filled"
-                        color={activity.color}
-                        radius="xl"
-                      >
-                        <activity.icon size={12} />
-                      </ThemeIcon>
-                    }
-                  >
-                    <Text size="sm" fw={500}>
-                      {activity.title}
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      {activity.description}
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      {activity.time}
-                    </Text>
-                  </Timeline.Item>
-                ))}
-              </Timeline>
-            </Paper>
+            <RecentActivityCard />
           </Grid.Col>
         </Grid>
       </Stack>

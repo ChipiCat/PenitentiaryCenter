@@ -224,13 +224,6 @@ export function CustomHeader() {
                   Mi Perfil
                 </Menu.Item>
 
-                <Menu.Item 
-                  leftSection={<Settings size={16} />}
-                  onClick={handleSettings}
-                >
-                  Configuración
-                </Menu.Item>
-
                 <Menu.Divider />
 
                 <Menu.Item

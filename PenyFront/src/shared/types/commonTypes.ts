@@ -52,20 +52,4 @@ export type EducationLevel =
   | "Secundaria Completa"
   | "Técnico";
 
-export interface ActivityUser {
-  id: string;
-  name: string;
-  email?: string;
-  role?: string; 
-  avatar?: string;
-}
-
-export interface SystemActivity {
-  id: string;
-  action: string;
-  user: ActivityUser;
-  target: string;
-  timestamp: string;
-}
-
 export type PeriodType = "week" | "month" | "year" | "today";
