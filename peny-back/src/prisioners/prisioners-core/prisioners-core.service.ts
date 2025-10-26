@@ -631,7 +631,11 @@ export class PrisionersService {
       }
 
       // Filtros de identidad
-      if (filters.citizenshipType || filters.countryOfOrigin || filters.nationality) {
+      if (
+        filters.citizenshipType ||
+        filters.countryOfOrigin ||
+        filters.nationality
+      ) {
         whereConditions.identity = whereConditions.identity || {};
         if (filters.citizenshipType) {
           whereConditions.identity.citizenshipType = filters.citizenshipType;
@@ -662,11 +666,7 @@ export class PrisionersService {
       }
 
       // Filtros de información penitenciaria
-      if (
-        filters.category ||
-        filters.buildingNumber ||
-        filters.cellNumber
-      ) {
+      if (filters.category || filters.buildingNumber || filters.cellNumber) {
         whereConditions.penitentiary = whereConditions.penitentiary || {};
         if (filters.category) {
           whereConditions.penitentiary.category = filters.category;
@@ -694,7 +694,9 @@ export class PrisionersService {
     if (searchQuery.orderBy) {
       switch (searchQuery.orderBy) {
         case 'registrationNumber':
-          orderBy = { registrationNumber: searchQuery.orderDirection || 'desc' };
+          orderBy = {
+            registrationNumber: searchQuery.orderDirection || 'desc',
+          };
           break;
         case 'admissionDate':
           orderBy = { admissionDate: searchQuery.orderDirection || 'desc' };
