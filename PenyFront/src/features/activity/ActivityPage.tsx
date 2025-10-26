@@ -12,70 +12,22 @@ import {
   Tooltip,
   Code,
 } from "@mantine/core";
-import {
-  IconInfoCircle,
-  IconAlertTriangle,
-  IconCheck,
-  IconX,
-} from "@tabler/icons-react";
-import { SystemActivityFilters } from "./components/SystemActivityFilters";
 import { useSystemActivity } from "./hooks/useSystemActivity";
+import {
+  severityColors,
+  severityIcons,
+  severityLabels,
+  statusLabels,
+  moduleLabels,
+  actionLabels,
+  entityLabels,
+  traducirDescripcion,
+} from "../../shared/utils/activityLogUtils";
 
 const PAGE_SIZE = 10;
 
-const severityColors = {
-  INFO: "blue",
-  WARNING: "yellow",
-  ERROR: "red",
-  SUCCESS: "green",
-};
-const severityIcons = {
-  INFO: <IconInfoCircle size={16} />,
-  WARNING: <IconAlertTriangle size={16} />,
-  ERROR: <IconX size={16} />,
-  SUCCESS: <IconCheck size={16} />,
-};
-const severityLabels: Record<string, string> = {
-  INFO: "INFORMACIÓN",
-  WARNING: "ADVERTENCIA",
-  ERROR: "ERROR",
-  SUCCESS: "ÉXITO",
-};
-const statusLabels: Record<string, string> = {
-  SUCCESS: "ÉXITO",
-  ERROR: "ERROR",
-};
-const moduleLabels: Record<string, string> = {
-  AUTH: "AUTENTICACIÓN",
-  FILES: "ARCHIVOS",
-  PRISONERS: "PRISIONEROS",
-  IDENTITY: "IDENTIDAD",
-  USERS: "USUARIOS",
-};
-const actionLabels: Record<string, string> = {
-  LOGIN: "INICIO DE SESIÓN",
-  LOGOUT: "CIERRE DE SESIÓN",
-  CREATE: "CREAR",
-  FILE_UPLOAD: "SUBIR ARCHIVO",
-  PRISONER_REGISTERED: "PRISIONERO REGISTRADO",
-  TOKEN_REFRESHED: "TOKEN ACTUALIZADO",
-  USER_DELETED: "USUARIO ELIMINADO",
-};
-const entityLabels: Record<string, string> = {
-  USER: "USUARIO",
-  FILE: "ARCHIVO",
-  PRISONER: "PRISIONERO",
-  PRISONER_IDENTITY: "IDENTIDAD DE PRISIONERO",
-};
-
 const ActivityPage = () => {
   const {
-    actionFilter,
-    setActionFilter,
-    timeFilter,
-    setTimeFilter,
-    searchTerm,
-    setSearchTerm,
     filteredActivities,
   } = useSystemActivity();
 
@@ -87,38 +39,12 @@ const ActivityPage = () => {
     page * PAGE_SIZE
   );
 
-  function traducirDescripcion(desc: string): string {
-    if (!desc) return "";
-    // Traducciones comunes
-    return desc
-      .replace(
-        /User ([^ ]+) logged in successfully/,
-        "El usuario $1 inició sesión correctamente"
-      )
-      .replace(
-        /User ([^ ]+) logged out \(USER_LOGOUT\)/,
-        "El usuario $1 cerró sesión (USER_LOGOUT)"
-      )
-      .replace(
-        /User ([^ ]+) refreshed authentication token/,
-        "El usuario $1 actualizó el token de autenticación"
-      )
-      .replace(/Prisoner ([^ ]+) registered/, "Prisionero $1 registrado")
-      .replace(
-        /Archivo subido: (.+) \((.+)\) para prisoner_identity/,
-        "Archivo subido: $1 ($2) para identidad de prisionero"
-      )
-      .replace(/Identidad creada: (.+)/, "Identidad creada: $1")
-      .replace(
-        /User ([^ ]+) \((.+)\) was deleted/,
-        "El usuario $1 ($2) fue eliminado"
-      );
+  function traducirDescripcionCompleta(desc: string): string {
+    return traducirDescripcion(desc);
   }
-
   return (
     <Container size="xl" py="md">
       <Stack gap="lg">
-        {/* Header */}
         <div>
           <Group justify="space-between" mb="xs">
             <div>
@@ -128,15 +54,6 @@ const ActivityPage = () => {
                 usuarios
               </Text>
             </div>
-            <SystemActivityFilters
-              actionFilter={actionFilter}
-              onActionFilterChange={setActionFilter}
-              timeFilter={timeFilter}
-              onTimeFilterChange={setTimeFilter}
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              showSearch={true}
-            />
           </Group>
         </div>
 
@@ -218,7 +135,8 @@ const ActivityPage = () => {
                       {actionLabels[activity.action] || activity.action}
                     </Badge>
                     <Badge color="gray" variant="light" size="sm">
-                      {entityLabels[activity.entity_type] || activity.entity_type}
+                      {entityLabels[activity.entity_type] ||
+                        activity.entity_type}
                     </Badge>
                     {activity.prisoner_related_id && (
                       <Badge color="teal" variant="light" size="sm">
@@ -226,7 +144,9 @@ const ActivityPage = () => {
                       </Badge>
                     )}
                   </Group>
-                  <Text size="sm">{traducirDescripcion(activity.description)}</Text>
+                  <Text size="sm">
+                    {traducirDescripcionCompleta(activity.description)}
+                  </Text>
                   <Group gap={8}>
                     <Text size="xs" c="gray">
                       {new Date(activity.timestamp).toLocaleString()}
@@ -245,15 +165,25 @@ const ActivityPage = () => {
                   {activity.metadata && activity.metadata.deleted_user_id ? (
                     <Card shadow="xs" radius="sm" withBorder mt={4}>
                       <Stack gap={2}>
-                        <Text size="sm" fw={500} c="red">Usuario eliminado</Text>
-                        <Text size="sm">Nombre: <b>{activity.metadata.deleted_user_name}</b></Text>
-                        <Text size="sm">Email: <b>{activity.metadata.deleted_user_email}</b></Text>
-                        <Text size="sm">ID: <Code>{activity.metadata.deleted_user_id}</Code></Text>
+                        <Text size="sm" fw={500} c="red">
+                          Usuario eliminado
+                        </Text>
+                        <Text size="sm">
+                          Nombre: <b>{activity.metadata.deleted_user_name}</b>
+                        </Text>
+                        <Text size="sm">
+                          Email: <b>{activity.metadata.deleted_user_email}</b>
+                        </Text>
+                        <Text size="sm">
+                          ID: <Code>{activity.metadata.deleted_user_id}</Code>
+                        </Text>
                       </Stack>
                     </Card>
                   ) : (
                     activity.metadata && (
-                      <Code block>{JSON.stringify(activity.metadata, null, 2)}</Code>
+                      <Code block>
+                        {JSON.stringify(activity.metadata, null, 2)}
+                      </Code>
                     )
                   )}
                   {activity.data_changes &&
