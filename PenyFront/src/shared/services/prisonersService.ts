@@ -1,3 +1,11 @@
+type GetAllPrisonersParams = {
+  page: number;
+  limit: number;
+  includeDeleted: boolean;
+  query?: string;
+  orderBy?: string;
+  orderDirection?: 'asc' | 'desc';
+} & Partial<UserFilters>;
 import api from './api';
 import type { AxiosError, PaginationResponse } from '../types/axiosTypes';  // ✅ USAR EXISTENTE
 import type {
@@ -74,7 +82,8 @@ export const prisonersService = {
     orderDirection: 'asc' | 'desc' = 'desc'
   ): Promise<PaginationResponse<PrisionerListItem>> {
     try {
-      const params: Record<string, any> = {
+
+      const params: GetAllPrisonersParams = {
         page,
         limit,
         includeDeleted,

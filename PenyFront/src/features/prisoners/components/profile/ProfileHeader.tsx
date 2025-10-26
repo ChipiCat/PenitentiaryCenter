@@ -32,7 +32,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           <Group gap="md">
             <Avatar 
               size="lg" 
-              src={identity?.photo_url}
+              src={identity?.photo_file?.url || undefined}
               alt={fullName}
               color="blue"
             >

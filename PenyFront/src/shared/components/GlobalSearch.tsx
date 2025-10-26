@@ -16,7 +16,7 @@ import {
     CloseButton,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
-import { Search, X, User, Calendar, FileText, MapPin } from 'lucide-react';
+import { Search, X, Calendar, FileText, MapPin } from 'lucide-react';
 import { prisonersService } from '../services/prisonersService';
 import type { PrisionerListItem } from '../types/prisonerTypes';
 
@@ -32,6 +32,14 @@ export function GlobalSearch({ opened, onClose, onSelectResult }: GlobalSearchPr
     const [results, setResults] = useState<PrisionerListItem[]>([]);
     const [loading, setLoading] = useState(false);
     const [total, setTotal] = useState(0);
+    const handleClose = useCallback(() => {
+        setSearchQuery('');
+        setResults([]);
+        setTotal(0);
+        onClose();
+    }, [onClose]);
+
+    
 
     // Cerrar con ESC
     useEffect(() => {
@@ -42,7 +50,7 @@ export function GlobalSearch({ opened, onClose, onSelectResult }: GlobalSearchPr
         };
         window.addEventListener('keydown', handleEscape);
         return () => window.removeEventListener('keydown', handleEscape);
-    }, [opened]);
+    }, [opened, handleClose]);
 
     const searchPrisoners = useCallback(async (query: string) => {
         if (!query.trim()) {
@@ -80,13 +88,6 @@ export function GlobalSearch({ opened, onClose, onSelectResult }: GlobalSearchPr
     const handleSelectResult = (item: PrisionerListItem) => {
         onSelectResult?.(item);
         handleClose();
-    };
-
-    const handleClose = () => {
-        setSearchQuery('');
-        setResults([]);
-        setTotal(0);
-        onClose();
     };
 
     const getStatusColor = (status: string) => {
