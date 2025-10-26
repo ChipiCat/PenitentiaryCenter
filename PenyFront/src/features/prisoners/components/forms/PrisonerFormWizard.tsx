@@ -12,8 +12,10 @@ import { FormStepper } from "./FormStepper";
 import { FormNavigation } from "./FormNavigation";
 import { BasicInfoStep } from "./BasicInfoStep";
 import { PersonalInfoStep } from "./PersonalInfoStep";
+import { MedicalStep } from "./MedicalStep";
 import { PenitentiaryInfoStep } from "./PenitentiaryInfoStep";
 import { ContactsStep } from "./ContactsStep";
+import { LegalCaseStep } from "./LegalCaseStep";
 import type {
   CreatePrisonerData,
   PrisonerBase,
@@ -71,6 +73,16 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
         );
       case 2:
         return (
+          <MedicalStep
+            data={{ medical_record: formData.medical_record }}
+            onUpdate={(updates) =>
+              handleDataUpdate({ medical_record: updates.medical_record })
+            }
+            errors={errors}
+          />
+        );
+      case 3:
+        return (
           <PenitentiaryInfoStep
             data={{ penitentiary: formData.penitentiary }}
             onUpdate={(updates) =>
@@ -79,7 +91,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
             errors={errors}
           />
         );
-      case 3:
+      case 4:
         return (
           <ContactsStep
             data={{
@@ -93,6 +105,25 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
             onUpdate={(updates) =>
               handleDataUpdate({ contacts: updates.contacts })
             }
+            errors={errors}
+          />
+        );
+      case 5:
+        return (
+          <LegalCaseStep
+            data={{
+              initialCase: {
+                case_number: formData.legal?.case_number ?? "",
+                case_type: formData.legal?.case_type ?? "",
+                court: formData.legal?.court ?? "",
+                judge: formData.legal?.judge ?? "",
+                status: formData.legal?.status ?? "",
+                start_date: formData.legal?.start_date ?? "",
+                end_date: formData.legal?.end_date ?? "",
+                description: formData.legal?.description ?? "",
+              }
+            }}
+            onUpdate={(updates) => handleDataUpdate({ legal: updates.initialCase })}
             errors={errors}
           />
         );

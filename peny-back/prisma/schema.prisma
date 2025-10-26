@@ -137,6 +137,12 @@ model Prisoner {
 
   cases          PrisonerCase[]
 
+  // Índices para optimizar búsquedas
+  @@index([status, isDeleted])
+  @@index([admissionDate])
+  @@index([registrationNumber, isDeleted])
+  @@index([fiscalFileNumber])
+  @@index([createdAt])
   @@map("prisoners")
 }
 
@@ -167,6 +173,11 @@ model PrisonerIdentity {
   rightFingerprint File?    @relation("RightFingerprint", fields: [rightFingerprintFileId], references: [id], onDelete: SetNull)
   leftFingerprint  File?    @relation("LeftFingerprint", fields: [leftFingerprintFileId], references: [id], onDelete: SetNull)
 
+  // Índices para optimizar búsquedas
+  @@index([surname, firstName])
+  @@index([citizenshipType])
+  @@index([countryOfOrigin])
+  @@index([nationality])
   @@map("prisoner_identity")
 }
 
@@ -191,6 +202,10 @@ model PrisonerPersonal {
 
   prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
 
+  // Índices para optimizar búsquedas
+  @@index([gender])
+  @@index([maritalStatus])
+  @@index([idDocumentNumber])
   @@map("prisoner_personal")
 }
 
@@ -210,6 +225,9 @@ model PrisonerPenitentiary {
 
   prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
 
+  // Índices para optimizar búsquedas
+  @@index([category])
+  @@index([buildingNumber, cellNumber])
   @@map("prisoner_penitentiary")
 }
 

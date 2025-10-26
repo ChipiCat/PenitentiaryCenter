@@ -57,7 +57,7 @@ export function DynamicListForm<T>({
                   key={field.key}
                   label={field.label}
                   placeholder={field.placeholder}
-                  value={(item as any)[field.key] || ''}
+                  value={String(item[field.key as keyof T] ?? '')}
                   onChange={(e) => onChange(index, field.key, e.target.value)}
                   required={field.required}
                   type={field.type || 'text'}
