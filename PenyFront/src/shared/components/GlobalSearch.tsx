@@ -70,7 +70,7 @@ export function GlobalSearch({ opened, onClose, onSelectResult }: GlobalSearchPr
                 'admissionDate',
                 'desc'
             );
-            setResults(response.items);
+            setResults(response.data);
             setTotal(response.pagination.total);
         } catch (error) {
             console.error('Error searching prisoners:', error);
@@ -213,7 +213,7 @@ export function GlobalSearch({ opened, onClose, onSelectResult }: GlobalSearchPr
                                                                 {item.prisoner.status}
                                                             </Badge>
                                                             <Badge size="xs" color="gray" variant="light">
-                                                                {item.penitentiary.category ?? 'Sin categoría'}
+                                                                {item.penitentiary?.category ?? 'Sin categoría'}
                                                             </Badge>
                                                         </Group>
                                                         <div className='flex flex-row justify-start w-full '>

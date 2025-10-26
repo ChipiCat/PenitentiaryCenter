@@ -27,12 +27,12 @@ export class CreateIdentityDto {
   residence?: string;
 
   @ApiPropertyOptional({
-    enum: ['Local', 'Ciudadano Nacional', 'Ciudadano Extranjero'],
+    enum: ['Local', 'CiudadanoNacional', 'CiudadanoExtranjero'],
     example: 'Local',
   })
-  @IsIn(['Local', 'Ciudadano Nacional', 'Ciudadano Extranjero'])
+  @IsIn(['Local', 'CiudadanoNacional', 'CiudadanoExtranjero'])
   @IsOptional()
-  citizenship_type?: 'Local' | 'Ciudadano Nacional' | 'Ciudadano Extranjero';
+  citizenship_type?: 'Local' | 'CiudadanoNacional' | 'CiudadanoExtranjero';
 
   @ApiPropertyOptional({ example: 'México' })
   @IsString()

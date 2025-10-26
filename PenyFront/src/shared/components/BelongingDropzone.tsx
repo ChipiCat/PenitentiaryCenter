@@ -12,7 +12,7 @@ export function ProfilePhotoDropzone({ onFile }: { onFile: (file: File) => void 
   return (
     <Dropzone
       onDrop={(files) => {
-        const file = files[0];
+        const file = files[0] as File;
         if (file && file.size > 10 * 1024 * 1024) {
           alert('El archivo supera el tamaño máximo de 10MB.');
           return;
@@ -24,20 +24,14 @@ export function ProfilePhotoDropzone({ onFile }: { onFile: (file: File) => void 
       maxSize={10 * 1024 * 1024}
       accept={ACCEPTED_MIME_IMAGE}
       style={{
-        border: '1px dashed #ced4da',
-        borderRadius: '50%',
+        border: '2px dashed #ced4da',
+        borderRadius: '8px',
         background: '#fff',
+        width: 200,
+        height: 150,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        margin: '0',
-        width: 140,
-        height: 140,
-        minWidth: 140,
-        minHeight: 140,
-        maxWidth: 140,
-        maxHeight: 140,
-        overflow: 'hidden',
       }}
     >
       <Group justify="center" gap="sm" style={{ pointerEvents: 'none', flexDirection: 'column', alignItems: 'center', textAlign: 'center', width: '100%', height: '100%', minHeight: 0 }}>
@@ -46,11 +40,11 @@ export function ProfilePhotoDropzone({ onFile }: { onFile: (file: File) => void 
         ) : (
           <Dropzone.Idle>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-              <IconPhoto size={32} color="var(--mantine-color-dimmed)" stroke={1.5} />
+              <IconPhoto size={32} color="var(--mantine-color-blue-6)" stroke={1.5} />
               <Text size="sm" inline mt={7}>
                 Foto de perfil
               </Text>
-              <Text size="xs" c="dimmed" inline mt={10}>
+              <Text size="sm" c="dimmed" inline mt={10}>
                 Solo imágenes (.jpeg, .png) hasta 10MB
               </Text>
             </div>
@@ -68,7 +62,7 @@ export function FingerprintDropzone({ label, onFile }: { label: string; onFile: 
   return (
     <Dropzone
       onDrop={(files) => {
-        const file = files[0];
+        const file = files[0] as File;
         if (file && file.size > 10 * 1024 * 1024) {
           alert('El archivo supera el tamaño máximo de 10MB.');
           return;
@@ -119,7 +113,7 @@ export function BelongingDropzone({ onFile }: { onFile: (file: File) => void }) 
   return (
     <Dropzone
       onDrop={(files) => {
-        const file = files[0];
+        const file = files[0] as File;
         if (file && file.size > 10 * 1024 * 1024) {
           alert('El archivo supera el tamaño máximo de 10MB.');
           return;

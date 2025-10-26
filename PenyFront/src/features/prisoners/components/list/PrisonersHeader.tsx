@@ -1,6 +1,6 @@
 import React from 'react';
-import { Group, Title, Text, Button, ActionIcon, Tooltip } from '@mantine/core';
-import { Plus, Users, Search, Filter, Download, Settings } from 'lucide-react';
+import { Group, Title, Text, Button } from '@mantine/core';
+import { Plus, Users} from 'lucide-react';
 
 interface PrisonersHeaderProps {
   onCreateNew: () => void;
@@ -25,26 +25,7 @@ export const PrisonersHeader: React.FC<PrisonersHeaderProps> = ({ onCreateNew })
 
       <Group>
         <Group gap="xs" visibleFrom="sm">
-          <Tooltip label="Buscar prisioneros">
-            <ActionIcon variant="subtle" size="lg">
-              <Search size={18} />
-            </ActionIcon>
-          </Tooltip>
-          <Tooltip label="Filtros avanzados">
-            <ActionIcon variant="subtle" size="lg">
-              <Filter size={18} />
-            </ActionIcon>
-          </Tooltip>
-          <Tooltip label="Exportar datos">
-            <ActionIcon variant="subtle" size="lg">
-              <Download size={18} />
-            </ActionIcon>
-          </Tooltip>
-          <Tooltip label="Configuración">
-            <ActionIcon variant="subtle" size="lg">
-              <Settings size={18} />
-            </ActionIcon>
-          </Tooltip>
+          
         </Group>
 
         <Button
@@ -54,7 +35,7 @@ export const PrisonersHeader: React.FC<PrisonersHeaderProps> = ({ onCreateNew })
           gradient={{ from: "blue", to: "cyan", deg: 45 }}
           variant="gradient"
         >
-          Nuevo Prisionero
+          Nuevo Interno
         </Button>
       </Group>
     </Group>

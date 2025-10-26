@@ -1,3 +1,4 @@
+import React, { useCallback, useMemo } from "react";
 import { DynamicListForm } from "../../../../shared/components/DynamicListForm"; // Ajusta la ruta según tu proyecto
 
 const contactFields = [
@@ -35,28 +36,29 @@ interface ContactsStepProps {
   errors?: Record<string, string>;
 }
 
-export const ContactsStep: React.FC<ContactsStepProps> = ({
+export const ContactsStep: React.FC<ContactsStepProps> = React.memo(({
   data,
   onUpdate,
   errors = {},
 }) => {
-  const contacts = data.contacts || [];
+  // Memoizar datos para evitar re-crear arrays
+  const contacts = useMemo(() => data.contacts || [], [data.contacts]);
 
-  const handleAddContact = () => {
+  const handleAddContact = useCallback(() => {
     onUpdate({
       contacts: [...contacts, { name: "", relationship: "", phone: "" }],
     });
-  };
+  }, [contacts, onUpdate]);
 
-  const handleRemoveContact = (index: number) => {
+  const handleRemoveContact = useCallback((index: number) => {
     onUpdate({ contacts: contacts.filter((_, i) => i !== index) });
-  };
+  }, [contacts, onUpdate]);
 
-  const handleContactChange = (index: number, field: string, value: string) => {
+  const handleContactChange = useCallback((index: number, field: string, value: string) => {
     const updatedContacts = [...contacts];
     updatedContacts[index] = { ...updatedContacts[index], [field]: value };
     onUpdate({ contacts: updatedContacts });
-  };
+  }, [contacts, onUpdate]);
 
   return (
     <DynamicListForm
@@ -71,4 +73,6 @@ export const ContactsStep: React.FC<ContactsStepProps> = ({
       getSubtitle="Contacto"
     />
   );
-};
+});
+
+ContactsStep.displayName = 'ContactsStep';

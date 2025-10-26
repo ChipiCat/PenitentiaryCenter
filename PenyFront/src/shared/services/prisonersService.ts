@@ -108,6 +108,7 @@ export const prisonersService = {
       const response = await api.get<PaginationResponse<PrisionerListItem>>('/prisoners/search', {
         params
       });
+      console.log("Respuesta de prisioneros:", response.data);
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError;

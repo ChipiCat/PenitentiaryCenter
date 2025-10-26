@@ -9,7 +9,7 @@ export interface Penitentiary extends Entity {
 }
 
 export interface CreatePenitentiaryData {
-  category?: string;
+  category?: "DerechoComun" | "PrisionPreventiva" | "PrisioneroAcusado";
   building_number?: string;
   cell_number?: string;
   bed_number?: string;

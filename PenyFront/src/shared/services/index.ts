@@ -1,6 +1,7 @@
 export * from '../types/axiosTypes';
 
 export { default as api } from './api';
+export { tokenManager } from './tokenManager';
 
 export * from './authService';
 export * from './userService';           

@@ -1,5 +1,6 @@
-import { Card, Stack, Group, TextInput, Button, ActionIcon, Title, Text } from '@mantine/core';
+import { Card, Stack, Group, Button, ActionIcon, Title, Text } from '@mantine/core';
 import { Plus, Trash2 } from 'lucide-react';
+import { TextInputField } from './TextInputField';
 
 interface FieldConfig {
   label: string;
@@ -53,7 +54,7 @@ export function DynamicListForm<T>({
             </Group>
             <Stack gap="sm">
               {fields.map((field) => (
-                <TextInput
+                <TextInputField
                   key={field.key}
                   label={field.label}
                   placeholder={field.placeholder}
@@ -62,6 +63,7 @@ export function DynamicListForm<T>({
                   required={field.required}
                   type={field.type || 'text'}
                   error={errors[`${title.toLowerCase()}.${index}.${field.key}`]}
+                  debounce={true}
                 />
               ))}
             </Stack>
