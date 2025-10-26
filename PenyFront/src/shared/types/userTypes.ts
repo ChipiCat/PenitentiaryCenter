@@ -1,9 +1,9 @@
-  import type { PaginationParams } from "./axiosTypes";
+import type { PaginationParams } from "./axiosTypes";
 import type { Entity } from "./commonTypes";
 
 export interface User extends Entity {
   email: string;
-  name: string; 
+  name: string;
   role: string;
   photoUrl?: string;
 }
@@ -54,4 +54,10 @@ export interface UserFilters {
   cellNumber?: string;
   countryOfOrigin?: string;
   nationality?: string;
+}
+
+export interface UserStats {
+  total: number;
+  activos: number;
+  inactivos: number;
 }

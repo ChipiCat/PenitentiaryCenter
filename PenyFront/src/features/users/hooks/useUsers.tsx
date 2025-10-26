@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { usersService } from "../../../shared/services/userService";
-import type { User } from "../../../shared/types/userResponse";
+import type { User, UserStats } from "../../../shared/types";
 import type { PaginationResponse } from "../../../shared/types/axiosTypes";
 import type { GetUsersParams, CreateUserData, UpdateUserData } from "../../../shared/types/userTypes";
 
@@ -8,7 +8,7 @@ export function useUsers(params?: GetUsersParams) {
   const [data, setData] = useState<PaginationResponse<User> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [stats, setStats] = useState<any>({ total: 0, activos: 0, inactivos: 0 });
+  const [stats, setStats] = useState<UserStats>({ total: 0, activos: 0, inactivos: 0 });
 
   // Cargar usuarios y stats
   const fetchUsers = useCallback(() => {
