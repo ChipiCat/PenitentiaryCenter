@@ -64,7 +64,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
           <PersonalInfoStep
             data={{
               personal: formData.personal,
-              belonging: formData.belonging,
+              belongings: formData.belongings,
               child: formData.child,
             }}
             onUpdate={handleDataUpdate}
