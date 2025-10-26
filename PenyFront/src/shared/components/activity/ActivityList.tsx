@@ -1,7 +1,7 @@
-import React from 'react';
-import { Paper, Group, Title, Stack, Text } from '@mantine/core';
-import { ActivityRecord, type ActivityRecordData } from './ActivityRecord';
-import type { ActivityUser } from '../../types/commonTypes';
+import React from "react";
+import { Paper, Group, Title, Stack, Text } from "@mantine/core";
+import { ActivityRecord, type ActivityRecordData } from "./ActivityRecord";
+import type { ActivityUser } from "../../types/activityLogTypes";
 
 export interface ActivityListProps {
   title: string;
@@ -18,7 +18,7 @@ export const ActivityList: React.FC<ActivityListProps> = ({
   emptyMessage = "No hay actividades registradas",
   onUserClick,
   onTargetClick,
-  maxHeight
+  maxHeight,
 }) => {
   return (
     <Paper p="md" withBorder>
@@ -33,7 +33,7 @@ export const ActivityList: React.FC<ActivityListProps> = ({
           {emptyMessage}
         </Text>
       ) : (
-        <div style={{ maxHeight, overflowY: maxHeight ? 'auto' : 'visible' }}>
+        <div style={{ maxHeight, overflowY: maxHeight ? "auto" : "visible" }}>
           <Stack gap="md">
             {activities.map((activity, index) => (
               <ActivityRecord

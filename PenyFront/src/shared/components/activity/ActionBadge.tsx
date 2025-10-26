@@ -1,7 +1,6 @@
 import React from 'react';
 import { Badge } from '@mantine/core';
-
-export type ActionType = 'login' | 'create' | 'update' | 'export' | 'delete' | 'view' | 'print';
+import type { ActionType } from '../../types/activityLogTypes';
 
 export interface ActionBadgeProps {
   type: ActionType;
