@@ -26,7 +26,7 @@ const UsersPage = () => {
   // Editar usuario
   const handleEditUserTable = (userId: string) => {
     const user = users.find(u => u.id === userId) || null;
-    setSelectedUser(user);
+    setSelectedUser(user ? { ...user, photoUrl: user.photoUrl ?? "" } : null);
     setEditModalOpen(true);
   };
 
