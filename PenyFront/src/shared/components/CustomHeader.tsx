@@ -92,7 +92,6 @@ export function CustomHeader() {
       <Paper className={classes.header} shadow="sm" withBorder>
         <Box className={classes.headerContent}>
           <Group justify="space-between" h="100%" wrap="nowrap">
-            {/* Título dinámico de la página actual */}
             <Box className={classes.pageTitle}>
               <Text fw={600} size="lg" c="dark" lineClamp={1}>
                 {currentPage.title}
@@ -102,9 +101,7 @@ export function CustomHeader() {
               </Text>
             </Box>
 
-            {/* Acciones del header */}
             <Group gap="sm" wrap="nowrap">
-              {/* Buscador rápido */}
 
               <Box style={{ minWidth: 220, maxWidth: 260 }}>
                 <Group gap={0} style={{ position: "relative" }}>
@@ -153,7 +150,7 @@ export function CustomHeader() {
                 withinPortal
               >
                 <Menu.Target>
-                  <UnstyledButton className={classes.userButton}>
+                  <UnstyledButton >
                     <Group gap="sm" wrap="nowrap">
                       <Avatar
                         src={user?.photoUrl}

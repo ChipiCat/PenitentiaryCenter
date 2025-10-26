@@ -6,6 +6,10 @@ export interface User extends Entity {
   name: string;
   role: string;
   photoUrl?: string;
+  celular?: string;
+  ci?: string;
+  departamento?: string;
+  unidadDireccionDepartamental?: string;
 }
 
 export interface UserStat {

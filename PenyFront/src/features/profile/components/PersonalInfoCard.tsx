@@ -121,6 +121,25 @@ const PersonalInfoCard = () => {
           <Text size="sm" fw={500} c="dimmed" mb={4}>Última Actualización</Text>
           <Text size="sm">{formatDateTime(user?.updatedAt)}</Text>
         </Grid.Col>
+
+        <Grid.Col span={6}>
+          <Text size="sm" fw={500} c="dimmed" mb={4}>Celular</Text>
+          <Text size="sm">{'No disponible'}</Text>
+        </Grid.Col>
+
+        <Grid.Col span={6}>
+          <Text size="sm" fw={500} c="dimmed" mb={4}>CI</Text>
+          <Text size="sm">{'No disponible'}</Text>
+        </Grid.Col>
+
+        <Grid.Col span={6}>
+          <Text size="sm" fw={500} c="dimmed" mb={4}>Departamento</Text>
+          <Text size="sm">{'No disponible'}</Text>
+        </Grid.Col>
+        <Grid.Col span={6}>
+          <Text size="sm" fw={500} c="dimmed" mb={4}>Unidad/Dirección Departamental</Text>
+          <Text size="sm">{'No disponible'}</Text>
+        </Grid.Col>
       </Grid>
     </Paper>
   );
