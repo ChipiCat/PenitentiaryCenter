@@ -22,9 +22,9 @@ export interface CreatePersonalData {
   education_level: string,
   occupation: string,
   languages: string,
-  marital_status: "Soltero",
-  id_document_type: "CedulaDeIdentidad",
-  id_document_number: "string"
+  marital_status: "Soltero" | "Casado" | "Viudo" | "Divorciado",
+  id_document_type: "CedulaDeIdentidad" | "Pasaporte" | "Otro",
+  id_document_number: string
 }
 
 export interface UpdatePersonalData {

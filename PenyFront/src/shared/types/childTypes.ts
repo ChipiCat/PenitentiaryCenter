@@ -6,7 +6,7 @@ export interface Child extends Entity {
 }
 
 export interface CreateChildData {
-  name: string;
+  full_name: string;
   birth_date?: string;
 
 }

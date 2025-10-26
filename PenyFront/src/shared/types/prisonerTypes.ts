@@ -41,7 +41,7 @@ export interface CreatePrisonerData {
   
   // Datos personales y familiares (Paso 1)
   personal?: Partial<Personal>;
-  belonging?: Partial<Belonging>;
+  belongings?: Partial<Belonging>[]; // Cambiado a array plural
   child?: Partial<Child>[];
   
   // Datos médicos (Paso 2)

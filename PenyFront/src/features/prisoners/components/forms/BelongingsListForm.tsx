@@ -68,6 +68,7 @@ export function BelongingsListForm({
                   error={errors[`belonging.${index}.description`]}
                   required
                   placeholder="Ej: Reloj de pulsera"
+                  debounce={true}
                 />
                 <TextInputField
                   label="Cantidad de Objetos"
@@ -80,6 +81,7 @@ export function BelongingsListForm({
                   placeholder="Ej: 1"
                   type="number"
                   min={1}
+                  debounce={true}
                 />
               </InputGroup>
               <InputGroup>
@@ -90,6 +92,7 @@ export function BelongingsListForm({
                   error={errors[`belonging.${index}.condition`]}
                   required
                   placeholder="Ej: Buen estado"
+                  debounce={true}
                 />
                 <SelectField
                   label="¿Devuelto?"
