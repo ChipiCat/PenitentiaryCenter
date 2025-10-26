@@ -1,7 +1,10 @@
-import { Table, Group, Avatar, Text, Badge, ActionIcon } from '@mantine/core';
-import { Edit, Trash2 } from 'lucide-react';
-import type { User, UserActions } from '../../../shared/types/users/userTypes';
-import { getUserInitials, getRoleColor, getStatusColor, getStatusLabel } from '../utils/userUtils';
+import { Table, Group, Avatar, Text, Badge, ActionIcon } from "@mantine/core";
+import { Edit, Trash2 } from "lucide-react";
+import type { User, UserActions } from "../../../shared/types/userTypes";
+import {
+  getUserInitials,
+  getRoleColor,
+} from "../utils/userUtils";
 
 interface UserTableRowProps {
   user: User;
@@ -21,7 +24,7 @@ export const UserTableRow = ({ user, actions }: UserTableRowProps) => {
               {user.name}
             </Text>
             <Text size="xs" c="dimmed">
-              {user.username}
+              {user.name}
             </Text>
             <Text size="xs" c="dimmed">
               {user.email}
@@ -35,15 +38,18 @@ export const UserTableRow = ({ user, actions }: UserTableRowProps) => {
         </Badge>
       </Table.Td>
       <Table.Td>
-        <Badge color={getStatusColor(user.status)} variant="light">
-          {getStatusLabel(user.status)}
-        </Badge>
+        <Text size="sm">{user.email}</Text>
       </Table.Td>
       <Table.Td>
-        <Text size="sm">{user.lastAccess}</Text>
-      </Table.Td>
-      <Table.Td>
-        <Text size="sm">{user.createdAt}</Text>
+        <Text size="sm">
+          {new Date(user.createdAt).toLocaleString("es-ES", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }).replace(",", " -")}
+        </Text>
       </Table.Td>
       <Table.Td>
         <Group gap="xs">
