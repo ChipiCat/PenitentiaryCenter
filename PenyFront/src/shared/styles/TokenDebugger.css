@@ -1,0 +1,262 @@
+/* Token Debugger Styles */
+
+.token-debugger {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10000;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, sans-serif;
+}
+
+.token-debugger__toggle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.token-debugger__toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+}
+
+.token-debugger__panel {
+  position: absolute;
+  bottom: 70px;
+  right: 0;
+  width: 400px;
+  max-height: 600px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.16);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.token-debugger__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  margin: 0;
+}
+
+.token-debugger__header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.token-debugger__close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.token-debugger__close:hover {
+  opacity: 0.8;
+}
+
+.token-debugger__status {
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+.status-label {
+  color: #495057;
+  font-weight: 500;
+}
+
+.status-value {
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #e9ecef;
+  color: #6c757d;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-value.active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.token-debugger__actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e9ecef;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  flex: 1;
+  min-width: 90px;
+  padding: 6px 10px;
+  border: 1px solid #dee2e6;
+  background: white;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.action-btn:hover {
+  background: #f8f9fa;
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.action-btn.danger {
+  border-color: #f5222d;
+  color: #f5222d;
+}
+
+.action-btn.danger:hover {
+  background: #fff1f0;
+}
+
+.token-debugger__logs {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 16px;
+}
+
+.token-debugger__logs h4 {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: #495057;
+  font-weight: 600;
+}
+
+.logs-container {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.logs-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.logs-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.logs-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.logs-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.log-entry {
+  display: grid;
+  grid-template-columns: 50px 120px 20px 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 8px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: "Monaco", "Menlo", monospace;
+}
+
+.log-time {
+  color: #6c757d;
+  font-weight: 600;
+}
+
+.log-action {
+  color: #495057;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.log-status {
+  text-align: center;
+  font-weight: bold;
+}
+
+.log-status.exists {
+  color: #28a745;
+}
+
+.log-status.missing {
+  color: #dc3545;
+}
+
+.log-details {
+  color: #6c757d;
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 600px) {
+  .token-debugger__panel {
+    width: 90vw;
+    max-width: 90vw;
+    bottom: 65px;
+    right: -5vw;
+  }
+
+  .log-entry {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
