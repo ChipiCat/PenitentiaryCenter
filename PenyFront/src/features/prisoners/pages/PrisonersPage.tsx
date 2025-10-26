@@ -183,13 +183,11 @@ export const PrisonersPage: React.FC = () => {
   return (
     <Container size="xl" className="!mt-1">
       <Stack gap="lg">
+
         <PrisonersHeader onCreateNew={handleCreateNew} />
         <PrisonersStats statistics={statistics} />
-        
-        {/* Barra de búsqueda */}
         <PrisonersSearchBar onSearch={handleSearch} />
         
-        {/* Filtros */}
         <PrisonersFilters
           filters={filters}
           onFiltersChange={handleFiltersChange}
@@ -207,7 +205,6 @@ export const PrisonersPage: React.FC = () => {
               loading={loading}
             />
             
-            {/* Paginación */}
             <PrisonersPagination
               currentPage={pagination.page}
               totalPages={pagination.totalPages}

@@ -35,7 +35,7 @@ export const PrisonersHeader: React.FC<PrisonersHeaderProps> = ({ onCreateNew })
           gradient={{ from: "blue", to: "cyan", deg: 45 }}
           variant="gradient"
         >
-          Nuevo Prisionero
+          Nuevo Interno
         </Button>
       </Group>
     </Group>

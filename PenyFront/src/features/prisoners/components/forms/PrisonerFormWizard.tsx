@@ -24,6 +24,7 @@ import { usePrisonerFormHandlers } from "./usePrisonerFormHandler";
 
 interface PrisonerFormWizardProps {
   mode?: "create" | "edit";
+  prisonerId?: string; // ID del prisionero cuando es modo edición
   initialData?: Partial<CreatePrisonerData>;
   onSuccess?: (result: { prisoner: PrisonerBase; id: string }) => void;
   onCancel?: () => void;
@@ -31,6 +32,7 @@ interface PrisonerFormWizardProps {
 
 export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
   mode = "create",
+  prisonerId,
   initialData = {},
   onSuccess,
   onCancel,
@@ -42,12 +44,13 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
     isSubmitting,
     canGoNext,
     handleDataUpdate,
+    handleFileUpdate,
     handlePrevious,
     handleNext,
     handleCancel,
     handleSubmit,
     steps,
-  } = usePrisonerFormHandlers({ mode, initialData, onSuccess, onCancel });
+  } = usePrisonerFormHandlers({ mode, prisonerId, initialData, onSuccess, onCancel });
 
   const renderCurrentStep = useCallback(() => {
     switch (activeStep) {
@@ -56,6 +59,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
           <BasicInfoStep
             data={formData}
             onUpdate={handleDataUpdate}
+            onFileUpdate={handleFileUpdate}
             errors={errors}
           />
         );
