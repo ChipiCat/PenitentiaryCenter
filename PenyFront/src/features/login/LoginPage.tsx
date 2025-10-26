@@ -72,10 +72,10 @@ const LoginPage = () => {
           <img src="/assets/LogoPolicia.png" alt="Logo Policia" style={{ height: 64 }} />
         </div>
         <p className="text-center font-bold text-xl !mb-0">
-          Centro Penitenciario
+          SIGEPEN
         </p>
         <p className="text-center text-sm mb-4 font-extralight text-gray-600 mt-1">
-          Sistema de Gestión Interna
+          Sistema de Gestión de Expedientes Penitenciarios
         </p>
         
         <form onSubmit={handleSubmit}>
