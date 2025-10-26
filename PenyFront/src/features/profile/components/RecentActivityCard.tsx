@@ -68,7 +68,7 @@ const RecentActivityCard = () => {
         setStats(res.data);
         setLoading(false);
       })
-      .catch(_ => {
+      .catch(() => {
         setError('No se pudo cargar la actividad');
         setLoading(false);
       });
