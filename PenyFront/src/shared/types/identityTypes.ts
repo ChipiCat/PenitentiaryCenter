@@ -28,6 +28,7 @@ export interface CreateIdentityData {
   birth_place?: string;
   residence?: string;
   citizenship_type?: string;
+  nationality_type?: string;
   country_of_origin?: string;
   nationality?: string;
 }

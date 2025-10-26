@@ -12,7 +12,7 @@ export interface CreateBelongingData {
   description: string;
   quantity: number;
   condition?: string;
-  is_returned?: boolean;
+  returned?: boolean;
 }
 
 export interface UpdateBelongingData {

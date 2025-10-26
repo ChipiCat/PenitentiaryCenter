@@ -1,4 +1,5 @@
 import { Combobox, TextInput, useCombobox } from "@mantine/core";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { ChangeEvent } from "react";
 
 interface GenericComboboxProps {
@@ -9,6 +10,8 @@ interface GenericComboboxProps {
   options: string[];
   error?: string;
   required?: boolean;
+  debounce?: boolean;
+  debounceMs?: number;
 }
 
 export const GenericCombobox = ({
@@ -19,15 +22,50 @@ export const GenericCombobox = ({
   options,
   error,
   required,
+  debounce = false,
+  debounceMs = 300,
 }: GenericComboboxProps) => {
   const combobox = useCombobox();
+  const [localValue, setLocalValue] = useState(value);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
   const filteredOptions = options.filter((item) =>
-    item.toLowerCase().includes(value.toLowerCase().trim())
+    item.toLowerCase().includes((localValue || "").toLowerCase().trim())
   );
+
+  const handleChange = useCallback((newValue: string) => {
+    setLocalValue(newValue);
+    
+    if (!debounce) {
+      onChange(newValue);
+      return;
+    }
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    debounceTimerRef.current = setTimeout(() => {
+      onChange(newValue);
+    }, debounceMs);
+  }, [onChange, debounce, debounceMs]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <Combobox
       onOptionSubmit={(optionValue) => {
+        setLocalValue(optionValue);
         onChange(optionValue);
         combobox.closeDropdown();
       }}
@@ -38,9 +76,9 @@ export const GenericCombobox = ({
           label={label}
           placeholder={placeholder}
           required={required}
-          value={value}
+          value={localValue}
           onChange={(event: ChangeEvent<HTMLInputElement>) => {
-            onChange(event.currentTarget.value);
+            handleChange(event.currentTarget.value);
             combobox.openDropdown();
             combobox.updateSelectedOptionIndex();
           }}

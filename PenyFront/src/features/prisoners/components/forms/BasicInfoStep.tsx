@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { Stack, Title, Card } from "@mantine/core";
 import type {
   CreatePrisonerData,
@@ -11,62 +11,48 @@ import {
 } from "../../../../shared/types/users/userEnumTypes";
 import { InputGroup } from "../../../../shared/components/InputGroup";
 import { SelectField } from "../../../../shared/components/SelectField";
-import { TextInputField } from "../../../../shared/components/TextInputField";
 import { TextareaField } from "../../../../shared/components/TextareaField";
 import { DatePickerInput } from "@mantine/dates";
 import { SelectWithOther } from "../../../../shared/components/SelectWithOther";
 import { ProfilePhotoDropzone, FingerprintDropzone } from "../../../../shared/components/BelongingDropzone";
+import { OptimizedTextInput } from "./OptimizedInput";
 import "@mantine/dates/styles.css";
 import "@mantine/core/styles.css";
 
 interface BasicInfoStepProps {
-  data: Partial<CreatePrisonerData> & {
-    identity?: {
-      surname?: string;
-      first_name?: string;
-      birth_date?: Date;
-      birth_place?: string;
-      residence?: string;
-      citizenship_type?: CitizenshipType;
-      country_of_origin?: string;
-      nationality_type?: string;
-      nationality?: string;
-      profile_photo_url?: string;
-      fingerprint_right_url?: string;
-      fingerprint_left_url?: string;
-    };
-  };
-  onUpdate: (
-    updates: Partial<CreatePrisonerData> & {
-      identity?: Partial<BasicInfoStepProps["data"]["identity"]>;
-    }
-  ) => void;
+  data: Partial<CreatePrisonerData>;
+  onUpdate: (updates: Partial<CreatePrisonerData>) => void;
+  onFileUpdate?: (fileType: 'photo' | 'fingerprintLeft' | 'fingerprintRight', file: File) => void;
   errors?: Record<string, string>;
 }
 
-export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
+export const BasicInfoStep: React.FC<BasicInfoStepProps> = React.memo(({
   data,
   onUpdate,
+  onFileUpdate,
   errors = {},
 }) => {
-  const handleMainDataChange = (
+  // Memoizar identity para evitar re-crear el objeto
+  const identity = useMemo(() => data.identity || {}, [data.identity]);
+
+  const handleMainDataChange = useCallback((
     field: string,
     value: string | Date | number | undefined
   ) => {
     onUpdate({ [field]: value });
-  };
+  }, [onUpdate]);
 
-  const handleIdentityChange = (
-    field: keyof NonNullable<BasicInfoStepProps["data"]["identity"]>,
+  const handleIdentityChange = useCallback((
+    field: string,
     value: string | Date | undefined
   ) => {
     onUpdate({
       identity: {
-        ...data.identity,
+        ...identity,
         [field]: value,
       },
     });
-  };
+  }, [onUpdate, identity]);
 
   return (
     <Stack gap="lg">
@@ -76,20 +62,24 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         </Title>
         <Stack gap="md">
           <InputGroup>
-            <TextInputField
+            <OptimizedTextInput
               label="Número de Registro Penitenciario"
               placeholder="Ej: REG-2024-001"
               value={data.registration_number || ""}
-              onChange={(e) =>
-                handleMainDataChange("registration_number", e.target.value)
-              }
+              onChange={(value) => handleMainDataChange("registration_number", value)}
               required
               error={errors.registration_number}
             />
             <DatePickerInput
               label="Fecha de Ingreso"
               placeholder="Seleccione la fecha"
-              value={data.admission_date || null}
+              value={
+                data.admission_date
+                  ? typeof data.admission_date === 'string'
+                    ? new Date(data.admission_date)
+                    : data.admission_date
+                  : null
+              }
               onChange={(date) =>
                 handleMainDataChange("admission_date", date ?? undefined)
               }
@@ -98,13 +88,11 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               maxDate={new Date()}
             />
           </InputGroup>
-          <TextInputField
+          <OptimizedTextInput
             label="Número de Expediente Fiscal"
             placeholder="Ej: EXP-2024-FISCAL-001"
             value={data.fiscal_file_number || ""}
-            onChange={(e) =>
-              handleMainDataChange("fiscal_file_number", e.target.value)
-            }
+            onChange={(value) => handleMainDataChange("fiscal_file_number", value)}
             error={errors.fiscal_file_number}
             required
           />
@@ -119,6 +107,9 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           <InputGroup>
             <ProfilePhotoDropzone
               onFile={(file) => {
+                // Guardar el archivo para subir después
+                onFileUpdate?.('photo', file);
+                // Actualizar la URL de preview
                 handleIdentityChange(
                   "profile_photo_url",
                   URL.createObjectURL(file)
@@ -128,6 +119,9 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
             <FingerprintDropzone
               label="Huella Dactilar Izquierda"
               onFile={(file) => {
+                // Guardar el archivo para subir después
+                onFileUpdate?.('fingerprintLeft', file);
+                // Actualizar la URL de preview
                 handleIdentityChange(
                   "fingerprint_left_url",
                   URL.createObjectURL(file)
@@ -137,6 +131,9 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
             <FingerprintDropzone
               label="Huella Dactilar Derecha"
               onFile={(file) => {
+                // Guardar el archivo para subir después
+                onFileUpdate?.('fingerprintRight', file);
+                // Actualizar la URL de preview
                 handleIdentityChange(
                   "fingerprint_right_url",
                   URL.createObjectURL(file)
@@ -145,21 +142,19 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
             />
           </InputGroup>
           <InputGroup>
-            <TextInputField
+            <OptimizedTextInput
               label="Apellidos"
               placeholder="Ingrese los apellidos"
-              value={data.identity?.surname || ""}
-              onChange={(e) => handleIdentityChange("surname", e.target.value)}
+              value={identity.surname || ""}
+              onChange={(value) => handleIdentityChange("surname", value)}
               required
               error={errors["identity.surname"]}
             />
-            <TextInputField
+            <OptimizedTextInput
               label="Nombres"
               placeholder="Ingrese los nombres"
-              value={data.identity?.first_name || ""}
-              onChange={(e) =>
-                handleIdentityChange("first_name", e.target.value)
-              }
+              value={identity.first_name || ""}
+              onChange={(value) => handleIdentityChange("first_name", value)}
               required
               error={errors["identity.first_name"]}
             />
@@ -168,7 +163,13 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
             <DatePickerInput
               label="Fecha de Nacimiento"
               placeholder="Seleccione la fecha"
-              value={data.identity?.birth_date || null}
+              value={
+                identity.birth_date
+                  ? typeof identity.birth_date === 'string'
+                    ? new Date(identity.birth_date)
+                    : identity.birth_date
+                  : null
+              }
               onChange={(date) =>
                 handleIdentityChange("birth_date", date ?? undefined)
               }
@@ -176,13 +177,11 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               required
               error={errors["identity.birth_date"]}
             />
-            <TextInputField
+            <OptimizedTextInput
               label="Lugar de Nacimiento"
               placeholder="Ciudad, Departamento"
-              value={data.identity?.birth_place || ""}
-              onChange={(e) =>
-                handleIdentityChange("birth_place", e.target.value)
-              }
+              value={identity.birth_place || ""}
+              onChange={(value) => handleIdentityChange("birth_place", value)}
               error={errors["identity.birth_place"]}
               required
             />
@@ -190,17 +189,18 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           <TextareaField
             label="Domicilio/Residencia"
             placeholder="Dirección completa de residencia"
-            value={data.identity?.residence || ""}
+            value={identity.residence || ""}
             onChange={(e) => handleIdentityChange("residence", e.target.value)}
             minRows={2}
             error={errors["identity.residence"]}
             required
+            debounce={true}
           />
           <InputGroup>
             <SelectField
               label="Tipo de Ciudadanía"
               placeholder="Seleccione el tipo"
-              value={data.identity?.citizenship_type || ""}
+              value={identity.citizenship_type || ""}
               onChange={(value) =>
                 handleIdentityChange(
                   "citizenship_type",
@@ -211,13 +211,11 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               error={errors["identity.citizenship_type"]}
               required
             />
-            <TextInputField
+            <OptimizedTextInput
               label="País de Origen"
               placeholder="Ej: Bolivia"
-              value={data.identity?.country_of_origin || ""}
-              onChange={(e) =>
-                handleIdentityChange("country_of_origin", e.target.value)
-              }
+              value={identity.country_of_origin || ""}
+              onChange={(value) => handleIdentityChange("country_of_origin", value)}
               error={errors["identity.country_of_origin"]}
               required
             />
@@ -227,7 +225,7 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               label="Nacionalidad"
               required
               placeholder="Ej: Boliviana"
-              value={data.identity?.nationality || ""}
+              value={identity.nationality || ""}
               onChange={(value) => handleIdentityChange("nationality", value)}
               data={nationalityOptions}
               error={errors["identity.nationality"]}
@@ -238,7 +236,7 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               label="Tipo de Nacionalidad"
               required
               placeholder="Por nacimiento, naturalización, etc."
-              value={data.identity?.nationality_type || ""}
+              value={identity.nationality_type || ""}
               onChange={(value) =>
                 handleIdentityChange("nationality_type", value)
               }
@@ -252,4 +250,4 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       </Card>
     </Stack>
   );
-};
+});

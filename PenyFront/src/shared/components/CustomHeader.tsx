@@ -7,13 +7,13 @@ import {
   Menu,
   UnstyledButton,
   Loader,
-  ActionIcon,
-  Indicator,
   Badge,
   Divider,
   Paper,
   Box,
   TextInput,
+  Indicator,
+  ActionIcon,
 } from "@mantine/core";
 import { ChevronDown, LogOut, User, Bell, Search, Sun } from "lucide-react";
 import { useGlobalContext } from "../hooks/useGlobalContext";

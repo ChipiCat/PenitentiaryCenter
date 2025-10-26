@@ -80,8 +80,8 @@ export const nationalityTypeOptions = [
 
 export const citizenshipTypeOptions = [
   { value: "Local", label: "Local" },
-  { value: "Ciudadano Nacional", label: "Ciudadano Nacional" },
-  { value: "Ciudadano Extranjero", label: "Ciudadano Extranjero" },
+  { value: "CiudadanoNacional", label: "Ciudadano Nacional" },
+  { value: "CiudadanosExtranjero", label: "Ciudadano Extranjero" },
 ];
 
 export const booleanOptions = [
@@ -90,7 +90,7 @@ export const booleanOptions = [
 ];
 
 export const prisonCategoryOptions = [
-  { value: "Derecho Común", label: "Derecho Común" },
-  { value: "Prisión Preventiva", label: "Prisión Preventiva" },
-  { value: "Prisionero Acusado", label: "Prisionero Acusado" },
+  { value: "DerechoComun", label: "Derecho Común" },
+  { value: "PrisionPreventiva", label: "Prisión Preventiva" },
+  { value: "PrisioneroAcusado", label: "Prisionero Acusado" },
 ];
