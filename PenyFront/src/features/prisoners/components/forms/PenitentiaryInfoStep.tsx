@@ -36,8 +36,8 @@ export const PenitentiaryInfoStep: React.FC<PenitentiaryInfoStepProps> = ({
   return (
     <Stack gap="lg">
       <Card withBorder padding="lg">
-        <Title order={4} size="h5" mb="md" c="indigo">
-          🏢 Ubicación Penitenciaria
+        <Title order={4} size="h5" mb="md">
+          Ubicación Penitenciaria
         </Title>
         <Text size="sm" c="dimmed" mb="lg">
           Información sobre la ubicación y categoría del prisionero dentro del
