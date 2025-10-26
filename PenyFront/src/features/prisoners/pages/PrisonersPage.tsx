@@ -96,6 +96,7 @@ export const PrisonersPage: React.FC = () => {
         'admissionDate',
         'desc'
       );
+      console.log("Datos de prisioneros cargados:", response);
       setPrisoners(response.data);
       setPagination((prev) => ({
         ...prev,
@@ -119,17 +120,17 @@ export const PrisonersPage: React.FC = () => {
       const allPrisoners = await prisonersService.getPrisoners({ limit: 1000 });
 
       const stats = {
-        total: allPrisoners.data.length,
-        activos: allPrisoners.data.filter(
+        total: allPrisoners.data?.length ?? 0,
+        activos: allPrisoners.data?.filter(
           (p: PrisonerBase) => p.status === "Activo"
         ).length,
-        trasladados: allPrisoners.data.filter(
+        trasladados: allPrisoners.data?.filter(
           (p: PrisonerBase) => p.status === "Trasladado"
         ).length,
-        liberados: allPrisoners.data.filter(
+        liberados: allPrisoners.data?.filter(
           (p: PrisonerBase) => p.status === "Liberado"
         ).length,
-        archivados: allPrisoners.data.filter(
+        archivados: allPrisoners.data?.filter(
           (p: PrisonerBase) => p.status === "Archivado"
         ).length,
       };
@@ -194,7 +195,7 @@ export const PrisonersPage: React.FC = () => {
           onClearFilters={handleClearFilters}
         />
         
-        {prisoners.length === 0 && !loading ? (
+        {prisoners?.length === 0 && !loading ? (
           <EmptyPrisonersState onCreateNew={handleCreateNew} />
         ) : (
           <>

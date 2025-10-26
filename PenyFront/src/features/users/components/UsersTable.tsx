@@ -1,5 +1,5 @@
 import { Paper, Title, Table } from '@mantine/core';
-import type { User, UserActions } from '../../../shared/types/users/userTypes';
+import type { User, UserActions } from '../../../shared/types/userTypes';
 import { UserTableRow } from './UserTableRow';
 
 interface UsersTableProps {
@@ -19,8 +19,7 @@ export const UsersTable = ({ users, actions }: UsersTableProps) => {
           <Table.Tr>
             <Table.Th>Usuario</Table.Th>
             <Table.Th>Rol</Table.Th>
-            <Table.Th>Estado</Table.Th>
-            <Table.Th>Último Acceso</Table.Th>
+            <Table.Th>Email</Table.Th>
             <Table.Th>Fecha Creación</Table.Th>
             <Table.Th>Acciones</Table.Th>
           </Table.Tr>
