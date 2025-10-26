@@ -1,17 +1,6 @@
-import React from 'react';
-import { 
-  Group, 
-  Button, 
-  ActionIcon, 
-  Tooltip,
-  Text
-} from '@mantine/core';
-import { 
-  ArrowLeft, 
-  ArrowRight, 
-  X, 
-  Save 
-} from 'lucide-react';
+import React from "react";
+import { Group, Button, ActionIcon, Tooltip, Text } from "@mantine/core";
+import { ArrowLeft, ArrowRight, X, Save } from "lucide-react";
 
 interface FormNavigationProps {
   activeStep: number;
@@ -40,16 +29,20 @@ export const FormNavigation: React.FC<FormNavigationProps> = ({
   finishButtonText = "Registrar recluso",
   nextButtonText = "Siguiente",
   previousButtonText = "Anterior",
-  cancelButtonText = "Cancelar"
+  cancelButtonText = "Cancelar",
 }) => {
   const isFirstStep = activeStep === 0;
   const isLastStep = activeStep === totalSteps - 1;
 
   return (
-    <Group justify="space-between" mt="xl" pt="md" style={{
-      borderTop: '1px solid var(--mantine-color-gray-3)'
-    }}>
-      {/* Left side - Previous button */}
+    <Group
+      justify="space-between"
+      mt="xl"
+      pt="md"
+      style={{
+        borderTop: "1px solid var(--mantine-color-gray-3)",
+      }}
+    >
       <Group>
         {!isFirstStep ? (
           <Button
@@ -70,11 +63,17 @@ export const FormNavigation: React.FC<FormNavigationProps> = ({
         {Array.from({ length: totalSteps }).map((_, index) => (
           <ActionIcon
             key={index}
-            variant={index === activeStep ? 'filled' : index < activeStep ? 'light' : 'subtle'}
-            color={index <= activeStep ? 'blue' : 'gray'}
+            variant={
+              index === activeStep
+                ? "filled"
+                : index < activeStep
+                ? "light"
+                : "subtle"
+            }
+            color={index <= activeStep ? "blue" : "gray"}
             size="sm"
             radius="xl"
-            style={{ cursor: 'default' }}
+            style={{ cursor: "default" }}
           >
             {index < activeStep ? (
               <ArrowRight size={12} />
@@ -85,11 +84,10 @@ export const FormNavigation: React.FC<FormNavigationProps> = ({
         ))}
       </Group>
 
-      {/* Right side - Action buttons */}
       <Group>
         <Tooltip label="Perderás los cambios no guardados">
-          <Button 
-            variant="subtle" 
+          <Button
+            variant="subtle"
             color="red"
             leftSection={<X size={16} />}
             onClick={onCancel}
@@ -98,19 +96,19 @@ export const FormNavigation: React.FC<FormNavigationProps> = ({
             {cancelButtonText}
           </Button>
         </Tooltip>
-        
+
         {isLastStep ? (
-          <Button 
+          <Button
             leftSection={<Save size={16} />}
             loading={isSubmitting}
             onClick={onFinish}
-            gradient={{ from: 'blue', to: 'cyan', deg: 45 }}
+            gradient={{ from: "blue", to: "cyan", deg: 45 }}
             variant="gradient"
           >
             {finishButtonText}
           </Button>
         ) : (
-          <Button 
+          <Button
             rightSection={<ArrowRight size={16} />}
             onClick={onNext}
             disabled={!canGoNext || isSubmitting}
@@ -119,6 +117,6 @@ export const FormNavigation: React.FC<FormNavigationProps> = ({
           </Button>
         )}
       </Group>
-    </Group> 
+    </Group>
   );
-}
+};

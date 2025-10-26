@@ -60,10 +60,12 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
       case 1:
         return (
           <PersonalInfoStep
-            data={{ personal: formData.personal }}
-            onUpdate={(updates) =>
-              handleDataUpdate({ personal: updates.personal })
-            }
+            data={{
+              personal: formData.personal,
+              belonging: formData.belonging,
+              child: formData.child,
+            }}
+            onUpdate={handleDataUpdate}
             errors={errors}
           />
         );
@@ -71,7 +73,9 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
         return (
           <PenitentiaryInfoStep
             data={{ penitentiary: formData.penitentiary }}
-            onUpdate={(updates) => handleDataUpdate({ penitentiary: updates.penitentiary })}
+            onUpdate={(updates) =>
+              handleDataUpdate({ penitentiary: updates.penitentiary })
+            }
             errors={errors}
           />
         );
@@ -79,15 +83,16 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
         return (
           <ContactsStep
             data={{
-              contacts: formData.contacts?.map(contact => ({
+              contacts: formData.contacts?.map((contact) => ({
                 ...contact,
-                name: contact.name ?? '',
-                phone: contact.phone ?? '',
-                relationship: contact.relationship ?? '',
-                // ...agrega aquí otras propiedades obligatorias de Contact
-              }))
+                name: contact.name ?? "",
+                phone: contact.phone ?? "",
+                relationship: contact.relationship ?? "",
+              })),
             }}
-            onUpdate={(updates) => handleDataUpdate({ contacts: updates.contacts })}
+            onUpdate={(updates) =>
+              handleDataUpdate({ contacts: updates.contacts })
+            }
             errors={errors}
           />
         );

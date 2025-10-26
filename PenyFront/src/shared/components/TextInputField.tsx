@@ -9,6 +9,7 @@ interface TextInputFieldProps {
   placeholder?: string;
   type?: string;
   min?: number;
+  description?: string;
 }
 
 export const TextInputField = ({
@@ -20,6 +21,7 @@ export const TextInputField = ({
   placeholder,
   type = "text",
   min,
+  description,
 }: TextInputFieldProps) => (
   <TextInput
     label={label}
@@ -30,5 +32,6 @@ export const TextInputField = ({
     placeholder={placeholder}
     type={type}
     min={min}
+    description={description}
   />
 );

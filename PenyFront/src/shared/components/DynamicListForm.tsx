@@ -18,6 +18,7 @@ interface DynamicListFormProps<T> {
   onChange: (index: number, field: string, value: string) => void;
   errors?: Record<string, string>;
   addLabel?: string;
+  getSubtitle?: string;
 }
 
 export function DynamicListForm<T>({
@@ -29,6 +30,7 @@ export function DynamicListForm<T>({
   onChange,
   errors = {},
   addLabel = 'Agregar',
+  getSubtitle,
 }: DynamicListFormProps<T>) {
   return (
     <Card withBorder padding="lg">
@@ -38,7 +40,7 @@ export function DynamicListForm<T>({
           <Card key={index} withBorder padding="md">
             <Group justify="space-between" mb="sm">
               <Text size="sm" fw={500}>
-                {title} {index + 1}
+                {getSubtitle} {index + 1}
               </Text>
               <ActionIcon
                 color="red"

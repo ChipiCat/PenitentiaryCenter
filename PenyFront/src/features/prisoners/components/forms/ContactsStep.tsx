@@ -1,9 +1,24 @@
-import { DynamicListForm } from '../../../../shared/components/DynamicListForm'; // Ajusta la ruta según tu proyecto
+import { DynamicListForm } from "../../../../shared/components/DynamicListForm"; // Ajusta la ruta según tu proyecto
 
 const contactFields = [
-  { label: 'Nombre Completo', placeholder: 'Nombre y apellidos', key: 'name', required: true },
-  { label: 'Parentesco/Relación', placeholder: 'Ej: Madre, Hermano, Esposa', key: 'relationship', required: true },
-  { label: 'Teléfono', placeholder: 'Número de teléfono o celular', key: 'phone', required: true },
+  {
+    label: "Nombre Completo",
+    placeholder: "Nombre y apellidos",
+    key: "name",
+    required: true,
+  },
+  {
+    label: "Parentesco/Relación",
+    placeholder: "Ej: Madre, Hermano, Esposa",
+    key: "relationship",
+    required: true,
+  },
+  {
+    label: "Teléfono",
+    placeholder: "Número de teléfono o celular",
+    key: "phone",
+    required: true,
+  },
 ];
 
 interface ContactsStepProps {
@@ -14,7 +29,9 @@ interface ContactsStepProps {
       phone: string;
     }>;
   };
-  onUpdate: (updatedData: { contacts: Array<{ name: string; relationship: string; phone: string }> }) => void;
+  onUpdate: (updatedData: {
+    contacts: Array<{ name: string; relationship: string; phone: string }>;
+  }) => void;
   errors?: Record<string, string>;
 }
 
@@ -26,7 +43,9 @@ export const ContactsStep: React.FC<ContactsStepProps> = ({
   const contacts = data.contacts || [];
 
   const handleAddContact = () => {
-    onUpdate({ contacts: [...contacts, { name: '', relationship: '', phone: '' }] });
+    onUpdate({
+      contacts: [...contacts, { name: "", relationship: "", phone: "" }],
+    });
   };
 
   const handleRemoveContact = (index: number) => {
@@ -49,6 +68,7 @@ export const ContactsStep: React.FC<ContactsStepProps> = ({
       onChange={handleContactChange}
       errors={errors}
       addLabel="Agregar Contacto"
+      getSubtitle="Contacto"
     />
   );
 };

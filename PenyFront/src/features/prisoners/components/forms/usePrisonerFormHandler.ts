@@ -9,14 +9,12 @@ interface PrisonerFormWizardProps {
   onCancel?: () => void;
 }
 
-
 export function usePrisonerFormHandlers({ initialData, onCancel }: PrisonerFormWizardProps) {
   const steps = usePrisonerFormSteps();
   const [formData, setFormData] = useState<Partial<CreatePrisonerData>>(adaptInitialData(initialData));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [activeStep, setActiveStep] = useState(0);
 
-  // Adaptar datos iniciales
   function adaptInitialData(data: Partial<CreatePrisonerData> | PrisonerBase | undefined): Partial<CreatePrisonerData> {
   if (!data) return {};
   return {
@@ -60,7 +58,7 @@ export function usePrisonerFormHandlers({ initialData, onCancel }: PrisonerFormW
     handlePrevious: () => setActiveStep(prev => Math.max(prev - 1, 0)),
     handleNext: () => setActiveStep(prev => Math.min(prev + 1, steps.length - 1)),
     handleCancel: () => onCancel?.(),
-    handleSubmit: async () => { /* tu lógica de submit aquí */ },
+    handleSubmit: async () => { },
     steps
   };
 }

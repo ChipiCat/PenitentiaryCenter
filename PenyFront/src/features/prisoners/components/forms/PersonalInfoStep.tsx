@@ -90,6 +90,8 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
 
   const handleAddChild = () => {
     onUpdate({
+      personal: data.personal,
+      belonging: data.belonging,
       child: [...children, { name: "", birth_date: "" }],
     });
   };
@@ -105,18 +107,18 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
       [field]: value,
     };
     onUpdate({
-      child: updatedChildren,
       personal: data.personal,
       belonging: data.belonging,
+      child: updatedChildren,
     });
   };
 
   const handleRemoveChild = (index: number) => {
     const updatedChildren = children.filter((_, i) => i !== index);
     onUpdate({
-      child: updatedChildren,
       personal: data.personal,
       belonging: data.belonging,
+      child: updatedChildren,
     });
   };
 
@@ -218,6 +220,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
         onChange={handleChildrenChange}
         errors={errors}
         addLabel="Agregar hijo/a"
+        getSubtitle="Hijo/a"
       />
       <Card withBorder padding="lg">
         <Title order={4} size="h5" mb="md">

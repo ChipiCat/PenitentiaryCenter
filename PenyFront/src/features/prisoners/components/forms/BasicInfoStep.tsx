@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Stack, Title, Card } from "@mantine/core";
 import type {
   CreatePrisonerData,
@@ -15,6 +15,9 @@ import { TextInputField } from "../../../../shared/components/TextInputField";
 import { TextareaField } from "../../../../shared/components/TextareaField";
 import { DatePickerInput } from "@mantine/dates";
 import { SelectWithOther } from "../../../../shared/components/SelectWithOther";
+import { ProfilePhotoDropzone, FingerprintDropzone } from "../../../../shared/components/BelongingDropzone";
+import "@mantine/dates/styles.css";
+import "@mantine/core/styles.css";
 
 interface BasicInfoStepProps {
   data: Partial<CreatePrisonerData> & {
@@ -28,6 +31,9 @@ interface BasicInfoStepProps {
       country_of_origin?: string;
       nationality_type?: string;
       nationality?: string;
+      profile_photo_url?: string;
+      fingerprint_right_url?: string;
+      fingerprint_left_url?: string;
     };
   };
   onUpdate: (
@@ -43,7 +49,6 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
   onUpdate,
   errors = {},
 }) => {
-
   const handleMainDataChange = (
     field: string,
     value: string | Date | number | undefined
@@ -111,6 +116,34 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           Información de Identidad
         </Title>
         <Stack gap="md">
+          <InputGroup>
+            <ProfilePhotoDropzone
+              onFile={(file) => {
+                handleIdentityChange(
+                  "profile_photo_url",
+                  URL.createObjectURL(file)
+                );
+              }}
+            />
+            <FingerprintDropzone
+              label="Huella Dactilar Izquierda"
+              onFile={(file) => {
+                handleIdentityChange(
+                  "fingerprint_left_url",
+                  URL.createObjectURL(file)
+                );
+              }}
+            />
+            <FingerprintDropzone
+              label="Huella Dactilar Derecha"
+              onFile={(file) => {
+                handleIdentityChange(
+                  "fingerprint_right_url",
+                  URL.createObjectURL(file)
+                );
+              }}
+            />
+          </InputGroup>
           <InputGroup>
             <TextInputField
               label="Apellidos"
