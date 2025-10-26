@@ -57,10 +57,13 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
     switch (activeStep) {
       case 0:
         return (
-          <BasicInfoStep
-            data={formData}
+           <PersonalInfoStep
+            data={{
+              personal: formData.personal,
+              belongings: formData.belongings,
+              child: formData.child,
+            }}
             onUpdate={handleDataUpdate}
-            onFileUpdate={handleFileUpdate}
             errors={errors}
           />
         );
@@ -69,7 +72,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
           <PersonalInfoStep
             data={{
               personal: formData.personal,
-              belonging: formData.belonging,
+              belongings: formData.belongings,
               child: formData.child,
             }}
             onUpdate={handleDataUpdate}

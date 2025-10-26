@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, Table, Group, Avatar, Text, Badge, ActionIcon, Tooltip, Stack, LoadingOverlay } from '@mantine/core';
 import { Eye, Edit, Calendar, FileText, MapPin, Building2, Bed, Users } from 'lucide-react';
 import type { PrisionerListItem, PrisonerBase } from '../../../../shared/types';
@@ -16,6 +16,9 @@ export const PrisonersList: React.FC<PrisonersListProps> = ({
   onEdit,
   loading = false,
 }) => {
+  useEffect(() => {
+    console.log("Renderizando lista de prisioneros. Cantidad:", prisoners.length);
+  }, [prisoners]);
   return (
     <Card withBorder pos="relative">
       <LoadingOverlay visible={loading} overlayProps={{ blur: 2 }} />
@@ -30,7 +33,7 @@ export const PrisonersList: React.FC<PrisonersListProps> = ({
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
-          {prisoners.map((prisoner) => (
+          {prisoners?.map((prisoner) => (
             <PrisonerRow
               key={prisoner.prisoner.id}
               prisoner={prisoner}
@@ -55,6 +58,10 @@ const PrisonerRow: React.FC<PrisonerRowProps> = ({
   onViewProfile,
   onEdit,
 }) => {
+
+  useEffect(() => {
+    console.log("Renderizando fila para prisionero:", prisoner.prisoner.id);
+  }, [prisoner]);
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
       year: 'numeric',
