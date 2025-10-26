@@ -8,7 +8,7 @@ import { PrisonersHeader } from "../components/list/PrisonersHeader";
 import { PrisonersStats } from "../components/list/PrisonersStats";
 import { PrisonersList } from "../components/list/PrisonersList";
 import { EmptyPrisonersState } from "../components/list/EmptyPrisonersState";
-import type { PrisonerBase } from "../../../shared/types/prisonerTypes";
+import type { PrisionerListItem, PrisonerBase } from "../../../shared/types/prisonerTypes";
 import { prisonersService } from "../../../shared/services/prisonersService";
 
 type ViewMode = "list" | "create" | "edit";
@@ -35,7 +35,7 @@ export const PrisonersPage: React.FC = () => {
     null
   );
   const [prisoners, setPrisoners] = useState<
-    (PrisonerBase & { fullName?: string })[]
+    PrisionerListItem[]
   >([]);
   const [statistics, setStatistics] = useState<Statistics>({
     total: 0,
@@ -45,7 +45,7 @@ export const PrisonersPage: React.FC = () => {
     archivados: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [statusFilter] = useState<string>("all");
+  //const [statusFilter] = useState<string>("all");
   const [searchTerm] = useState<string>("");
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
@@ -83,14 +83,12 @@ export const PrisonersPage: React.FC = () => {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-
-      const response = await prisonersService.getPrisoners({
-        page: pagination.page,
-        limit: pagination.limit,
-        status: statusFilter === "all" ? undefined : statusFilter,
-        search: searchTerm || undefined,
-      });
-
+      const response = await prisonersService.getAllPrisoners(
+        pagination.page,
+        pagination.limit,
+        searchTerm,
+        undefined // o puedes omitir este argumento si no tienes filtros
+      );
       setPrisoners(response.data);
       setPagination((prev) => ({
         ...prev,
@@ -107,7 +105,7 @@ export const PrisonersPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [pagination.page, pagination.limit, statusFilter, searchTerm]);
+  }, [pagination.page, pagination.limit, searchTerm]);
 
   const loadStats = useCallback(async () => {
     try {
@@ -152,14 +150,12 @@ export const PrisonersPage: React.FC = () => {
   }
 
   return (
-    <Container size="xl">
+    <Container size="xl" className="!mt-1">
       <LoadingOverlay visible={loading} overlayProps={{ blur: 2 }} />
 
       <Stack gap="lg">
         <PrisonersHeader onCreateNew={handleCreateNew} />
-
         <PrisonersStats statistics={statistics} />
-
         {prisoners.length === 0 && !loading ? (
           <EmptyPrisonersState onCreateNew={handleCreateNew} />
         ) : (

@@ -1,6 +1,7 @@
 import type { Entity } from "./commonTypes";
 
 export interface Case extends Entity {
+  crime: string;
   prisoner_id: string;
   case_number: string;
   case_type: string;

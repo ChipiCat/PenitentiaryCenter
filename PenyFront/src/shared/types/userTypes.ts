@@ -1,4 +1,4 @@
-import type { PaginationParams } from "./axiosTypes";
+  import type { PaginationParams } from "./axiosTypes";
 
 export interface User {
   id: string;
@@ -31,4 +31,18 @@ export interface GetUsersParams extends PaginationParams {
   role?: string;
   search?: string;
   isActive?: boolean;
+}
+
+export interface UserFilters {
+  status?: string;
+  gender?: string;
+  maritalStatus?: string;
+  category?: string;
+  citizenshipType?: string;
+  admissionDateFrom?: string;
+  admissionDateTo?: string;
+  buildingNumber?: string;
+  cellNumber?: string;
+  countryOfOrigin?: string;
+  nationality?: string;
 }

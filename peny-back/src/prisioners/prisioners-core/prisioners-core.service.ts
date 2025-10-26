@@ -33,6 +33,7 @@ import {
   PrisonerBelonging,
   PrisonerContact,
   PrisonerChild,
+  PrisonerCase,
   File,
   Prisma,
   AuditAction,
@@ -47,6 +48,11 @@ import {
   PrisonerListResponseDto,
 } from './dto/prisoner.dto';
 import { CompletePrisonerProfileDto } from './dto/full-prisoner.dto';
+import {
+  SearchPrisonerQueryDto,
+  SearchPrisonerResponseDto,
+  SearchPrisonerProfileDto,
+} from './dto/search-prisoner.dto';
 import { PaginationMetaDto } from '../../common/interfaces/entity.interface';
 import { IdentityResponseDto } from '../prisoner-identity/dto/identity.dto';
 import { PersonalResponseDto } from '../prisoner-personal/dto/personal.dto';
@@ -55,6 +61,7 @@ import { MedicalRecordResponseDto } from '../prisoner-medical-record/dto/medical
 import { BelongingResponseDto } from '../prisoner-belonging/dto/belonging.dto';
 import { ContactResponseDto } from '../prisoner-contact/dto/contact.dto';
 import { ChildResponseDto } from '../prisoner-children/dto/childre.dto';
+import { CaseResponseDto } from '../prisoner-case/dto/case.dto';
 import { FileResponseDto } from 'src/files/dto/file.dto';
 import { AuditService } from '../../audit/audit.service';
 import { Inject, Scope } from '@nestjs/common';
@@ -447,6 +454,349 @@ export class PrisionersService {
   }
 
   /**
+   * Búsqueda avanzada de prisioneros con filtros complejos
+   * Devuelve perfiles completos con paginación
+   */
+  async searchPrisoners(
+    searchQuery: SearchPrisonerQueryDto,
+  ): Promise<SearchPrisonerResponseDto> {
+    const page = searchQuery.page || 1;
+    const limit = Math.min(searchQuery.limit || 10, 100);
+    const skip = (page - 1) * limit;
+    const includeDeleted = searchQuery.includeDeleted || false;
+
+    // Construir condiciones WHERE dinámicamente
+    const whereConditions: Prisma.PrisonerWhereInput = {
+      isDeleted: includeDeleted ? undefined : false,
+    };
+
+    // Array para almacenar condiciones OR (búsqueda de texto)
+    const searchConditions: Prisma.PrisonerWhereInput[] = [];
+
+    // Búsqueda de texto en múltiples campos
+    if (searchQuery.query && searchQuery.query.trim()) {
+      const searchTerm = searchQuery.query.trim();
+
+      searchConditions.push(
+        // Búsqueda en campos del prisionero principal
+        {
+          registrationNumber: {
+            contains: searchTerm,
+            mode: 'insensitive',
+          },
+        },
+        {
+          fiscalFileNumber: {
+            contains: searchTerm,
+            mode: 'insensitive',
+          },
+        },
+        // Búsqueda en identidad
+        {
+          identity: {
+            surname: {
+              contains: searchTerm,
+              mode: 'insensitive',
+            },
+          },
+        },
+        {
+          identity: {
+            firstName: {
+              contains: searchTerm,
+              mode: 'insensitive',
+            },
+          },
+        },
+        {
+          identity: {
+            birthPlace: {
+              contains: searchTerm,
+              mode: 'insensitive',
+            },
+          },
+        },
+        {
+          identity: {
+            residence: {
+              contains: searchTerm,
+              mode: 'insensitive',
+            },
+          },
+        },
+        {
+          identity: {
+            countryOfOrigin: {
+              contains: searchTerm,
+              mode: 'insensitive',
+            },
+          },
+        },
+        {
+          identity: {
+            nationality: {
+              contains: searchTerm,
+              mode: 'insensitive',
+            },
+          },
+        },
+        // Búsqueda en información personal
+        {
+          personal: {
+            fatherName: {
+              contains: searchTerm,
+              mode: 'insensitive',
+            },
+          },
+        },
+        {
+          personal: {
+            motherName: {
+              contains: searchTerm,
+              mode: 'insensitive',
+            },
+          },
+        },
+        {
+          personal: {
+            occupation: {
+              contains: searchTerm,
+              mode: 'insensitive',
+            },
+          },
+        },
+        {
+          personal: {
+            idDocumentNumber: {
+              contains: searchTerm,
+              mode: 'insensitive',
+            },
+          },
+        },
+        // Búsqueda en casos judiciales
+        {
+          cases: {
+            some: {
+              caseNumber: {
+                contains: searchTerm,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+        {
+          cases: {
+            some: {
+              crime: {
+                contains: searchTerm,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+        {
+          cases: {
+            some: {
+              courtName: {
+                contains: searchTerm,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+      );
+
+      whereConditions.OR = searchConditions;
+    }
+
+    // Aplicar filtros específicos
+    const filters = searchQuery.filters;
+    if (filters) {
+      // Filtro por estado
+      if (filters.status) {
+        whereConditions.status = filters.status as PrisonerStatus;
+      }
+
+      // Filtro por rango de fechas de admisión
+      if (filters.admissionDateFrom || filters.admissionDateTo) {
+        whereConditions.admissionDate = {};
+        if (filters.admissionDateFrom) {
+          whereConditions.admissionDate.gte = new Date(
+            filters.admissionDateFrom,
+          );
+        }
+        if (filters.admissionDateTo) {
+          whereConditions.admissionDate.lte = new Date(filters.admissionDateTo);
+        }
+      }
+
+      // Filtros de identidad
+      if (
+        filters.citizenshipType ||
+        filters.countryOfOrigin ||
+        filters.nationality
+      ) {
+        whereConditions.identity = whereConditions.identity || {};
+        if (filters.citizenshipType) {
+          whereConditions.identity.citizenshipType = filters.citizenshipType;
+        }
+        if (filters.countryOfOrigin) {
+          whereConditions.identity.countryOfOrigin = {
+            contains: filters.countryOfOrigin,
+            mode: 'insensitive',
+          };
+        }
+        if (filters.nationality) {
+          whereConditions.identity.nationality = {
+            contains: filters.nationality,
+            mode: 'insensitive',
+          };
+        }
+      }
+
+      // Filtros de información personal
+      if (filters.gender || filters.maritalStatus) {
+        whereConditions.personal = whereConditions.personal || {};
+        if (filters.gender) {
+          whereConditions.personal.gender = filters.gender;
+        }
+        if (filters.maritalStatus) {
+          whereConditions.personal.maritalStatus = filters.maritalStatus;
+        }
+      }
+
+      // Filtros de información penitenciaria
+      if (filters.category || filters.buildingNumber || filters.cellNumber) {
+        whereConditions.penitentiary = whereConditions.penitentiary || {};
+        if (filters.category) {
+          whereConditions.penitentiary.category = filters.category;
+        }
+        if (filters.buildingNumber) {
+          whereConditions.penitentiary.buildingNumber = {
+            contains: filters.buildingNumber,
+            mode: 'insensitive',
+          };
+        }
+        if (filters.cellNumber) {
+          whereConditions.penitentiary.cellNumber = {
+            contains: filters.cellNumber,
+            mode: 'insensitive',
+          };
+        }
+      }
+    }
+
+    // Construir ordenamiento
+    let orderBy: Prisma.PrisonerOrderByWithRelationInput = {
+      createdAt: 'desc',
+    };
+
+    if (searchQuery.orderBy) {
+      switch (searchQuery.orderBy) {
+        case 'registrationNumber':
+          orderBy = {
+            registrationNumber: searchQuery.orderDirection || 'desc',
+          };
+          break;
+        case 'admissionDate':
+          orderBy = { admissionDate: searchQuery.orderDirection || 'desc' };
+          break;
+        case 'surname':
+          orderBy = {
+            identity: { surname: searchQuery.orderDirection || 'asc' },
+          };
+          break;
+        case 'firstName':
+          orderBy = {
+            identity: { firstName: searchQuery.orderDirection || 'asc' },
+          };
+          break;
+        case 'createdAt':
+          orderBy = { createdAt: searchQuery.orderDirection || 'desc' };
+          break;
+        case 'updatedAt':
+          orderBy = { updatedAt: searchQuery.orderDirection || 'desc' };
+          break;
+      }
+    }
+
+    // Ejecutar query con paginación y obtener solo submódulos principales
+    const [prisoners, total] = await Promise.all([
+      this.prisma.prisoner.findMany({
+        where: whereConditions,
+        skip,
+        take: limit,
+        orderBy,
+        include: {
+          identity: {
+            include: {
+              photoFile: true,
+              rightFingerprint: true,
+              leftFingerprint: true,
+            },
+          },
+          personal: true,
+          penitentiary: true,
+          cases: {
+            where: { isDeleted: false },
+            orderBy: { startDate: 'desc' },
+          },
+        },
+      }),
+      this.prisma.prisoner.count({ where: whereConditions }),
+    ]);
+
+    // Mapear a perfiles simplificados para búsqueda
+    const searchProfiles: SearchPrisonerProfileDto[] = prisoners.map(
+      (prisoner) => ({
+        prisoner: this.mapToResponseDto(prisoner),
+        identity: prisoner.identity
+          ? this.mapIdentityToDto(prisoner.identity)
+          : undefined,
+        personal: prisoner.personal
+          ? this.mapPersonalToDto(prisoner.personal)
+          : undefined,
+        penitentiary: prisoner.penitentiary
+          ? this.mapPenitentiaryToDto(prisoner.penitentiary)
+          : undefined,
+        cases: prisoner.cases.map((prisonerCase) =>
+          this.mapCaseToDto(prisonerCase),
+        ),
+      }),
+    );
+
+    // Construir metadata de paginación
+    const totalPages = Math.ceil(total / limit);
+    const pagination: PaginationMetaDto = {
+      page,
+      limit,
+      total,
+      totalPages,
+    };
+
+    // Construir información de búsqueda
+    const filtersApplied: string[] = [];
+    if (filters) {
+      Object.keys(filters).forEach((key) => {
+        if (filters[key as keyof typeof filters] !== undefined) {
+          filtersApplied.push(key);
+        }
+      });
+    }
+
+    const searchInfo = {
+      searchQuery: searchQuery.query,
+      filtersApplied,
+    };
+
+    return new SearchPrisonerResponseDto(
+      searchProfiles,
+      pagination,
+      searchInfo,
+    );
+  }
+
+  /**
    * Mapper de Prisma model a DTO
    */
   private mapToResponseDto(prisoner: Prisoner): PrisonerResponseDTO {
@@ -632,6 +982,29 @@ export class PrisionersService {
       fieldName: file.fieldName,
       createdBy: file.createdBy,
       createdAt: file.createdAt.toISOString(),
+    };
+  }
+
+  private mapCaseToDto(prisonerCase: PrisonerCase): CaseResponseDto {
+    return {
+      id: prisonerCase.id,
+      prisoner_id: prisonerCase.prisonerId,
+      case_number: prisonerCase.caseNumber,
+      crime: prisonerCase.crime,
+      status: prisonerCase.status,
+      start_date: prisonerCase.startDate.toISOString(),
+      end_date: prisonerCase.endDate
+        ? prisonerCase.endDate.toISOString()
+        : undefined,
+      court_name: prisonerCase.courtName ?? undefined,
+      judge_name: prisonerCase.judgeName ?? undefined,
+      sentence_years: prisonerCase.sentenceYears ?? undefined,
+      remarks: prisonerCase.remarks ?? undefined,
+      is_deleted: prisonerCase.isDeleted,
+      created_by: prisonerCase.createdBy ?? '',
+      updated_by: prisonerCase.updatedBy ?? '',
+      created_at: prisonerCase.createdAt.toISOString(),
+      updated_at: prisonerCase.updatedAt.toISOString(),
     };
   }
 }

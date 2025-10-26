@@ -13,24 +13,23 @@ const MainLayout = ({ children }: MainLayoutProps) => (
     overflow: 'hidden',
     position: 'relative'
   }}>
-    {/* Navbar lateral fijo */}
+    
     <NavbarSimple />
-
-    {/* Header fijo */}
     <CustomHeader />
 
     <main
       style={{
         position: 'fixed',
-        top: '64px', // 🆕 Nueva altura del header
+        top: '64px', 
         left: 'var(--navbar-width, 260px)',
         width: 'calc(100vw - var(--navbar-width, 260px))',
-        height: 'calc(100vh - 64px)', // 🆕 Ajustar por nueva altura
+        height: 'calc(100vh - 64px)', 
         backgroundColor: "light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-8))",
-        padding: "var(--mantine-spacing-lg)", // 🆕 Más padding
+        padding: "var(--mantine-spacing-lg)",
         transition: "left 0.3s ease, width 0.3s ease",
         overflow: 'auto',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        paddingTop: 'var(--mantine-spacing-xl)',
       }}
     >
       {children}
