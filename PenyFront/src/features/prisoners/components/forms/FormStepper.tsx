@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  Stepper,
-  Progress,
-  Text,
-  Group,
-  Stack,
-  Box,
-} from "@mantine/core";
+import { Stepper, Progress, Text, Group, Stack, Box } from "@mantine/core";
 import { Check } from "lucide-react";
 
 interface Step {
@@ -29,7 +22,6 @@ export const FormStepper: React.FC<FormStepperProps> = ({
 
   return (
     <>
-      {/* Stepper para desktop */}
       <Box visibleFrom="md">
         <Stepper
           active={activeStep}
@@ -49,13 +41,13 @@ export const FormStepper: React.FC<FormStepperProps> = ({
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      background: "green",
+                      background: "#228be6",
                       borderRadius: "50%",
-                      width: 24,
-                      height: 24,
+                      width: 32,
+                      height: 32,
                     }}
                   >
-                    <Check size={14} color="white" />
+                    <Check size={18} color="white" />
                   </span>
                 ) : (
                   step.icon
@@ -68,13 +60,13 @@ export const FormStepper: React.FC<FormStepperProps> = ({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    background: "green",
+                    background: "#228be6",
                     borderRadius: "50%",
-                    width: 24,
-                    height: 24,
+                    width: 32,
+                    height: 32,
                   }}
                 >
-                  <Check size={14} color="white" />
+                  <Check size={18} color="white" />
                 </span>
               }
             />
@@ -82,7 +74,6 @@ export const FormStepper: React.FC<FormStepperProps> = ({
         </Stepper>
       </Box>
 
-      {/* Progress bar para móvil */}
       <Stack gap="sm" hiddenFrom="md">
         <Group justify="space-between" align="center">
           <Group gap="xs" align="center">

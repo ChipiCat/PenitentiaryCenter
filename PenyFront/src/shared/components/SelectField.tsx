@@ -8,6 +8,7 @@ interface SelectFieldProps {
   data: { value: string; label: string }[];
   error?: string;
   required?: boolean;
+  description?: string;
 }
 
 export const SelectField = ({
@@ -18,6 +19,7 @@ export const SelectField = ({
   data,
   error,
   required,
+  description,
 }: SelectFieldProps) => (
   <Select
     label={label}
@@ -27,5 +29,6 @@ export const SelectField = ({
     data={data}
     error={error}
     required={required}
+    description={description}
   />
 );

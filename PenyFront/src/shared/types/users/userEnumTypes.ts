@@ -88,3 +88,9 @@ export const booleanOptions = [
   { value: "Sí", label: "Sí" },
   { value: "No", label: "No" },
 ];
+
+export const prisonCategoryOptions = [
+  { value: "Derecho Común", label: "Derecho Común" },
+  { value: "Prisión Preventiva", label: "Prisión Preventiva" },
+  { value: "Prisionero Acusado", label: "Prisionero Acusado" },
+];

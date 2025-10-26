@@ -3,6 +3,8 @@ import type { PaginationParams } from "./axiosTypes";
 import type { Personal } from "./personalTypes";
 import type { Penitentiary } from "./penitentiaryTypes";
 import type { Contact } from "./contactTypes";
+import type { Belonging } from "./belongingTypes";
+import type { Child } from "./childTypes";
 
 export interface PrisonerBase extends Entity {
   registration_number: string;
@@ -20,6 +22,8 @@ export interface CreatePrisonerData {
   personal?: Partial<Personal>;
   penitentiary?: Partial<Penitentiary>;
   contacts?: Partial<Contact>[];
+  belonging?: Partial<Belonging>;
+  child?: Partial<Child>[];
 }
 
 export interface UpdatePrisonerData {
