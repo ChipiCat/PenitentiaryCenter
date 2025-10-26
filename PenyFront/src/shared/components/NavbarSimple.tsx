@@ -4,7 +4,6 @@ import { Text, ActionIcon, Tooltip } from '@mantine/core';
 import { 
   Home, 
   Users, 
-  FileText, 
   Activity, 
   UserCog,
   ChevronLeft,
