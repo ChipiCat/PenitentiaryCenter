@@ -1,11 +1,13 @@
 import api from './api';
 import type { AxiosError, PaginationResponse } from '../types/axiosTypes';  // ✅ USAR EXISTENTE
-import type { 
+import type {
   PrisonerBase,
   CreatePrisonerData,
   UpdatePrisonerData,
-  GetPrisonersParams
-} from '../types/prisonerTypes';  
+  GetPrisonersParams,
+  PrisionerListItem
+} from '../types/prisonerTypes';
+import type { UserFilters } from '../types';
 
 export const prisonersService = {
   // POST /prisoners
@@ -61,4 +63,46 @@ export const prisonersService = {
       throw new Error(axiosError.response?.data?.message || 'Error al eliminar prisionero');
     }
   },
+
+  async getAllPrisoners(
+    page: number,
+    limit: number,
+    query: string,
+    filters?: UserFilters,
+    includeDeleted: boolean = false,
+    orderBy?: string,
+    orderDirection: 'asc' | 'desc' = 'desc'
+  ): Promise<PaginationResponse<PrisionerListItem>> {
+    try {
+      const params: Record<string, any> = {
+        page,
+        limit,
+        includeDeleted,
+      };
+
+      if (filters && typeof filters === 'object') {
+        Object.assign(params, filters);
+      }
+
+      if (query && query.trim() !== "") {
+        params.query = query;
+      }
+
+      if (orderBy) {
+        params.orderBy = orderBy;
+      }
+
+      if (orderDirection) {
+        params.orderDirection = orderDirection;
+      }
+
+      const response = await api.get<PaginationResponse<PrisionerListItem>>('/prisoners/search', {
+        params
+      });
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      throw new Error(axiosError.response?.data?.message || 'Error al obtener todos los prisioneros');
+    }
+  }
 };
