@@ -27,6 +27,10 @@ import {
   PrisonerListResponseDto,
 } from './dto/prisoner.dto';
 import { CompletePrisonerProfileDto } from './dto/full-prisoner.dto';
+import {
+  SearchPrisonerQueryDto,
+  SearchPrisonerResponseDto,
+} from './dto/search-prisoner.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
@@ -65,6 +69,28 @@ export class PrisionersController {
     @Query() query: PrisonerListQueryDto,
   ): Promise<PrisonerListResponseDto> {
     return this.prisionersService.findAll(query);
+  }
+
+  @Get('search')
+  @ApiOperation({
+    summary: 'Búsqueda avanzada de prisioneros',
+    description:
+      'Permite buscar prisioneros con filtros complejos y búsqueda de texto en múltiples campos. ' +
+      'Devuelve perfiles completos con toda la información relacionada. ' +
+      'Búsqueda de texto en: nombre, apellido, número de registro, expediente fiscal, ' +
+      'documento de identidad, lugar de nacimiento, residencia, ocupación, nombres de padres.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Resultados de búsqueda con perfiles completos',
+    type: SearchPrisonerResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  @ApiResponse({ status: 400, description: 'Parámetros de búsqueda inválidos' })
+  async searchPrisoners(
+    @Query() query: SearchPrisonerQueryDto,
+  ): Promise<SearchPrisonerResponseDto> {
+    return this.prisionersService.searchPrisoners(query);
   }
 
   @Get('complete-profile/:id')

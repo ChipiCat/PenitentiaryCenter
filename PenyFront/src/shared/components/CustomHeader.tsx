@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { 
   Group, 
@@ -12,7 +12,8 @@ import {
   Badge,
   Divider,
   Paper,
-  Box
+  Box,
+  TextInput
 } from '@mantine/core';
 import { 
   ChevronDown, 
@@ -24,11 +25,14 @@ import {
   Sun
 } from 'lucide-react';
 import { useGlobalContext } from '../hooks/useGlobalContext';
+import { useGlobalSearch } from '../hooks/useGlobalSearch';
 import { useAppDispatch } from '../store/hooks';
 import { logoutThunk } from '../store/thunks/authThunk';
 import { getRoleLabel } from '../utils/userUtils';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../config/routes';
+import { GlobalSearch } from './GlobalSearch';
+import type { PrisionerListItem } from '../types/prisonerTypes';
 import classes from '../styles/CustomHeader.module.css';
 
 const routeTitles: Record<string, { title: string; description: string }> = {
@@ -60,11 +64,16 @@ const routeTitles: Record<string, { title: string; description: string }> = {
 
 export function CustomHeader() {
   const [userMenuOpened, setUserMenuOpened] = useState(false);
+  const [searchOpened, setSearchOpened] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { user } = useGlobalContext();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Hook para atajo de teclado Ctrl+K
+  useGlobalSearch(() => setSearchOpened(true));
 
   // 🆕 Obtener información de la página actual
   const currentPage = routeTitles[location.pathname] || {
@@ -88,31 +97,42 @@ export function CustomHeader() {
     setUserMenuOpened(false);
   };
 
-  return (
-    <Paper className={classes.header} shadow="sm" withBorder>
-      <Box className={classes.headerContent}>
-        <Group justify="space-between" h="100%" wrap="nowrap">
-          {/* Título dinámico de la página actual */}
-          <Box className={classes.pageTitle}>
-            <Text fw={600} size="lg" c="dark" lineClamp={1}>
-              {currentPage.title}
-            </Text>
-            <Text size="sm" c="dimmed" lineClamp={1}>
-              {currentPage.description}
-            </Text>
-          </Box>
+  const handleSearchSelect = (item: PrisionerListItem) => {
+    // TODO: Navegar al perfil del recluso seleccionado
+    console.log('Recluso seleccionado:', item);
+    navigate(ROUTES.PRISONER_PROFILE.replace(':id', item.prisoner.id));
+  };
 
-          {/* Acciones del header */}
-          <Group gap="sm" wrap="nowrap">
-            {/* Buscador rápido */}
-            <ActionIcon 
-              variant="subtle" 
-              size="lg" 
-              color="gray"
-              className={classes.actionButton}
-            >
-              <Search size={18} />
-            </ActionIcon>
+  return (
+    <>
+      <Paper className={classes.header} shadow="sm" withBorder>
+        <Box className={classes.headerContent}>
+          <Group justify="space-between" h="100%" wrap="nowrap">
+            {/* Título dinámico de la página actual */}
+            <Box className={classes.pageTitle}>
+              <Text fw={600} size="lg" c="dark" lineClamp={1}>
+                {currentPage.title}
+              </Text>
+              <Text size="sm" c="dimmed" lineClamp={1}>
+                {currentPage.description}
+              </Text>
+            </Box>
+
+            {/* Acciones del header */}
+            <Group gap="sm" wrap="nowrap">
+              {/* Buscador rápido */}
+
+              <Box style={{ minWidth: 220, maxWidth: 260 }}>
+                <Group gap={0} style={{ position: 'relative' }}>
+                  <TextInput
+                    ref={searchInputRef}
+                    placeholder="Search"
+                    size="sm"
+                    leftSection={<Search size={16} style={{ color: 'var(--mantine-color-dimmed)' }} />}
+                    onClick={() => setSearchOpened(true)}
+                  />
+                </Group>
+              </Box>
 
             <Indicator inline label="3" size={16} color="red" offset={7}>
               <ActionIcon 
@@ -233,5 +253,17 @@ export function CustomHeader() {
         </Group>
       </Box>
     </Paper>
+
+    <GlobalSearch
+      opened={searchOpened}
+      onClose={() => {
+        setSearchOpened(false);
+        setTimeout(() => {
+          searchInputRef.current?.blur();
+        }, 50);
+      }}
+      onSelectResult={handleSearchSelect}
+    />
+    </>
   );
 }
