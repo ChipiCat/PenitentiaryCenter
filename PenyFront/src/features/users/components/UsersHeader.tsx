@@ -1,11 +1,24 @@
+import { useState } from 'react';
 import { Group, Title, Text, Button } from '@mantine/core';
 import { UserPlus } from 'lucide-react';
+import type { CreateUserData } from '../../../shared/types/userTypes';
+import { UserModal } from './UserModal';
 
 interface UsersHeaderProps {
-  onNewUser: () => void;
+  onNewUser: (data: CreateUserData) => void;
 }
 
 export const UsersHeader = ({ onNewUser }: UsersHeaderProps) => {
+  const [opened, setOpened] = useState(false);
+
+  const handleOpen = () => setOpened(true);
+  const handleClose = () => setOpened(false);
+
+  const handleSubmit = (data: CreateUserData) => {
+    onNewUser(data);
+    setOpened(false);
+  };
+
   return (
     <Group justify="space-between">
       <div>
@@ -16,11 +29,12 @@ export const UsersHeader = ({ onNewUser }: UsersHeaderProps) => {
       </div>
       <Button
         leftSection={<UserPlus size={16} />}
-        onClick={onNewUser}
+        onClick={handleOpen}
         color="dark"
       >
         Nuevo Usuario
       </Button>
+      <UserModal opened={opened} onClose={handleClose} onSubmit={handleSubmit} />
     </Group>
   );
 };

@@ -1,85 +1,62 @@
-import type { UserStat, User } from '../../../shared/types/users/userTypes';
-import { Users, Shield } from 'lucide-react';
+import { useEffect, useState, useCallback } from "react";
+import { usersService } from "../../../shared/services/userService";
+import type { User } from "../../../shared/types/userResponse";
+import type { PaginationResponse } from "../../../shared/types/axiosTypes";
+import type { GetUsersParams, CreateUserData, UpdateUserData } from "../../../shared/types/userTypes";
 
-export const useUsers = () => {
-  // Datos simulados - en una app real vendrían de una API
-  const stats: UserStat[] = [
-    {
-      title: 'Total de Usuarios',
-      value: 3,
-      subtitle: 'Sistema completo',
-      color: 'purple',
-      icon: <Users size={20} />
-    },
-    {
-      title: 'Usuarios Activos',
-      value: 3,
-      subtitle: 'En línea hoy',
-      color: 'green',
-      icon: <Users size={20} />
-    },
-    {
-      title: 'Administradores',
-      value: 1,
-      subtitle: 'Acceso completo',
-      color: 'pink',
-      icon: <Shield size={20} />
-    }
-  ];
+export function useUsers(params?: GetUsersParams) {
+  const [data, setData] = useState<PaginationResponse<User> | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState<any>({ total: 0, activos: 0, inactivos: 0 });
 
-  const users: User[] = [
-    {
-      id: '1',
-      name: 'William García Vargas',
-      username: '@director',
-      email: 'director@penitenciario.gov',
-      role: 'Director',
-      status: 'active',
-      lastAccess: '2024-01-25 09:30:15',
-      createdAt: '2020-01-15',
-      avatar: undefined
-    },
-    {
-      id: '2',
-      name: 'María Elena Rodríguez López',
-      username: '@secretario',
-      email: 'secretario@penitenciario.gov',
-      role: 'Secretario General',
-      status: 'active',
-      lastAccess: '2024-01-25 08:45:22',
-      createdAt: '2021-03-20',
-      avatar: undefined
-    },
-    {
-      id: '3',
-      name: 'Carlos Alberto Mendoza Silva',
-      username: '@secretario2',
-      email: 'secretario2@penitenciario.gov',
-      role: 'Secretario General',
-      status: 'active',
-      lastAccess: '2024-01-24 16:20:10',
-      createdAt: '2022-08-12',
-      avatar: undefined
-    }
-  ];
+  // Cargar usuarios y stats
+  const fetchUsers = useCallback(() => {
+    setLoading(true);
+    usersService.getUsers(params)
+      .then((res) => {
+        setData(res);
+        const usuarios = res.items ?? [];
+        setStats({
+          total: usuarios.length,
+          activos: usuarios.filter((u: User) => !u.isDeleted).length,
+          inactivos: usuarios.filter((u: User) => u.isDeleted).length,
+        });
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [JSON.stringify(params)]);
 
-  const handleNewUser = () => {
-    console.log('Crear nuevo usuario');
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // Crear usuario
+  const handleNewUser = async (data: CreateUserData) => {
+    await usersService.createUser(data);
+    fetchUsers();
   };
 
-  const handleEditUser = (userId: string) => {
-    console.log('Editar usuario:', userId);
+  // Editar usuario
+  const handleEditUser = async (id: string, data: UpdateUserData) => {
+    await usersService.updateUser(id, data);
+    fetchUsers();
   };
 
-  const handleDeleteUser = (userId: string) => {
-    console.log('Eliminar usuario:', userId);
+  // Eliminar usuario
+  const handleDeleteUser = async (id: string) => {
+    await usersService.deleteUser(id);
+    fetchUsers();
   };
 
   return {
     stats,
-    users,
+    users: data?.items ?? [],
     handleNewUser,
     handleEditUser,
     handleDeleteUser,
+    loading,
+    error,
+    pagination: data,
   };
-};
+}

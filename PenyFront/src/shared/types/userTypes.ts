@@ -1,28 +1,36 @@
   import type { PaginationParams } from "./axiosTypes";
+import type { Entity } from "./commonTypes";
 
-export interface User {
-  id: string;
+export interface User extends Entity {
   email: string;
-  firstName: string;
-  lastName: string;
+  name: string; 
   role: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  photoUrl?: string;
+}
+
+export interface UserStat {
+  title: string;
+  value: number;
+  subtitle: string;
+  color: string;
+  icon: React.ReactNode;
+}
+
+export interface UserActions {
+  onEdit: (userId: string) => void;
+  onDelete: (userId: string) => void;
 }
 
 export interface CreateUserData {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   role: string;
 }
 
 export interface UpdateUserData {
   email?: string;
-  firstName?: string;
-  lastName?: string;
+  name?: string;
   role?: string;
   isActive?: boolean;
 }
