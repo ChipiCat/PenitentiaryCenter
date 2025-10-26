@@ -80,8 +80,8 @@ export const nationalityTypeOptions = [
 
 export const citizenshipTypeOptions = [
   { value: "Local", label: "Local" },
-  { value: "Ciudadano Nacional", label: "Ciudadano Nacional" },
-  { value: "Ciudadano Extranjero", label: "Ciudadano Extranjero" },
+  { value: "CiudadanoNacional", label: "Ciudadano Nacional" },
+  { value: "CiudadanosExtranjero", label: "Ciudadano Extranjero" },
 ];
 
 export const booleanOptions = [

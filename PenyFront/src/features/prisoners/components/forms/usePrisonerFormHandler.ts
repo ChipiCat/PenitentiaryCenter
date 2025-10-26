@@ -180,6 +180,7 @@ export function usePrisonerFormHandlers({
           citizenship_type: formData.identity.citizenship_type,
           country_of_origin: formData.identity.country_of_origin,
           nationality: formData.identity.nationality,
+          nationality_type: formData.identity.nationality_type,
         };
 
         try {

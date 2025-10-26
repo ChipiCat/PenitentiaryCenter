@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { TextInputField } from '../../../../shared/components/TextInputField';
 
 interface OptimizedTextInputProps {
@@ -12,7 +12,7 @@ interface OptimizedTextInputProps {
 
 /**
  * Input optimizado que mantiene su propio estado local
- * y sincroniza con el padre solo cuando es necesario
+ * y sincroniza con el padre usando debounce para mejor rendimiento
  */
 export const OptimizedTextInput = React.memo<OptimizedTextInputProps>(({
   label,
@@ -23,6 +23,7 @@ export const OptimizedTextInput = React.memo<OptimizedTextInputProps>(({
   required,
 }) => {
   const [localValue, setLocalValue] = useState(externalValue);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Sincronizar cuando el valor externo cambia (ej: cargar datos)
   useEffect(() => {
@@ -32,8 +33,26 @@ export const OptimizedTextInput = React.memo<OptimizedTextInputProps>(({
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setLocalValue(newValue);
-    externalOnChange(newValue);
+    
+    // Limpiar el timer anterior
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    // Solo actualizar el padre después de 300ms sin escribir
+    debounceTimerRef.current = setTimeout(() => {
+      externalOnChange(newValue);
+    }, 300);
   }, [externalOnChange]);
+
+  // Limpiar timer al desmontar
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <TextInputField
