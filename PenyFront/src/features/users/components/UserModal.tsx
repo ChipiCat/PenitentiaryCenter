@@ -82,8 +82,7 @@ export const UserModal = ({
   const handleSubmit = (values: CreateUserData) => {
     const data: CreateUserData = {
       ...values,
-      // Si necesitas enviar la foto como base64 o url, aquí puedes procesarla
-      // photoUrl: photoFile ? await fileToBase64(photoFile) : undefined
+      photoUrl: photoFile ? URL.createObjectURL(photoFile) : undefined,
     };
     onSubmit(data);
     if (!isLoading) {

@@ -26,6 +26,7 @@ export interface CreateUserData {
   password: string;
   name: string;
   role: string;
+  photoUrl?: string;
 }
 
 export interface UpdateUserData {
