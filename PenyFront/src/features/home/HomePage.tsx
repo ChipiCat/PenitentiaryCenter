@@ -16,7 +16,6 @@ import {
   CheckCircle,
   Plus,
   Search,
-  FileText,
   Eye,
 } from "lucide-react";
 import { useGlobalContext } from "../../shared/hooks/useGlobalContext";
@@ -78,13 +77,6 @@ const HomePage = () => {
       icon: Search,
       color: "green",
       onClick: () => navigate(ROUTES.PRISONERS),
-    },
-    {
-      title: "Generar Reporte",
-      description: "Crear nuevo reporte",
-      icon: FileText,
-      color: "violet",
-      onClick: () => navigate(ROUTES.REPORTS),
     },
     {
       title: "Ver Reclusos",

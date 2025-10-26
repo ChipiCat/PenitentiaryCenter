@@ -7,7 +7,6 @@ import HomePage from "./features/home/HomePage";
 import ProtectedRoute from "./shared/components/ProtectedRoute";
 import PublicRoute from "./shared/components/PublicRoute";
 import MainLayout from "./shared/layouts/MainLayout";
-import ReportsPage from "./features/reports";
 import ProfilePage from "./features/profile";
 import UsersPage from "./features/users";
 import ActivityPage from "./features/activity";
@@ -75,14 +74,6 @@ function App() {
             <ProtectedRoute>
               <MainLayout>
                 <PrisonerProfilePage />
-              </MainLayout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path={ROUTES.REPORTS} element={
-            <ProtectedRoute>
-              <MainLayout>
-                <ReportsPage />
               </MainLayout>
             </ProtectedRoute>
           } />
