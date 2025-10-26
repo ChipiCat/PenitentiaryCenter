@@ -23,7 +23,6 @@ export interface ActivityRecordProps {
   onTargetClick?: (target: string) => void;
 }
 
-
 export interface ActivityRecordProps {
   activity: ActivityRecordData;
   showDivider?: boolean;
