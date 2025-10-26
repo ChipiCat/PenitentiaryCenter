@@ -1,14 +1,6 @@
-import React from 'react';
-import { 
-  Stepper, 
-  Progress, 
-  Text, 
-  Group,
-  Stack,
-  ActionIcon,
-  Box
-} from '@mantine/core';
-import { Check } from 'lucide-react';
+import React from "react";
+import { Stepper, Progress, Text, Group, Stack, Box } from "@mantine/core";
+import { Check } from "lucide-react";
 
 interface Step {
   step: number;
@@ -22,18 +14,17 @@ interface FormStepperProps {
   steps: Step[];
 }
 
-export const FormStepper: React.FC<FormStepperProps> = ({ 
-  activeStep, 
-  steps 
+export const FormStepper: React.FC<FormStepperProps> = ({
+  activeStep,
+  steps,
 }) => {
   const progressValue = ((activeStep + 1) / steps.length) * 100;
 
   return (
     <>
-      {/* Stepper para desktop */}
       <Box visibleFrom="md">
-        <Stepper 
-          active={activeStep} 
+        <Stepper
+          active={activeStep}
           size="sm"
           radius="lg"
           allowNextStepsSelect={false}
@@ -45,25 +36,44 @@ export const FormStepper: React.FC<FormStepperProps> = ({
               description={step.description}
               icon={
                 activeStep > step.step ? (
-                  <ActionIcon size="sm" variant="filled" color="green" radius="xl">
-                    <Check size={14} />
-                  </ActionIcon>
+                  <span
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "#228be6",
+                      borderRadius: "50%",
+                      width: 32,
+                      height: 32,
+                    }}
+                  >
+                    <Check size={18} color="white" />
+                  </span>
                 ) : (
                   step.icon
                 )
               }
-              color={activeStep >= step.step ? 'blue' : 'gray'}
+              color={activeStep >= step.step ? "blue" : "gray"}
               completedIcon={
-                <ActionIcon size="sm" variant="filled" color="green" radius="xl">
-                  <Check size={14} />
-                </ActionIcon>
+                <span
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "#228be6",
+                    borderRadius: "50%",
+                    width: 32,
+                    height: 32,
+                  }}
+                >
+                  <Check size={18} color="white" />
+                </span>
               }
             />
           ))}
         </Stepper>
       </Box>
 
-      {/* Progress bar para móvil */}
       <Stack gap="sm" hiddenFrom="md">
         <Group justify="space-between" align="center">
           <Group gap="xs" align="center">
@@ -81,15 +91,19 @@ export const FormStepper: React.FC<FormStepperProps> = ({
             {activeStep + 1} de {steps.length}
           </Text>
         </Group>
-        
+
         <div>
           <Group justify="space-between" mb={4}>
-            <Text size="xs" c="dimmed">Progreso</Text>
-            <Text size="xs" c="dimmed">{Math.round(progressValue)}%</Text>
+            <Text size="xs" c="dimmed">
+              Progreso
+            </Text>
+            <Text size="xs" c="dimmed">
+              {Math.round(progressValue)}%
+            </Text>
           </Group>
-          <Progress 
-            value={progressValue} 
-            size="sm" 
+          <Progress
+            value={progressValue}
+            size="sm"
             radius="xl"
             animated
             color="blue"
