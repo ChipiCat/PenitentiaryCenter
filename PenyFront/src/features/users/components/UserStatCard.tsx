@@ -1,5 +1,5 @@
 import { Paper, Group, Text } from '@mantine/core';
-import type { UserStat } from '../../../shared/types/users/userTypes';
+import type { UserStat } from '../../../shared/types/userTypes';
 
 interface UserStatCardProps {
   stat: UserStat;
