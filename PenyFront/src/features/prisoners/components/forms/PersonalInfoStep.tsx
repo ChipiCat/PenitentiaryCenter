@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { Stack, Title, Card } from "@mantine/core";
 import type { Personal, Belonging, Child } from "../../../../shared/types";
 import {
@@ -30,12 +30,17 @@ interface PersonalInfoStepProps {
   errors?: Record<string, string>;
 }
 
-export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
+export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = React.memo(({
   data,
   onUpdate,
   errors = {},
 }) => {
-  const childFields = [
+  // Memoizar datos para evitar re-crear objetos
+  const personal = useMemo(() => data.personal || {}, [data.personal]);
+  const belongings = useMemo(() => data.belongings || [], [data.belongings]);
+  const children = useMemo(() => data.child || [], [data.child]);
+
+  const childFields = useMemo(() => [
     {
       label: "Nombre Completo",
       placeholder: "Nombre completo",
@@ -47,25 +52,25 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
       placeholder: "YYYY-MM-DD",
       key: "birth_date",
       required: true,
-      type: "date",
+      type: "date" as const,
     },
-  ];
+  ], []);
 
-  const handlePersonalChange = (
+  const handlePersonalChange = useCallback((
     field: keyof Personal,
     value: string | number | Date | undefined
   ) => {
     onUpdate({
       personal: {
-        ...data.personal,
+        ...personal,
         [field]: value,
       },
+      belongings: data.belongings,
+      child: data.child,
     });
-  };
+  }, [onUpdate, personal, data.belongings, data.child]);
 
-  const belongings: Partial<Belonging>[] = data.belongings || [];
-
-  const handleAddBelonging = () => {
+  const handleAddBelonging = useCallback(() => {
     onUpdate({
       personal: data.personal,
       belongings: [
@@ -80,18 +85,18 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
       ],
       child: data.child,
     });
-  };
+  }, [onUpdate, data.personal, belongings, data.child]);
 
-  const handleRemoveBelonging = (index: number) => {
+  const handleRemoveBelonging = useCallback((index: number) => {
     const updated = belongings.filter((_, i) => i !== index);
     onUpdate({
       personal: data.personal,
       belongings: updated,
       child: data.child,
     });
-  };
+  }, [onUpdate, data.personal, belongings, data.child]);
 
-  const handleBelongingChange = (
+  const handleBelongingChange = useCallback((
     index: number,
     field: keyof Belonging,
     value: string | number | boolean | undefined
@@ -103,19 +108,17 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
       belongings: updated,
       child: data.child,
     });
-  };
+  }, [onUpdate, data.personal, belongings, data.child]);
 
-  const children: Partial<Child>[] = data.child || [];
-
-  const handleAddChild = () => {
+  const handleAddChild = useCallback(() => {
     onUpdate({
       personal: data.personal,
       belongings: data.belongings,
       child: [...children, { name: "", birth_date: "" }],
     });
-  };
+  }, [onUpdate, data.personal, data.belongings, children]);
 
-  const handleChildrenChange = (
+  const handleChildrenChange = useCallback((
     index: number,
     field: string,
     value: string
@@ -130,16 +133,16 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
       belongings: data.belongings,
       child: updatedChildren,
     });
-  };
+  }, [onUpdate, data.personal, data.belongings, children]);
 
-  const handleRemoveChild = (index: number) => {
+  const handleRemoveChild = useCallback((index: number) => {
     const updatedChildren = children.filter((_, i) => i !== index);
     onUpdate({
       personal: data.personal,
       belongings: data.belongings,
       child: updatedChildren,
     });
-  };
+  }, [onUpdate, data.personal, data.belongings, children]);
 
   return (
     <Stack gap="lg">
@@ -255,4 +258,6 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
       />
     </Stack>
   );
-};
+});
+
+PersonalInfoStep.displayName = 'PersonalInfoStep';

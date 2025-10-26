@@ -6,7 +6,6 @@ import {
   Divider,
   Alert,
   LoadingOverlay,
-  Input,
 } from "@mantine/core";
 import { AlertCircle } from "lucide-react";
 import { FormStepper } from "./FormStepper";
@@ -57,13 +56,10 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
     switch (activeStep) {
       case 0:
         return (
-           <PersonalInfoStep
-            data={{
-              personal: formData.personal,
-              belongings: formData.belongings,
-              child: formData.child,
-            }}
+          <BasicInfoStep
+            data={formData}
             onUpdate={handleDataUpdate}
+            onFileUpdate={handleFileUpdate}
             errors={errors}
           />
         );

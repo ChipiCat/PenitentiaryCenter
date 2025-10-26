@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { Stack, Title, Card, Text } from "@mantine/core";
 import type { Penitentiary } from "../../../../shared/types";
 import { prisonCategoryOptions } from "../../../../shared/types/users/userEnumTypes";
@@ -12,22 +12,25 @@ interface PenitentiaryInfoStepProps {
   errors?: Record<string, string>;
 }
 
-export const PenitentiaryInfoStep: React.FC<PenitentiaryInfoStepProps> = ({
+export const PenitentiaryInfoStep: React.FC<PenitentiaryInfoStepProps> = React.memo(({
   data,
   onUpdate,
   errors = {},
 }) => {
-  const handlePenitentiaryChange = (
+  // Memoizar datos para evitar re-crear objetos
+  const penitentiary = useMemo(() => data.penitentiary || {}, [data.penitentiary]);
+
+  const handlePenitentiaryChange = useCallback((
     field: keyof Penitentiary,
     value: string | number | undefined
   ) => {
     onUpdate({
       penitentiary: {
-        ...data.penitentiary,
+        ...penitentiary,
         [field]: value,
       },
     });
-  };
+  }, [onUpdate, penitentiary]);
 
   return (
     <Stack gap="lg">
@@ -44,7 +47,7 @@ export const PenitentiaryInfoStep: React.FC<PenitentiaryInfoStepProps> = ({
             <SelectField
               label="Categoría de Prisionero"
               placeholder="Seleccione la categoría"
-              value={data.penitentiary?.category || ""}
+              value={penitentiary.category || ""}
               onChange={(value) =>
                 handlePenitentiaryChange("category", value || undefined)
               }
@@ -58,7 +61,7 @@ export const PenitentiaryInfoStep: React.FC<PenitentiaryInfoStepProps> = ({
             <TextInputField
               label="Número de Edificio"
               placeholder="Ej: A, B, C o 1, 2, 3"
-              value={data.penitentiary?.building_number || ""}
+              value={penitentiary.building_number || ""}
               onChange={(e) =>
                 handlePenitentiaryChange("building_number", e.target.value)
               }
@@ -69,7 +72,7 @@ export const PenitentiaryInfoStep: React.FC<PenitentiaryInfoStepProps> = ({
             <TextInputField
               label="Número de Celda"
               placeholder="Ej: 101, 102, etc."
-              value={data.penitentiary?.cell_number || ""}
+              value={penitentiary.cell_number || ""}
               onChange={(e) =>
                 handlePenitentiaryChange("cell_number", e.target.value)
               }
@@ -82,7 +85,7 @@ export const PenitentiaryInfoStep: React.FC<PenitentiaryInfoStepProps> = ({
             <TextInputField
               label="Número de Cama"
               placeholder="Ej: 1, 2, 3"
-              value={data.penitentiary?.bed_number || ""}
+              value={penitentiary.bed_number || ""}
               onChange={(e) =>
                 handlePenitentiaryChange("bed_number", e.target.value)
               }
@@ -96,4 +99,6 @@ export const PenitentiaryInfoStep: React.FC<PenitentiaryInfoStepProps> = ({
       </Card>
     </Stack>
   );
-};
+});
+
+PenitentiaryInfoStep.displayName = 'PenitentiaryInfoStep';

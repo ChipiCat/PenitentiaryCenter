@@ -90,7 +90,7 @@ export const booleanOptions = [
 ];
 
 export const prisonCategoryOptions = [
-  { value: "Derecho Común", label: "Derecho Común" },
-  { value: "Prisión Preventiva", label: "Prisión Preventiva" },
-  { value: "Prisionero Acusado", label: "Prisionero Acusado" },
+  { value: "DerechoComun", label: "Derecho Común" },
+  { value: "PrisionPreventiva", label: "Prisión Preventiva" },
+  { value: "PrisioneroAcusado", label: "Prisionero Acusado" },
 ];
