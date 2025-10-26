@@ -35,6 +35,7 @@ export interface CreateCaseData {
   start_date: string;
   end_date?: string;
   description?: string;
+  attachment_url?: string;
 }
 
 export interface UpdateCaseData {
