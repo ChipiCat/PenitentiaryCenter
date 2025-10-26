@@ -25,17 +25,7 @@ export const PrisonersHeader: React.FC<PrisonersHeaderProps> = ({ onCreateNew })
 
       <Group>
         <Group gap="xs" visibleFrom="sm">
-          <Tooltip label="Buscar prisioneros">
-            <ActionIcon variant="subtle" size="lg">
-              <Search size={18} />
-            </ActionIcon>
-          </Tooltip>
-          <Tooltip label="Filtros avanzados">
-            <ActionIcon variant="subtle" size="lg">
-              <Filter size={18} />
-            </ActionIcon>
-          </Tooltip>
-         
+          
         </Group>
 
         <Button

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { Container, Stack, LoadingOverlay } from "@mantine/core";
+import { Container, Stack } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useNavigate } from "react-router-dom";
 import { PrisonerFormWizard } from "../components/forms/PrisonerFormWizard";
@@ -8,7 +8,11 @@ import { PrisonersHeader } from "../components/list/PrisonersHeader";
 import { PrisonersStats } from "../components/list/PrisonersStats";
 import { PrisonersList } from "../components/list/PrisonersList";
 import { EmptyPrisonersState } from "../components/list/EmptyPrisonersState";
+import { PrisonersSearchBar } from "../components/list/PrisonersSearchBar";
+import { PrisonersFilters } from "../components/list/PrisonersFilters";
+import { PrisonersPagination } from "../components/list/PrisonersPagination";
 import type { PrisionerListItem, PrisonerBase } from "../../../shared/types/prisonerTypes";
+import type { UserFilters } from "../../../shared/types";
 import { prisonersService } from "../../../shared/services/prisonersService";
 
 type ViewMode = "list" | "create" | "edit";
@@ -45,8 +49,8 @@ export const PrisonersPage: React.FC = () => {
     archivados: 0,
   });
   const [loading, setLoading] = useState(true);
-  //const [statusFilter] = useState<string>("all");
-  const [searchTerm] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [filters, setFilters] = useState<UserFilters>({});
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     limit: 10,
@@ -86,8 +90,11 @@ export const PrisonersPage: React.FC = () => {
       const response = await prisonersService.getAllPrisoners(
         pagination.page,
         pagination.limit,
-        searchTerm,
-        undefined // o puedes omitir este argumento si no tienes filtros
+        searchQuery,
+        filters,
+        false,
+        'admissionDate',
+        'desc'
       );
       setPrisoners(response.data);
       setPagination((prev) => ({
@@ -105,7 +112,7 @@ export const PrisonersPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [pagination.page, pagination.limit, searchTerm]);
+  }, [pagination.page, pagination.limit, searchQuery, filters]);
 
   const loadStats = useCallback(async () => {
     try {
@@ -138,6 +145,30 @@ export const PrisonersPage: React.FC = () => {
     loadStats();
   }, [loadData, loadStats]);
 
+  // Handlers para búsqueda y filtros
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+    setPagination((prev) => ({ ...prev, page: 1 }));
+  }, []);
+
+  const handleFiltersChange = useCallback((newFilters: UserFilters) => {
+    setFilters(newFilters);
+    setPagination((prev) => ({ ...prev, page: 1 }));
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setFilters({});
+    setPagination((prev) => ({ ...prev, page: 1 }));
+  }, []);
+
+  const handlePageChange = useCallback((page: number) => {
+    setPagination((prev) => ({ ...prev, page }));
+  }, []);
+
+  const handlePageSizeChange = useCallback((limit: number) => {
+    setPagination((prev) => ({ ...prev, limit, page: 1 }));
+  }, []);
+
   if (viewMode === "create" || viewMode === "edit") {
     return (
       <PrisonerFormWizard
@@ -151,19 +182,41 @@ export const PrisonersPage: React.FC = () => {
 
   return (
     <Container size="xl" className="!mt-1">
-      <LoadingOverlay visible={loading} overlayProps={{ blur: 2 }} />
-
       <Stack gap="lg">
         <PrisonersHeader onCreateNew={handleCreateNew} />
         <PrisonersStats statistics={statistics} />
+        
+        {/* Barra de búsqueda */}
+        <PrisonersSearchBar onSearch={handleSearch} />
+        
+        {/* Filtros */}
+        <PrisonersFilters
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          onClearFilters={handleClearFilters}
+        />
+        
         {prisoners.length === 0 && !loading ? (
           <EmptyPrisonersState onCreateNew={handleCreateNew} />
         ) : (
-          <PrisonersList
-            prisoners={prisoners}
-            onViewProfile={handleViewProfile}
-            onEdit={handleEdit}
-          />
+          <>
+            <PrisonersList
+              prisoners={prisoners}
+              onViewProfile={handleViewProfile}
+              onEdit={handleEdit}
+              loading={loading}
+            />
+            
+            {/* Paginación */}
+            <PrisonersPagination
+              currentPage={pagination.page}
+              totalPages={pagination.totalPages}
+              pageSize={pagination.limit}
+              total={pagination.total}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+            />
+          </>
         )}
       </Stack>
     </Container>
