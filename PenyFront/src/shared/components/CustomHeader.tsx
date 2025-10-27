@@ -12,10 +12,8 @@ import {
   Paper,
   Box,
   TextInput,
-  Indicator,
-  ActionIcon,
 } from "@mantine/core";
-import { ChevronDown, LogOut, User, Bell, Search, Sun } from "lucide-react";
+import { ChevronDown, LogOut, User, Search } from "lucide-react";
 import { useGlobalContext } from "../hooks/useGlobalContext";
 import { useGlobalSearch } from "../hooks/useGlobalSearch";
 import { useAppDispatch } from "../store/hooks";
@@ -115,26 +113,6 @@ export function CustomHeader() {
                   />
                 </Group>
               </Box>
-
-              <Indicator inline label="3" size={16} color="red" offset={7}>
-                <ActionIcon
-                  variant="subtle"
-                  size="lg"
-                  color="gray"
-                  className={classes.actionButton}
-                >
-                  <Bell size={18} />
-                </ActionIcon>
-              </Indicator>
-
-              <ActionIcon
-                variant="subtle"
-                size="lg"
-                color="gray"
-                className={classes.actionButton}
-              >
-                <Sun size={18} />
-              </ActionIcon>
 
               <Divider />
               <Menu

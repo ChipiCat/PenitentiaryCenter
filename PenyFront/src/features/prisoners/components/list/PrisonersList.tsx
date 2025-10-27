@@ -17,7 +17,7 @@ export const PrisonersList: React.FC<PrisonersListProps> = ({
   loading = false,
 }) => {
   useEffect(() => {
-    console.log("Renderizando lista de prisioneros. Cantidad:", prisoners.length);
+    console.log("Renderizando lista de prisioneros. Cantidad:", prisoners?.length ?? 0);
   }, [prisoners]);
   return (
     <Card withBorder pos="relative">
@@ -210,8 +210,6 @@ const PrisonerRow: React.FC<PrisonerRowProps> = ({
                   </div>
                 </Group>
               )}
-
-
 
               {!prisoner.penitentiary.building_number &&
                 !prisoner.penitentiary.cell_number &&
