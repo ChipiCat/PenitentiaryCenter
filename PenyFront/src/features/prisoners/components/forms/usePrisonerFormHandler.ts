@@ -392,10 +392,10 @@ export function usePrisonerFormHandlers({
           mother_name: formData.personal.mother_name || '',
           education_level: formData.personal.education_level || '',
           occupation: formData.personal.occupation || '',
-          languages: '',
+          languages: formData.personal.languages || '',
           marital_status: formData.personal.marital_status as "Soltero" | "Casado" | "Viudo" | "Divorciado",
-          id_document_type: "CedulaDeIdentidad" as const,
-          id_document_number: ''
+          id_document_type: formData.personal.id_document_type as "CedulaDeIdentidad" | "Pasaporte" | "Otro",
+          id_document_number: formData.personal.id_document_number || ''
         };
 
         try {
