@@ -17,7 +17,7 @@ export function ProfilePhotoDropzone({
   onFile: (file: File) => void;
 }) {
   const [preview, setPreview] = useState<string | null>(null);
-  const [fileName, setFileName] = useState<string | null>(null);
+  const [fileName] = useState<string | null>(null);
 
   return (
     <Dropzone
