@@ -95,6 +95,7 @@ export const LegalCaseStep: React.FC<LegalCaseStepProps> = ({
                 handleInitialCaseChange("court", e.target.value)
               }
               error={errors["initialCase.court"]}
+              required
             />
             <TextInput
               label="Nombre del Juez"
@@ -104,6 +105,7 @@ export const LegalCaseStep: React.FC<LegalCaseStepProps> = ({
                 handleInitialCaseChange("judge", e.target.value)
               }
               error={errors["initialCase.judge"]}
+              required
             />
           </Group>
           <BelongingDropzone

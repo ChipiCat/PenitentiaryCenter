@@ -6,6 +6,7 @@ import {
   educationLevelOptions,
   genderOptions,
   occupationList,
+  idDocumentTypeOptions,
 } from "../../../../shared/types/users/userEnumTypes";
 import { InputGroup } from "../../../../shared/components/InputGroup";
 import { GenericCombobox } from "../../../../shared/components/GenericCombobox";
@@ -35,7 +36,6 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = React.memo(({
   onUpdate,
   errors = {},
 }) => {
-  // Memoizar datos para evitar re-crear objetos
   const personal = useMemo(() => data.personal || {}, [data.personal]);
   const belongings = useMemo(() => data.belongings || [], [data.belongings]);
   const children = useMemo(() => data.child || [], [data.child]);
@@ -232,6 +232,42 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = React.memo(({
               }
               error={errors["personal.mother_name"]}
               placeholder="Nombre completo de la madre"
+              debounce={true}
+            />
+          </InputGroup>
+          <InputGroup>
+            <SelectField
+              label="Tipo de Documento de Identidad"
+              value={data.personal?.id_document_type || ""}
+              onChange={(value) =>
+                handlePersonalChange("id_document_type", value ?? undefined)
+              }
+              data={idDocumentTypeOptions}
+              error={errors["personal.id_document_type"]}
+              required
+              placeholder="Seleccione el tipo de documento"
+            />
+            <TextInputField
+              label="Número de Documento de Identidad"
+              value={data.personal?.id_document_number || ""}
+              onChange={(e) =>
+                handlePersonalChange("id_document_number", e.target.value)
+              }
+              error={errors["personal.id_document_number"]}
+              placeholder="Número de documento de identidad"
+              debounce={true}
+              required
+            />
+          </InputGroup>
+          <InputGroup>
+            <TextInputField
+              label="Idiomas"
+              value={data.personal?.languages || ""}
+              onChange={(e) =>
+                handlePersonalChange("languages", e.target.value)
+              }
+              error={errors["personal.languages"]}
+              placeholder="Idiomas"
               debounce={true}
             />
           </InputGroup>

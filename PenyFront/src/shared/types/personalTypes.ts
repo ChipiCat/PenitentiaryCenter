@@ -9,6 +9,7 @@ export interface Personal extends Entity {
   emergency_phone?: string;
   observations?: string;
   gender?: Gender; 
+  languages?: string;
   father_name?: string; 
   mother_name?: string;
   id_document_type?: string; 
@@ -31,6 +32,9 @@ export interface UpdatePersonalData {
   marital_status?: string;
   education_level?: string;
   occupation?: string;
+  languages?: string;
+  id_document_type?: "CedulaDeIdentidad" | "Pasaporte" | "Otro",
+  id_document_number?: string;
   emergency_contact?: string;
   emergency_phone?: string;
   observations?: string;

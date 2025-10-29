@@ -17,15 +17,11 @@ export const SystemActivityList: React.FC<SystemActivityListProps> = ({
   const handleUserClick = (user: ActivityUser) => {
     console.log('Clicked on user:', user);
     onUserClick?.(user);
-    // Aquí podrías abrir un modal con detalles del usuario
-    // o navegar a su perfil
   };
 
   const handleTargetClick = (target: string) => {
     console.log('Clicked on target:', target);
     onTargetClick?.(target);
-    // Aquí podrías navegar al registro específico
-    // o mostrar más detalles
   };
 
   return (
