@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
+import { autoTable } from "jspdf-autotable";
 import type { CompletePrisonerProfile } from "../../../../shared/types";
 
 export async function exportPrisonerPdf(
@@ -131,9 +131,9 @@ export async function exportPrisonerPdf(
     headStyles: { fillColor: [80, 120, 80], textColor: 255 },
     alternateRowStyles: { fillColor: [245, 245, 245] },
     margin: { top: 80 },
-    didDrawPage: (data) => {
-      if (data.cursor && typeof data.cursor.y === "number")
-        finalY = data.cursor.y;
+    didDrawPage: (data: unknown) => {
+      const cursor = (data as { cursor?: { y?: number } }).cursor;
+      if (cursor && typeof cursor.y === "number") finalY = cursor.y;
     },
   });
 
@@ -181,10 +181,7 @@ export async function exportPrisonerPdf(
         "Número de documento",
         profile.personal?.id_document_number ?? "No disponible",
       ],
-      [
-        "Idiomas",
-        profile.personal?.languages ?? "No disponible",
-      ],
+      ["Idiomas", profile.personal?.languages ?? "No disponible"],
       ["Registro", profile.prisoner.registration_number ?? "No disponible"],
       ["Estado", profile.prisoner.status ?? "No disponible"],
       ["Expediente", profile.prisoner.fiscal_file_number ?? "No disponible"],
@@ -277,9 +274,9 @@ export async function exportPrisonerPdf(
     },
     headStyles: { fillColor: [80, 120, 80], textColor: 255 },
     alternateRowStyles: { fillColor: [245, 245, 245] },
-    didDrawPage: (data) => {
-      if (data.cursor && typeof data.cursor.y === "number")
-        finalY = data.cursor.y;
+    didDrawPage: (data: unknown) => {
+      const cursor = (data as { cursor?: { y?: number } }).cursor;
+      if (cursor && typeof cursor.y === "number") finalY = cursor.y;
     },
   });
 
