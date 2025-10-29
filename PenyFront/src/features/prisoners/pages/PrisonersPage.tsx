@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { Container, Stack, Group, Switch } from "@mantine/core";
+import { Container, Stack } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useNavigate } from "react-router-dom";
 import { PrisonerFormWizard } from "../components/forms/PrisonerFormWizard";
