@@ -1,13 +1,15 @@
 import React, { useEffect } from 'react';
-import { Card, Table, Group, Avatar, Text, Badge, ActionIcon, Tooltip, Stack, LoadingOverlay } from '@mantine/core';
+import { Card, Table, Group, Avatar, Text, Badge, ActionIcon, Tooltip, Stack, LoadingOverlay, Grid } from '@mantine/core';
 import { Eye, Edit, Calendar, FileText, MapPin, Building2, Bed, Users } from 'lucide-react';
 import type { PrisionerListItem, PrisonerBase } from '../../../../shared/types';
+import PrisonerCard from './PrisonerCard';
 
 interface PrisonersListProps {
   prisoners: PrisionerListItem[];
   onViewProfile: (prisoner: PrisonerBase) => void;
   onEdit: (prisoner: PrisonerBase) => void;
   loading?: boolean;
+  viewType?: 'table' | 'card';
 }
 
 export const PrisonersList: React.FC<PrisonersListProps> = ({
@@ -15,6 +17,7 @@ export const PrisonersList: React.FC<PrisonersListProps> = ({
   onViewProfile,
   onEdit,
   loading = false,
+  viewType = 'table',
 }) => {
   useEffect(() => {
     console.log("Renderizando lista de prisioneros. Cantidad:", prisoners?.length ?? 0);
@@ -22,27 +25,41 @@ export const PrisonersList: React.FC<PrisonersListProps> = ({
   return (
     <Card withBorder pos="relative">
       <LoadingOverlay visible={loading} overlayProps={{ blur: 2 }} />
-      <Table striped highlightOnHover>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Prisionero</Table.Th>
-            <Table.Th>Información Personal</Table.Th>
-            <Table.Th>Ubicación Penitenciaria</Table.Th>
-            <Table.Th>Casos y Delitos</Table.Th>
-            <Table.Th>Acciones</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
+      {viewType === 'card' ? (
+        <Grid gutter="md">
           {prisoners?.map((prisoner) => (
-            <PrisonerRow
-              key={prisoner.prisoner.id}
-              prisoner={prisoner}
-              onViewProfile={onViewProfile}
-              onEdit={onEdit}
-            />
+            <Grid.Col span={{ base: 12, sm: 6, md: 4, lg: 3 }} key={prisoner.prisoner.id}>
+              <PrisonerCard
+                prisoner={prisoner}
+                onViewProfile={onViewProfile}
+                onEdit={onEdit}
+              />
+            </Grid.Col>
           ))}
-        </Table.Tbody>
-      </Table>
+        </Grid>
+      ) : (
+        <Table striped highlightOnHover>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Prisionero</Table.Th>
+              <Table.Th>Información Personal</Table.Th>
+              <Table.Th>Ubicación Penitenciaria</Table.Th>
+              <Table.Th>Casos y Delitos</Table.Th>
+              <Table.Th>Acciones</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {prisoners?.map((prisoner) => (
+              <PrisonerRow
+                key={prisoner.prisoner.id}
+                prisoner={prisoner}
+                onViewProfile={onViewProfile}
+                onEdit={onEdit}
+              />
+            ))}
+          </Table.Tbody>
+        </Table>
+      )}
     </Card>
   );
 };
