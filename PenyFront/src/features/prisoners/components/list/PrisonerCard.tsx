@@ -1,5 +1,5 @@
 import { Card, Group, Avatar, Text, Badge, ActionIcon, Tooltip, Stack, Button } from '@mantine/core';
-import { FileText, Calendar, MapPin, Users, Eye, Edit } from 'lucide-react';
+import { FileText, Calendar, Users, Eye, Edit } from 'lucide-react';
 import type { PrisionerListItem, PrisonerBase } from '../../../../shared/types';
 
 interface PrisonerCardProps {

@@ -187,7 +187,7 @@ export const PrisonersPage: React.FC = () => {
   return (
     <Container size="xl" className="!mt-1">
       <Stack gap="lg">
-        <PrisonersHeader onCreateNew={handleCreateNew} viewType={viewType} onViewChange={setViewType} />
+        <PrisonersHeader viewType={viewType} onViewChange={setViewType} />
         <PrisonersStats statistics={statistics} />
         <PrisonersSearchBar onSearch={handleSearch} />
 

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Card, Table, Group, Avatar, Text, Badge, ActionIcon, Tooltip, Stack, LoadingOverlay, Grid } from '@mantine/core';
+import { Card, Table, Group, Avatar, Text, Badge, ActionIcon, Tooltip, Stack, Grid } from '@mantine/core';
 import { Eye, Edit, Calendar, FileText, MapPin, Building2, Bed, Users } from 'lucide-react';
 import type { PrisionerListItem, PrisonerBase } from '../../../../shared/types';
 import PrisonerCard from './PrisonerCard';

@@ -1,5 +1,4 @@
 import axios from "axios";
-import type { AuthResponse } from "../types/authResponse";
 import { tokenManager } from "./tokenManager";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
@@ -26,6 +25,9 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Track if we're already redirecting to avoid multiple redirects
+let isRedirecting = false;
+
 /**
  * Response interceptor - Handle 401 errors with token refresh
  */
@@ -34,60 +36,89 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (originalRequest._retry) {
-      console.error("[API] Retry limit reached, rejecting request");
-      tokenManager.clearTokens();
-      window.location.href = "/login";
+    // Ignore errors from refresh endpoint to avoid loops
+    if (originalRequest.url?.includes('/auth/refresh')) {
+      console.error("[API] Refresh endpoint failed, clearing tokens");
+      if (!isRedirecting) {
+        isRedirecting = true;
+        tokenManager.clearTokens();
+        window.location.href = "/";
+      }
       return Promise.reject(error);
     }
+
+    if (originalRequest._retry) {
+      console.error("[API] Retry limit reached, rejecting request");
+      if (!isRedirecting) {
+        isRedirecting = true;
+        tokenManager.clearTokens();
+        window.location.href = "/";
+      }
+      return Promise.reject(error);
+    }
+    
     // Handle 401 Unauthorized with refresh token available
     if (error.response?.status === 401) {
       const refreshToken = tokenManager.getRefreshToken();
 
       if (!refreshToken) {
         console.warn("[API] 401 received but no refresh token available");
-        tokenManager.clearTokens();
-        window.location.href = "/login";
+        if (!isRedirecting) {
+          isRedirecting = true;
+          tokenManager.clearTokens();
+          window.location.href = "/";
+        }
         return Promise.reject(error);
       }
+      
       originalRequest._retry = true;
       try {
 
         // Use token manager to queue refresh and avoid race conditions
         const newAccessToken = await tokenManager.queueRefresh(async () => {
-          const res = await axios.post<AuthResponse>(
-            `${API_URL}/auth/refresh`,
-            { refreshToken },
-            { 
-              headers: { "Content-Type": "application/json" },
-              // Don't use the interceptor for refresh requests
-              timeout: 5000
-            }
-          );
-          // IMPORTANT: Update BOTH tokens if backend returns new refresh token
-          if (res.data.accessToken) {
-            tokenManager.setAccessToken(res.data.accessToken);
-          } else {
+          // Import authService dynamically to avoid circular dependency
+          const { refreshAuthToken } = await import('./authService');
+          
+          const currentRefreshToken = tokenManager.getRefreshToken();
+          if (!currentRefreshToken) {
+            throw new Error("No refresh token available");
+          }
+
+          const authResponse = await refreshAuthToken(currentRefreshToken);
+          
+          if (!authResponse || !authResponse.accessToken) {
             throw new Error("No access token received from refresh");
           }
-          if (res.data.refreshToken) {
-            tokenManager.setRefreshToken(res.data.refreshToken);
-            console.log("[API] New refresh token stored:", res.data.refreshToken);
+
+          // IMPORTANT: Update BOTH tokens if backend returns new refresh token
+          tokenManager.setAccessToken(authResponse.accessToken);
+          
+          if (authResponse.refreshToken) {
+            tokenManager.setRefreshToken(authResponse.refreshToken);
+            console.log("[API] New refresh token stored");
           }
-          return res.data.accessToken;
+          
+          return authResponse.accessToken;
         });
+        
         if (!newAccessToken) {
           throw new Error("Failed to obtain new access token");
         }
+        
         // Update the failed request with new token and retry
         originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         console.error("[API] Token refresh failed:", refreshError);
-        // Clear tokens on refresh failure
-        tokenManager.clearTokens();
-        // Redirect to login
-        window.location.href = "/login";
+        // Clear tokens on refresh failure and redirect
+        if (!isRedirecting) {
+          isRedirecting = true;
+          tokenManager.clearTokens();
+          // Small delay to ensure tokens are cleared before redirect
+          setTimeout(() => {
+            window.location.href = "/";
+          }, 100);
+        }
         return Promise.reject(refreshError);
       }
     } else if (error.response?.status) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Stack, Text, LoadingOverlay } from '@mantine/core';
+import { Container } from '@mantine/core';
 import { Loading } from './Loading';
 
 interface LoadingStateProps {
