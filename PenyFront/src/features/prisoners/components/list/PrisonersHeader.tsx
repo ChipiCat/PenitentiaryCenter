@@ -5,12 +5,11 @@ import { useNavigate } from 'react-router';
 import { ROUTES } from '../../../../shared/config';
 
 interface PrisonersHeaderProps {
-  onCreateNew: () => void;
   viewType: 'table' | 'cards';
   onViewChange: (view: 'table' | 'cards') => void;
 }
 
-export const PrisonersHeader: React.FC<PrisonersHeaderProps> = ({ onCreateNew, viewType, onViewChange }) => {
+export const PrisonersHeader: React.FC<PrisonersHeaderProps> = ({ viewType, onViewChange }) => {
   const navigate = useNavigate();
   return (
     <Group justify="space-between">

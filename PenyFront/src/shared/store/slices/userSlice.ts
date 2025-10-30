@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { User } from "../../types/userResponse";
 import { loginThunk, logoutThunk } from "../thunks/authThunk";
+import { tokenManager } from "../../services/tokenManager";
 
 interface UserState {
   user: User | null;
@@ -9,9 +10,18 @@ interface UserState {
   error: string | null;
 }
 
-// Cargar estado inicial desde localStorage si existe
+// Cargar estado inicial desde localStorage si existe Y hay tokens válidos
 const loadPersistedState = (): Partial<UserState> => {
   try {
+    // Primero verificar que existan tokens válidos
+    const hasTokens = tokenManager.hasTokens();
+    
+    if (!hasTokens) {
+      console.warn("[UserSlice] No valid tokens found, clearing persisted user");
+      localStorage.removeItem("user");
+      return {};
+    }
+
     const serializedUser = localStorage.getItem("user");
     if (serializedUser) {
       const user = JSON.parse(serializedUser);
@@ -21,7 +31,10 @@ const loadPersistedState = (): Partial<UserState> => {
       };
     }
   } catch (error) {
-    console.warn("Error loading persisted user state:", error);
+    console.warn("[UserSlice] Error loading persisted user state:", error);
+    // Clear everything on error
+    localStorage.removeItem("user");
+    tokenManager.clearTokens();
   }
   return {};
 };

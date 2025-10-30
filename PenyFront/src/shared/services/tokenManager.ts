@@ -60,7 +60,7 @@ class TokenManager {
           
           if (!hasRefresh && !hasAccess) {
             console.warn('[TokenManager] Tokens cleared in another tab, redirecting to login');
-            window.location.href = '/login';
+            window.location.href = '/';
           }
         }
       }
@@ -268,6 +268,10 @@ class TokenManager {
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         this.logAction("REFRESH_FAILED", `Error: ${errorMessage}`);
+        
+        // Clear tokens on refresh failure to prevent retry loops
+        this.clearTokens();
+        
         throw error;
       } finally {
         this.refreshInProgress = false;

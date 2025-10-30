@@ -35,7 +35,7 @@ export function usePrisonerFormSteps() {
     {
       step: 5,
       label: "Tema Legal",
-      description: "Información de caso, sentencia y detención",
+      description: "Información de casos judiciales",
       icon: <Gavel size={20} />
     }
   ];
