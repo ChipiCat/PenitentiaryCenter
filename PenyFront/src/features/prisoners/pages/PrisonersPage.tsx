@@ -11,7 +11,10 @@ import { EmptyPrisonersState } from "../components/list/EmptyPrisonersState";
 import { PrisonersSearchBar } from "../components/list/PrisonersSearchBar";
 import { PrisonersFilters } from "../components/list/PrisonersFilters";
 import { PrisonersPagination } from "../components/list/PrisonersPagination";
-import type { PrisionerListItem, PrisonerBase } from "../../../shared/types/prisonerTypes";
+import type {
+  PrisionerListItem,
+  PrisonerBase,
+} from "../../../shared/types/prisonerTypes";
 import type { UserFilters } from "../../../shared/types";
 import { prisonersService } from "../../../shared/services/prisonersService";
 
@@ -38,9 +41,7 @@ export const PrisonersPage: React.FC = () => {
   const [selectedPrisoner, setSelectedPrisoner] = useState<PrisonerBase | null>(
     null
   );
-  const [prisoners, setPrisoners] = useState<
-    PrisionerListItem[]
-  >([]);
+  const [prisoners, setPrisoners] = useState<PrisionerListItem[]>([]);
   const [statistics, setStatistics] = useState<Statistics>({
     total: 0,
     activos: 0,
@@ -57,6 +58,7 @@ export const PrisonersPage: React.FC = () => {
     total: 0,
     totalPages: 0,
   });
+  const [viewType, setViewType] = useState<'table' | 'cards'>('cards');
 
   const handleCreateNew = () => {
     setSelectedPrisoner(null);
@@ -93,8 +95,8 @@ export const PrisonersPage: React.FC = () => {
         searchQuery,
         filters,
         false,
-        'admissionDate',
-        'desc'
+        "admissionDate",
+        "desc"
       );
       console.log("Datos de prisioneros cargados:", response);
       setPrisoners(response.data);
@@ -184,17 +186,16 @@ export const PrisonersPage: React.FC = () => {
   return (
     <Container size="xl" className="!mt-1">
       <Stack gap="lg">
-
-        <PrisonersHeader onCreateNew={handleCreateNew} />
+        <PrisonersHeader onCreateNew={handleCreateNew} viewType={viewType} onViewChange={setViewType} />
         <PrisonersStats statistics={statistics} />
         <PrisonersSearchBar onSearch={handleSearch} />
-        
+
         <PrisonersFilters
           filters={filters}
           onFiltersChange={handleFiltersChange}
           onClearFilters={handleClearFilters}
         />
-        
+
         {prisoners?.length === 0 && !loading ? (
           <EmptyPrisonersState onCreateNew={handleCreateNew} />
         ) : (
@@ -204,8 +205,8 @@ export const PrisonersPage: React.FC = () => {
               onViewProfile={handleViewProfile}
               onEdit={handleEdit}
               loading={loading}
+              viewType={viewType === 'cards' ? 'card' : 'table'}
             />
-            
             <PrisonersPagination
               currentPage={pagination.page}
               totalPages={pagination.totalPages}
