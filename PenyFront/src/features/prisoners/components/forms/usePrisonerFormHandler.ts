@@ -284,7 +284,7 @@ export function usePrisonerFormHandlers({
           status: formData.status
         };
 
-        await prisonersService.updatePrisoner(prisonerId, prisonerData);
+        await prisonersService.updatePrisoner(prisonerId, prisonerData as any);
         
         notifications.show({
           title: 'Prisionero actualizado',

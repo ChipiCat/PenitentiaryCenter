@@ -32,13 +32,13 @@ const PrisonerCard: React.FC<PrisonerCardProps> = ({ prisoner, onViewProfile, on
           size={64}
           radius={80}
           src={prisoner.identity?.photo_file?.url || undefined}
-          style={{ border: '2px solid var(--mantine-color-blue-6)' }}
+        
         >
           {prisoner.identity?.first_name?.charAt(0) || "S"}
           {prisoner.identity?.surname?.charAt(0) || "N"}
         </Avatar>
         <Stack gap={4} style={{ minWidth: 0, flex: 1 }}>
-          <Text size="lg" fw={700} lineClamp={1}>
+          <Text size="md" fw={700} lineClamp={2}>
             {prisoner.identity?.first_name || "Sin nombre"} {prisoner.identity?.surname || ""}
           </Text>
           <Group gap={6} mt={2}>
@@ -84,7 +84,7 @@ const PrisonerCard: React.FC<PrisonerCardProps> = ({ prisoner, onViewProfile, on
             </Text>
           </Group>
         )}
-        
+
         {prisoner.penitentiary && (
           <Group gap="xs" wrap="nowrap">
             {prisoner.penitentiary.building_number && (
@@ -117,7 +117,7 @@ const PrisonerCard: React.FC<PrisonerCardProps> = ({ prisoner, onViewProfile, on
           </Text>
         )}
       </Stack>
-  <Group gap="xs"  style={{ marginTop: 'auto' }}>
+      <Group gap="xs" style={{ marginTop: 'auto' }}>
         <Button
           size="xs"
           variant="light"
@@ -128,7 +128,7 @@ const PrisonerCard: React.FC<PrisonerCardProps> = ({ prisoner, onViewProfile, on
         >
           Ver Perfil
         </Button>
-        
+
         <Tooltip label="Editar prisionero">
           <ActionIcon
             variant="outline"

@@ -59,15 +59,12 @@ export interface CreatePrisonerData {
 }
 
 export interface UpdatePrisonerData {
-  registration_number?: string;
-  admission_date?: string;
-  fiscal_file_number?: string;
-  status?: string;
-
-  personal?: Personal;
-  penitentiary?: Penitentiary;
-  contacts?: Contact[];
+  
+  registration_number: string;
+  fiscal_file_number: string,
+  status:  'Activo' | 'Trasladado' | 'Liberado' | 'Archivado';
 }
+
 
 export interface GetPrisonersParams extends PaginationParams {
   status?: string;
