@@ -17,23 +17,23 @@ export const PrisonersStats: React.FC<PrisonersStatsProps> = ({ statistics }) =>
   return (
     <Group grow>
       <Card withBorder padding="md">
-        <Group justify="space-between">
-          <div>
+         <div className=" flex flex-col justify-between gap-1">
+          
             <Text size="sm" c="dimmed">
-              Total Prisioneros
+              Total 
             </Text>
             <Text size="xl" fw={700} c="blue">
               {statistics.total}
             </Text>
-          </div>
+          
           <Badge color="blue" variant="light">
             Total
           </Badge>
-        </Group>
+        </div>
       </Card>
 
       <Card withBorder padding="md">
-        <Group justify="space-between">
+        <div className=" flex flex-col justify-between gap-1">
           <div>
             <Text size="sm" c="dimmed">
               Activos
@@ -45,55 +45,53 @@ export const PrisonersStats: React.FC<PrisonersStatsProps> = ({ statistics }) =>
           <Badge color="green" variant="light">
             Activo
           </Badge>
-        </Group>
+        </div>
       </Card>
 
       <Card withBorder padding="md">
-        <Group justify="space-between">
-          <div>
-            <Text size="sm" c="dimmed">
-              Trasladados
-            </Text>
-            <Text size="xl" fw={700} c="orange">
-              {statistics.trasladados}
-            </Text>
-          </div>
+        <div className=" flex flex-col justify-between gap-1">
+          <Text size="sm" c="dimmed">
+            Trasladados
+          </Text>
+          <Text size="xl" fw={700} c="orange">
+            {statistics.trasladados}
+          </Text>
+
           <Badge color="orange" variant="light">
             Trasladado
           </Badge>
-        </Group>
+        </div>
       </Card>
 
       <Card withBorder padding="md">
-        <Group justify="space-between">
-          <div>
-            <Text size="sm" c="dimmed">
-              Liberados
-            </Text>
-            <Text size="xl" fw={700} c="teal">
+         <div className=" flex flex-col justify-between gap-1">
+          <Text size="sm" c="dimmed">
+            Liberados
+          </Text>
+          <Text size="xl" fw={700} c="teal">
               {statistics.liberados}
             </Text>
-          </div>
+          
           <Badge color="teal" variant="light">
             Liberado
           </Badge>
-        </Group>
+        </div>
       </Card>
 
       <Card withBorder padding="md">
-        <Group justify="space-between">
-          <div>
+        <div className=" flex flex-col justify-between gap-1">
+          
             <Text size="sm" c="dimmed">
               Archivados
             </Text>
             <Text size="xl" fw={700} c="gray">
               {statistics.archivados}
             </Text>
-          </div>
+          
           <Badge color="gray" variant="light">
             Archivado
           </Badge>
-        </Group>
+        </div>
       </Card>
     </Group>
   );

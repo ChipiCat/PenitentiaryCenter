@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
@@ -15,6 +16,11 @@ import { AuditMetadataInterceptor } from './common/interceptors/audit-metadata.i
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 300, // 5 minutos en segundos
+      max: 100, // máximo 100 items en cache
     }),
     PrismaModule,
     AuthModule, // AuthModule debe ir ANTES que AuditModule

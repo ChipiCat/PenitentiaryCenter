@@ -39,7 +39,18 @@ export const PrisonersHeader: React.FC<PrisonersHeaderProps> = ({ onCreateNew, v
                 label: (
                   <Group gap={6} align="center" style={{ flexWrap: 'nowrap' }}>
                     <Table size={20} color={viewType === 'table' ? '#fff' : '#868e96'} />
-                    <span style={{ fontWeight: 500, color: viewType === 'table' ? '#fff' : '#868e96', lineHeight: '1', display: 'inline-block', fontSize: 16 }}>Tabla</span>
+                    <span
+                      style={{
+                        fontWeight: 500,
+                        color: viewType === 'table' ? '#fff' : '#868e96',
+                        lineHeight: '1',
+                        display: 'inline-block',
+                        fontSize: 16,
+                        transition: 'color 0.2s',
+                      }}
+                    >
+                      Tabla
+                    </span>
                   </Group>
                 ),
               },
@@ -48,7 +59,18 @@ export const PrisonersHeader: React.FC<PrisonersHeaderProps> = ({ onCreateNew, v
                 label: (
                   <Group gap={6} align="center" style={{ flexWrap: 'nowrap' }}>
                     <LayoutGrid size={20} color={viewType === 'cards' ? '#fff' : '#868e96'} />
-                    <span style={{ fontWeight: 500, color: viewType === 'cards' ? '#fff' : '#868e96', lineHeight: '1', display: 'inline-block', fontSize: 16 }}>Tarjetas</span>
+                    <span
+                      style={{
+                        fontWeight: 500,
+                        color: viewType === 'cards' ? '#fff' : '#868e96',
+                        lineHeight: '1',
+                        display: 'inline-block',
+                        fontSize: 16,
+                        transition: 'color 0.2s',
+                      }}
+                    >
+                      Tarjetas
+                    </span>
                   </Group>
                 ),
               },
@@ -57,9 +79,23 @@ export const PrisonersHeader: React.FC<PrisonersHeaderProps> = ({ onCreateNew, v
             radius="md"
             color="blue"
             styles={{
-              root: { background: '#fff', borderRadius: 12, boxShadow: 'none', border: 'none', padding: 2 },
-              indicator: { background: '#2563eb', borderRadius: 8, boxShadow: 'none' },
-              control: { fontWeight: 500, padding: '0 18px', minWidth: 110, background: 'transparent', color: '#868e96' },
+
+              root: { background: '#fff', borderRadius: 12, boxShadow: 'none', border: '1px solid #2563eb', padding: 2},
+              indicator: {
+                background: 'linear-gradient(45deg, #2563eb, #06b6d4)',
+                borderRadius: 8,
+                boxShadow: 'none',
+              },
+              control: {
+                fontWeight: 500,
+                padding: '1px 1px',
+                minWidth: 110,
+                background: 'transparent',
+                color: '#868e96',
+                '&[data-active]': {
+                  color: '#fff',
+                },
+              },
             }}
           />
         </Group>
