@@ -23,19 +23,54 @@ export const FormStepper: React.FC<FormStepperProps> = ({
   return (
     <>
       <Box visibleFrom="md">
-        <Stepper
-          active={activeStep}
-          size="sm"
-          radius="lg"
-          allowNextStepsSelect={false}
-        >
-          {steps.map((step) => (
-            <Stepper.Step
-              key={step.step}
-              label={step.label}
-              description={step.description}
-              icon={
-                activeStep > step.step ? (
+        <Box style={{ overflowX: 'auto', paddingBottom: 8 }}>
+          <Stepper
+            active={activeStep}
+            size="sm"
+            radius="lg"
+            allowNextStepsSelect={false}
+            styles={{
+              step: { 
+                minWidth: 180, 
+                flexShrink: 0 
+              },
+              stepLabel: { 
+                fontSize: 16, 
+                fontWeight: 500,
+                whiteSpace: 'nowrap'
+              },
+              stepDescription: { 
+                fontSize: 12,
+                whiteSpace: 'nowrap'
+              }
+            }}
+          >
+            {steps.map((step) => (
+              <Stepper.Step
+                key={step.step}
+                label={step.label}
+                description={step.description}
+                icon={
+                  activeStep > step.step ? (
+                    <span
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "#228be6",
+                        borderRadius: "50%",
+                        width: 32,
+                        height: 32,
+                      }}
+                    >
+                      <Check size={18} color="white" />
+                    </span>
+                  ) : (
+                    step.icon
+                  )
+                }
+                color={activeStep >= step.step ? "blue" : "gray"}
+                completedIcon={
                   <span
                     style={{
                       display: "flex",
@@ -49,29 +84,11 @@ export const FormStepper: React.FC<FormStepperProps> = ({
                   >
                     <Check size={18} color="white" />
                   </span>
-                ) : (
-                  step.icon
-                )
-              }
-              color={activeStep >= step.step ? "blue" : "gray"}
-              completedIcon={
-                <span
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: "#228be6",
-                    borderRadius: "50%",
-                    width: 32,
-                    height: 32,
-                  }}
-                >
-                  <Check size={18} color="white" />
-                </span>
-              }
-            />
-          ))}
-        </Stepper>
+                }
+              />
+            ))}
+          </Stepper>
+        </Box>
       </Box>
 
       <Stack gap="sm" hiddenFrom="md">

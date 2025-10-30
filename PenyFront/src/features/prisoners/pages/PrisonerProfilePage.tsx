@@ -70,7 +70,7 @@ export const PrisonerProfilePage: React.FC = () => {
   };
 
   if (loading) {
-    return <LoadingState message="Cargando perfil del prisionero..." />;
+    return <LoadingState  />;
   }
 
   if (error || !profile) {

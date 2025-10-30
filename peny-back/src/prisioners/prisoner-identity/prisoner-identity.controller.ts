@@ -10,6 +10,7 @@ import {
   UploadedFile,
   BadRequestException,
 } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import {
   ApiTags,
   ApiOperation,
@@ -35,6 +36,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 @ApiTags('Prisoner Identity')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@UseInterceptors(CacheInterceptor)
 @Controller('prisoners/:prisonerId/identity')
 export class IdentityController {
   constructor(private readonly identityService: IdentityService) {}

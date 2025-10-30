@@ -1,4 +1,4 @@
-import { Card, Group, Avatar, Text, Badge, ActionIcon, Tooltip, Stack } from '@mantine/core';
+import { Card, Group, Avatar, Text, Badge, ActionIcon, Tooltip, Stack, Button } from '@mantine/core';
 import { FileText, Calendar, MapPin, Users, Eye, Edit } from 'lucide-react';
 import type { PrisionerListItem, PrisonerBase } from '../../../../shared/types';
 
@@ -26,10 +26,10 @@ const PrisonerCard: React.FC<PrisonerCardProps> = ({ prisoner, onViewProfile, on
     return colors[status] || 'gray';
   };
   return (
-    <Card withBorder shadow="lg" radius="lg" padding="xl" style={{ background: 'var(--mantine-color-body)', minHeight: 220 }}>
+    <Card withBorder shadow="lg" radius="lg" padding="md" style={{ background: 'var(--mantine-color-body)', minHeight: 350 }}>
       <Group gap="md" wrap="nowrap" align="flex-start">
         <Avatar
-          size={70}
+          size={64}
           radius={80}
           src={prisoner.identity?.photo_file?.url || undefined}
           style={{ border: '2px solid var(--mantine-color-blue-6)' }}
@@ -51,22 +51,24 @@ const PrisonerCard: React.FC<PrisonerCardProps> = ({ prisoner, onViewProfile, on
               </Badge>
             )}
           </Group>
+        </Stack>
+      </Group>
+      <Stack gap={4} mt={12}>
+        <Group gap="xs" mt={2}>
+          <FileText size={16} style={{ color: 'var(--mantine-color-dimmed)' }} />
+          <Text size="sm" c="dimmed" lineClamp={1}>
+            Reg: {prisoner.prisoner.registration_number}
+          </Text>
+        </Group>
+        {prisoner.prisoner.fiscal_file_number && (
           <Group gap="xs" mt={2}>
             <FileText size={16} style={{ color: 'var(--mantine-color-dimmed)' }} />
             <Text size="sm" c="dimmed" lineClamp={1}>
-              Reg: {prisoner.prisoner.registration_number}
+              Exp: {prisoner.prisoner.fiscal_file_number}
             </Text>
           </Group>
-          {prisoner.prisoner.fiscal_file_number && (
-            <Group gap="xs" mt={2}>
-              <FileText size={16} style={{ color: 'var(--mantine-color-dimmed)' }} />
-              <Text size="sm" c="dimmed" lineClamp={1}>
-                Exp: {prisoner.prisoner.fiscal_file_number}
-              </Text>
-            </Group>
-          )}
-        </Stack>
-      </Group>
+        )}
+      </Stack>
       <Stack gap={8} mt={12} style={{ borderTop: '1px solid #eee', paddingTop: 10 }}>
         <Group gap="xs" wrap="nowrap">
           <Calendar size={16} style={{ color: 'var(--mantine-color-blue-6)', flexShrink: 0 }} />
@@ -78,18 +80,11 @@ const PrisonerCard: React.FC<PrisonerCardProps> = ({ prisoner, onViewProfile, on
           <Group gap="xs" wrap="nowrap">
             <Users size={16} style={{ color: 'var(--mantine-color-blue-6)', flexShrink: 0 }} />
             <Text size="sm" lineClamp={1}>
-              Nacionalidad: {prisoner.identity.nationality}
+              {prisoner.identity.nationality}
             </Text>
           </Group>
         )}
-        {prisoner.identity?.residence && (
-          <Group gap="xs" wrap="nowrap">
-            <MapPin size={16} style={{ color: 'var(--mantine-color-blue-6)', flexShrink: 0 }} />
-            <Text size="sm" lineClamp={1}>
-              Residencia: {prisoner.identity.residence}
-            </Text>
-          </Group>
-        )}
+        
         {prisoner.penitentiary && (
           <Group gap="xs" wrap="nowrap">
             {prisoner.penitentiary.building_number && (
@@ -122,21 +117,21 @@ const PrisonerCard: React.FC<PrisonerCardProps> = ({ prisoner, onViewProfile, on
           </Text>
         )}
       </Stack>
-      <Group gap="xs" mt={16} justify="flex-end">
-        <Tooltip label="Ver perfil completo">
-          <ActionIcon
-            variant="filled"
-            size="lg"
-            onClick={() => onViewProfile(prisoner.prisoner)}
-            color="blue"
-            radius="xl"
-          >
-            <Eye size={20} />
-          </ActionIcon>
-        </Tooltip>
+  <Group gap="xs"  style={{ marginTop: 'auto' }}>
+        <Button
+          size="xs"
+          variant="light"
+          color="blue"
+          onClick={() => onViewProfile(prisoner.prisoner)}
+          leftSection={<Eye size={16} />}
+          flex={1}
+        >
+          Ver Perfil
+        </Button>
+        
         <Tooltip label="Editar prisionero">
           <ActionIcon
-            variant="filled"
+            variant="outline"
             size="lg"
             onClick={() => onEdit(prisoner.prisoner)}
             color="gray"
