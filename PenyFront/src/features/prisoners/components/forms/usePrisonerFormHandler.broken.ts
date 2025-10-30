@@ -353,8 +353,10 @@ export function usePrisonerFormHandlers({
       if (formData.child && formData.child.length > 0) {
         for (const child of formData.child) {
           const childData = {
-            full_name: (child as any).full_name || (child as any).name || '',
-            birth_date: child.birth_date || ''
+            full_name: child.full_name || '',
+            birth_date: child.birth_date || '',
+            gender: child.gender as "Masculino" | "Femenino",
+            relationship: child.relationship || ''
           };
           await childrenService.createChild(prisonerId, childData);
         }
@@ -378,22 +380,23 @@ export function usePrisonerFormHandlers({
       });
 
       // PASO 6: Guardar examen médico
-      if (formData.medical_record && Array.isArray(formData.medical_record) && formData.medical_record.length > 0) {
-        const record = formData.medical_record[0];
+      if (formData.medical_record) {
         const medicalData = {
-          doctor_name: (record as any).doctor_name || 'No especificado',
-          examination_date: (record as any).examination_date || new Date().toISOString().split('T')[0],
-          reference_number: (record as any).reference_number,
-          notes: (record as any).notes
+          blood_type: formData.medical_record.blood_type || '',
+          allergies: formData.medical_record.allergies,
+          chronic_diseases: formData.medical_record.chronic_diseases,
+          current_medications: formData.medical_record.current_medications,
+          height: formData.medical_record.height,
+          weight: formData.medical_record.weight,
+          distinguishing_marks: formData.medical_record.distinguishing_marks,
+          disabilities: formData.medical_record.disabilities,
+          vaccination_status: formData.medical_record.vaccination_status
         };
 
         if (mode === 'create') {
           await medicalRecordsService.createMedicalRecord(prisonerId, medicalData);
         } else {
-          const recordId = (record as any).id || '';
-          if (recordId) {
-            await medicalRecordsService.updateMedicalRecord(prisonerId, recordId, medicalData as any);
-          }
+          await medicalRecordsService.updateMedicalRecord(prisonerId, medicalData);
         }
         
         notifications.show({
@@ -409,13 +412,14 @@ export function usePrisonerFormHandlers({
           building_number: formData.penitentiary.building_number,
           cell_number: formData.penitentiary.cell_number,
           bed_number: formData.penitentiary.bed_number,
-          category: formData.penitentiary.category as "DerechoComun" | "PrisionPreventiva" | "PrisioneroAcusado" | undefined
+          category: formData.penitentiary.category,
+          behavior_notes: formData.penitentiary.behavior_notes
         };
 
         if (mode === 'create') {
           await penitentiaryService.createPenitentiary(prisonerId, penitentiaryData);
         } else {
-          await penitentiaryService.updatePenitentiary(prisonerId, penitentiaryData as any);
+          await penitentiaryService.updatePenitentiary(prisonerId, penitentiaryData);
         }
         
         notifications.show({
@@ -432,7 +436,8 @@ export function usePrisonerFormHandlers({
             name: contact.name || '',
             phone: contact.phone || '',
             relationship: contact.relationship || '',
-            address: contact.address
+            address: contact.address,
+            is_emergency_contact: contact.is_emergency_contact || false
           };
           await contactsService.createContact(prisonerId, contactData);
         }
@@ -450,13 +455,15 @@ export function usePrisonerFormHandlers({
           const casePayload = {
             case_number: caseData.case_number || '',
             crime: caseData.crime || '',
-            status: caseData.status || 'EnProceso',
+            status: caseData.status || 'Activo',
             start_date: caseData.start_date || '',
             end_date: caseData.end_date,
             court_name: caseData.court_name || '',
             judge_name: caseData.judge_name || '',
+            prosecutor_name: caseData.prosecutor_name,
             sentence_years: caseData.sentence_years || 0,
-            remarks: caseData.remarks
+            sentence_months: caseData.sentence_months || 0,
+            sentence_days: caseData.sentence_days || 0
           };
 
           const createdCase = await casesService.createCase(prisonerId, casePayload);
@@ -465,13 +472,15 @@ export function usePrisonerFormHandlers({
           if (caseData.mandates && caseData.mandates.length > 0 && createdCase.id) {
             for (const mandate of caseData.mandates) {
               const mandatePayload = {
-                type: mandate.type || 'Detencion',
+                type: mandate.type || 'Captura',
                 issue_date: mandate.issue_date || '',
+                expiration_date: mandate.expiration_date,
                 status: mandate.status || 'Vigente',
-                description: mandate.description
+                issuing_authority: mandate.issuing_authority || '',
+                notes: mandate.notes
               };
 
-              await mandatesService.createMandate(createdCase.id, mandatePayload);
+              await mandatesService.createMandate(prisonerId, createdCase.id, mandatePayload);
             }
           }
         }
@@ -491,7 +500,7 @@ export function usePrisonerFormHandlers({
       });
 
       // Obtener el prisionero completo para el callback
-      const prisoner = await prisonersService.getPrisoner(prisonerId);
+      const prisoner = await prisonersService.getPrisonerById(prisonerId);
       
       onSuccess?.({
         prisoner,
