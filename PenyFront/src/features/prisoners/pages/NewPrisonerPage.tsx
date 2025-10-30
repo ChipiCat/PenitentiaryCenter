@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { PrisonerFormWizard } from "../components/forms/PrisonerFormWizard";
 import { ROUTES } from "../../../shared/config/routes";
 import type { PrisonerBase } from "../../../shared/types/prisonerTypes";
+import { PageHeader } from "../../../shared/components/PageHeader";
 
 export const NewPrisonerPage: React.FC = () => {
   const navigate = useNavigate();
@@ -22,10 +23,20 @@ export const NewPrisonerPage: React.FC = () => {
   };
 
   return (
-    <PrisonerFormWizard
-      mode="create"
-      onSuccess={handleSuccess}
-      onCancel={handleCancel}
-    />
+    <div className="w-full flex items-center justify-center">
+    <div className="max-w-[1080px] mx-auto flex flex-col w-full gap-5">
+      <PageHeader
+        title="Nuevo Prisionero"
+        subtitle="Rellena el formulario para agregar un nuevo prisionero"
+        icon={<></>}
+      />
+
+      <PrisonerFormWizard
+        mode="create"
+        onSuccess={handleSuccess}
+        onCancel={handleCancel}
+      />
+    </div>
+    </div>
   );
 };

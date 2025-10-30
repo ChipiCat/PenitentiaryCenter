@@ -8,6 +8,7 @@ import type { Case } from "./caseTypes";
 import type { Belonging } from "./belongingTypes";
 import type { Child } from "./childTypes";
 import type { MedicalRecord } from "./medicalRecordTypes";
+import type { CaseFormData } from "./forms/legalCaseFormTypes";
 
 export interface PrisonerBase extends Entity {
   registration_number: string;
@@ -30,7 +31,7 @@ export interface CreatePrisonerData {
     birth_date?: Date | string;
     birth_place?: string;
     residence?: string;
-    citizenship_type?: string;
+    citizenship_type?: "Local" | "CiudadanoNacional" | "CiudadanoExtranjero";
     country_of_origin?: string;
     nationality_type?: string;
     nationality?: string;
@@ -53,17 +54,8 @@ export interface CreatePrisonerData {
   // Contactos (Paso 4)
   contacts?: Partial<Contact>[];
   
-  // Datos legales (Paso 5)
-  legal?: {
-    case_number?: string;
-    case_type?: string;
-    court?: string;
-    judge?: string;
-    status?: string;
-    start_date?: string;
-    end_date?: string;
-    description?: string;
-  };
+  // Casos legales con sus mandatos (Paso 5)
+  cases?: CaseFormData[];
 }
 
 export interface UpdatePrisonerData {

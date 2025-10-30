@@ -3,7 +3,6 @@ import {
   Paper,
   Title,
   Text,
-  Loader,
   Tooltip,
   Timeline,
   Group,
@@ -19,6 +18,7 @@ import {
   actionLabels,
   moduleLabels,
 } from "../../../shared/utils/activityLogUtils";
+import { Loading } from "../../../shared/components/Loading";
 
 interface Activity {
   id: string;
@@ -59,8 +59,8 @@ const RecentActivityCard = () => {
     return traducirDescripcion(desc);
   }
 
-  if (!user?.id) return <Loader />;
-  if (loading) return <Loader />;
+  if (!user?.id) return <Loading />;
+  if (loading) return <div className=" w-full h-full flex items-center justify-center"><Loading /></div>;
   if (error || !stats)
     return <Text c="red">{error || "Error al cargar datos"}</Text>;
 

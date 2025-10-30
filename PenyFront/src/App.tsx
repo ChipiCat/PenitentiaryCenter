@@ -53,7 +53,7 @@ function App() {
             </ProtectedRoute>
           } />
           
-          {/* ✅ RUTA PRINCIPAL DE PRISONERS - Maneja lista y formularios */}
+        
           <Route path={ROUTES.PRISONERS} element={
             <ProtectedRoute>
               <MainLayout>

@@ -9,6 +9,8 @@ import { belongingsService } from '../../../../shared/services/belongingsService
 import { medicalRecordsService } from '../../../../shared/services/medicalRecordsService';
 import { penitentiaryService } from '../../../../shared/services/penitentiaryService';
 import { contactsService } from '../../../../shared/services/contactsService';
+import { casesService } from '../../../../shared/services/casesService';
+import { mandatesService } from '../../../../shared/services/mandatesService';
 import type { CreatePrisonerData, PrisonerBase } from '../../../../shared/types';
 
 interface PrisonerFormWizardProps {
@@ -188,6 +190,50 @@ export function usePrisonerFormHandlers({
           newErrors[`contact.${index}.phone`] = 'El teléfono es requerido';
         }
       });
+    }
+
+    // Validar paso 5: Casos y mandatos
+    if (step === 5) {
+      if (!formData.cases || formData.cases.length === 0) {
+        newErrors.cases = 'Debe agregar al menos un caso judicial';
+      } else {
+        formData.cases.forEach((caseData, caseIndex) => {
+          if (!caseData.case_number?.trim()) {
+            newErrors[`cases.${caseIndex}.case_number`] = 'El número de caso es requerido';
+          }
+          if (!caseData.crime?.trim()) {
+            newErrors[`cases.${caseIndex}.crime`] = 'El delito es requerido';
+          }
+          if (!caseData.status) {
+            newErrors[`cases.${caseIndex}.status`] = 'El estado del caso es requerido';
+          }
+          if (!caseData.start_date) {
+            newErrors[`cases.${caseIndex}.start_date`] = 'La fecha de inicio es requerida';
+          }
+          if (!caseData.court_name?.trim()) {
+            newErrors[`cases.${caseIndex}.court_name`] = 'El nombre del juzgado es requerido';
+          }
+          if (!caseData.judge_name?.trim()) {
+            newErrors[`cases.${caseIndex}.judge_name`] = 'El nombre del juez es requerido';
+          }
+          if (caseData.sentence_years === undefined || caseData.sentence_years < 0) {
+            newErrors[`cases.${caseIndex}.sentence_years`] = 'Los años de sentencia son requeridos';
+          }
+
+          // Validar mandatos del caso
+          caseData.mandates?.forEach((mandate, mandateIndex) => {
+            if (!mandate.type) {
+              newErrors[`cases.${caseIndex}.mandates.${mandateIndex}.type`] = 'El tipo de mandato es requerido';
+            }
+            if (!mandate.issue_date) {
+              newErrors[`cases.${caseIndex}.mandates.${mandateIndex}.issue_date`] = 'La fecha de emisión es requerida';
+            }
+            if (!mandate.status) {
+              newErrors[`cases.${caseIndex}.mandates.${mandateIndex}.status`] = 'El estado es requerido';
+            }
+          });
+        });
+      }
     }
 
     return {
@@ -711,6 +757,119 @@ export function usePrisonerFormHandlers({
   }, [formData, formState.prisonerId]);
 
   /**
+   * Guarda los casos legales y sus mandatos (Paso 5)
+   */
+  const saveCasesStep = useCallback(async (): Promise<{ success: boolean }> => {
+    if (!formState.prisonerId) {
+      notifications.show({
+        title: 'Error',
+        message: 'No se encontró el ID del prisionero',
+        color: 'red'
+      });
+      return { success: false };
+    }
+
+    try {
+      setIsSubmitting(true);
+      const prisonerId = formState.prisonerId;
+
+      // Guardar casos
+      if (formData.cases && formData.cases.length > 0) {
+        let casesCreated = 0;
+        let mandatesCreated = 0;
+
+        for (const caseData of formData.cases) {
+          // Validar datos mínimos del caso
+          if (!caseData.case_number?.trim() || !caseData.crime?.trim()) {
+            continue;
+          }
+
+          try {
+            // Crear el caso sin los mandatos
+            const { mandates, tempId, ...caseToCreate } = caseData;
+            const createdCase = await casesService.createCase(prisonerId, caseToCreate);
+            casesCreated++;
+
+            // Crear los mandatos del caso
+            if (mandates && mandates.length > 0) {
+              for (const mandateData of mandates) {
+                // Validar datos mínimos del mandato
+                if (!mandateData.type || !mandateData.issue_date) {
+                  continue;
+                }
+
+                try {
+                  // Crear mandato sin el archivo
+                  const { file, tempId: mandateTempId, ...mandateToCreate } = mandateData;
+                  const createdMandate = await mandatesService.createMandate(
+                    createdCase.id,
+                    mandateToCreate
+                  );
+                  mandatesCreated++;
+
+                  // Subir archivo si existe
+                  if (file) {
+                    try {
+                      await mandatesService.uploadMandateFile(createdMandate.id, file);
+                    } catch (error) {
+                      console.error('Error al subir archivo del mandato:', error);
+                      notifications.show({
+                        title: 'Advertencia',
+                        message: 'El mandato se creó pero hubo un error al subir el archivo',
+                        color: 'orange'
+                      });
+                    }
+                  }
+                } catch (error) {
+                  console.error('Error al crear mandato:', error);
+                  notifications.show({
+                    title: 'Error al guardar mandato',
+                    message: `No se pudo crear un mandato del caso: ${caseData.case_number}`,
+                    color: 'orange'
+                  });
+                }
+              }
+            }
+          } catch (error: unknown) {
+            console.error('Error al crear caso:', error);
+            notifications.show({
+              title: 'Error al guardar caso',
+              message: `No se pudo guardar el caso: ${caseData.case_number}`,
+              color: 'orange'
+            });
+          }
+        }
+
+        if (casesCreated > 0) {
+          notifications.show({
+            title: 'Casos guardados',
+            message: `Se guardaron ${casesCreated} caso(s) y ${mandatesCreated} mandato(s) correctamente`,
+            color: 'green'
+          });
+        }
+      }
+
+      // Marcar paso como guardado
+      setFormState(prev => ({
+        ...prev,
+        savedSteps: new Set([...prev.savedSteps, 5])
+      }));
+
+      return { success: true };
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : 'Ocurrió un error al guardar los casos';
+      notifications.show({
+        title: 'Error al guardar',
+        message: errMsg,
+        color: 'red'
+      });
+      return { success: false };
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [formData.cases, formState.prisonerId]);
+
+  /**
    * Actualiza los datos del formulario (optimizado)
    */
   const handleDataUpdate = useCallback((updates: Partial<CreatePrisonerData>) => {
@@ -826,10 +985,19 @@ export function usePrisonerFormHandlers({
       }
     }
 
+    // Si es el paso 5, guardar casos y mandatos
+    if (activeStep === 5) {
+      const result = await saveCasesStep();
+      
+      if (!result.success) {
+        return; // No avanzar si falla el guardado
+      }
+    }
+
     // Avanzar al siguiente paso
     setActiveStep(prev => Math.min(prev + 1, steps.length - 1));
     setErrors({});
-  }, [activeStep, validateStep, saveBasicInfoStep, savePersonalInfoStep, saveMedicalStep, savePenitentiaryStep, saveContactsStep, formState.prisonerId, steps.length]);
+  }, [activeStep, validateStep, saveBasicInfoStep, savePersonalInfoStep, saveMedicalStep, savePenitentiaryStep, saveContactsStep, saveCasesStep, formState.prisonerId, steps.length]);
 
   /**
    * Maneja el botón "Anterior"
@@ -869,7 +1037,13 @@ export function usePrisonerFormHandlers({
     try {
       setIsSubmitting(true);
 
-      // TODO: Guardar datos del último paso si es necesario
+      // Si estamos en el paso 5 (casos), guardar antes de finalizar
+      if (activeStep === 5 && !formState.savedSteps.has(5)) {
+        const result = await saveCasesStep();
+        if (!result.success) {
+          return;
+        }
+      }
 
       notifications.show({
         title: 'Registro completado',
@@ -894,7 +1068,7 @@ export function usePrisonerFormHandlers({
     } finally {
       setIsSubmitting(false);
     }
-  }, [activeStep, formState, onSuccess, validateStep]);
+  }, [activeStep, formState, onSuccess, validateStep, saveCasesStep]);
 
   return {
     formData,

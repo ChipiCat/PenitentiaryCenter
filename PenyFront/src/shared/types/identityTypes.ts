@@ -9,7 +9,7 @@ export interface Identity extends Entity {
   birth_date?: string;
   birth_place?: string;
   residence?: string;
-  citizenship_type?: string;
+  citizenship_type?: "Local" | "CiudadanoNacional" | "CiudadanoExtranjero" ;
   country_of_origin?: string;
   nationality?: string;
   photo_file_id?: string;

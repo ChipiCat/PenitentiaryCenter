@@ -5,7 +5,6 @@ import {
   Stack,
   Divider,
   Alert,
-  LoadingOverlay,
 } from "@mantine/core";
 import { AlertCircle } from "lucide-react";
 import { FormStepper } from "./FormStepper";
@@ -21,6 +20,7 @@ import type {
   PrisonerBase,
 } from "../../../../shared/types/prisonerTypes";
 import { usePrisonerFormHandlers } from "./usePrisonerFormHandler";
+import { Loading } from "../../../../shared/components/Loading";
 
 interface PrisonerFormWizardProps {
   mode?: "create" | "edit";
@@ -115,19 +115,8 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
       case 5:
         return (
           <LegalCaseStep
-            data={{
-              initialCase: {
-                case_number: formData.legal?.case_number ?? "",
-                case_type: formData.legal?.case_type ?? "",
-                court: formData.legal?.court ?? "",
-                judge: formData.legal?.judge ?? "",
-                status: formData.legal?.status ?? "",
-                start_date: formData.legal?.start_date ?? "",
-                end_date: formData.legal?.end_date ?? "",
-                description: formData.legal?.description ?? "",
-              }
-            }}
-            onUpdate={(updates) => handleDataUpdate({ legal: updates.initialCase })}
+            data={{ cases: formData.cases || [] }}
+            onUpdate={(updates) => handleDataUpdate({ cases: updates.cases })}
             errors={errors}
           />
         );
@@ -137,9 +126,14 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
   }, [activeStep, formData, errors, handleDataUpdate, handleFileUpdate]);
 
   return (
-    <Container size="lg">
-      <Card withBorder padding="xl" pos="relative">
-        <LoadingOverlay visible={isSubmitting} overlayProps={{ blur: 2 }} />
+    <Container size="lg" className="!p-0">
+      <Card withBorder  pos="relative">
+        {isSubmitting && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm">
+            <Loading />
+          </div>
+        )}
+        
         <Stack gap="md" mb="xl">
           <FormStepper activeStep={activeStep} steps={steps} />
         </Stack>

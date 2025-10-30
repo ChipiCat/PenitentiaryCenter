@@ -1,14 +1,12 @@
-import React from "react";
-import { TextInput, Group, Stack, Title, Card, Text } from "@mantine/core";
-import { DatePickerInput } from "@mantine/dates";
-import type { CreateCaseData } from "../../../../shared/types/caseTypes";
-import { BelongingDropzone } from "../../../../shared/components/BelongingDropzone";
-
-type InitialCase = CreateCaseData;
+import React, { useCallback } from "react";
+import { Stack, Title, Card, Text, Button, Group } from "@mantine/core";
+import { Plus } from "lucide-react";
+import { CaseCard } from "./CaseCard";
+import type { CaseFormData, MandateFormData } from "../../../../shared/types/forms/legalCaseFormTypes";
 
 interface LegalCaseStepProps {
-  data: { initialCase?: InitialCase };
-  onUpdate: (updates: { initialCase?: InitialCase }) => void;
+  data: { cases: CaseFormData[] };
+  onUpdate: (updates: { cases: CaseFormData[] }) => void;
   errors?: Record<string, string>;
 }
 
@@ -17,116 +15,129 @@ export const LegalCaseStep: React.FC<LegalCaseStepProps> = ({
   onUpdate,
   errors = {},
 }) => {
-  const handleInitialCaseChange = (
-    field: keyof InitialCase,
-    value: string | Date | undefined
-  ) => {
-    let newValue = value;
-    if (typeof value === "undefined") newValue = "";
-    if (value instanceof Date) newValue = value.toISOString().slice(0, 10);
-    const current = (data.initialCase || {}) as Partial<InitialCase>;
-    const fullCase: InitialCase = {
-      case_number: current.case_number ?? "",
-      case_type: current.case_type ?? "",
-      court: current.court ?? "",
-      judge: current.judge ?? "",
-      status: current.status ?? "",
-      start_date: current.start_date ?? "",
-      end_date: current.end_date ?? "",
-      description: current.description ?? "",
-      attachment_url: current.attachment_url ?? "",
-      [field]: newValue,
+  const cases = data.cases || [];
+
+  const handleAddCase = useCallback(() => {
+    const newCase: CaseFormData = {
+      case_number: '',
+      crime: '',
+      status: '',
+      start_date: '',
+      end_date: '',
+      court_name: '',
+      judge_name: '',
+      sentence_years: 0,
+      remarks: '',
+      mandates: [],
+      tempId: `case_${Date.now()}_${Math.random()}`,
     };
-    onUpdate({ initialCase: fullCase });
-  };
+    onUpdate({ cases: [...cases, newCase] });
+  }, [cases, onUpdate]);
+
+  const handleRemoveCase = useCallback((index: number) => {
+    const updatedCases = cases.filter((_, i) => i !== index);
+    onUpdate({ cases: updatedCases });
+  }, [cases, onUpdate]);
+
+  const handleCaseChange = useCallback((
+    caseIndex: number,
+    field: keyof CaseFormData,
+    value: any
+  ) => {
+    const updatedCases = [...cases];
+    updatedCases[caseIndex] = {
+      ...updatedCases[caseIndex],
+      [field]: value,
+    };
+    onUpdate({ cases: updatedCases });
+  }, [cases, onUpdate]);
+
+  const handleAddMandate = useCallback((caseIndex: number) => {
+    const newMandate: MandateFormData = {
+      type: 'Detencion',
+      issue_date: '',
+      description: '',
+      status: 'Vigente',
+      tempId: `mandate_${Date.now()}_${Math.random()}`,
+    };
+    
+    const updatedCases = [...cases];
+    updatedCases[caseIndex] = {
+      ...updatedCases[caseIndex],
+      mandates: [...updatedCases[caseIndex].mandates, newMandate],
+    };
+    onUpdate({ cases: updatedCases });
+  }, [cases, onUpdate]);
+
+  const handleRemoveMandate = useCallback((caseIndex: number, mandateIndex: number) => {
+    const updatedCases = [...cases];
+    updatedCases[caseIndex] = {
+      ...updatedCases[caseIndex],
+      mandates: updatedCases[caseIndex].mandates.filter((_, i) => i !== mandateIndex),
+    };
+    onUpdate({ cases: updatedCases });
+  }, [cases, onUpdate]);
+
+  const handleMandateChange = useCallback((
+    caseIndex: number,
+    mandateIndex: number,
+    field: keyof MandateFormData,
+    value: any
+  ) => {
+    const updatedCases = [...cases];
+    const updatedMandates = [...updatedCases[caseIndex].mandates];
+    updatedMandates[mandateIndex] = {
+      ...updatedMandates[mandateIndex],
+      [field]: value,
+    };
+    updatedCases[caseIndex] = {
+      ...updatedCases[caseIndex],
+      mandates: updatedMandates,
+    };
+    onUpdate({ cases: updatedCases });
+  }, [cases, onUpdate]);
 
   return (
     <Stack gap="lg">
       <Card withBorder padding="lg">
-        <Title order={4} size="h5" mb="md">
-          Caso Judicial Principal
-        </Title>
-        <Text size="sm" c="dimmed" mb="lg">
-          Información del caso judicial principal que motivó el ingreso al
-          centro penitenciario
-        </Text>
+        <Group justify="space-between" mb="md">
+          <div>
+            <Title order={4} size="h5">
+              Casos Judiciales
+            </Title>
+            <Text size="sm" c="dimmed" mt="xs">
+              Registra los casos judiciales del interno y sus mandatos asociados
+            </Text>
+          </div>
+          <Button
+            leftSection={<Plus size={16} />}
+            onClick={handleAddCase}
+          >
+            Agregar Caso
+          </Button>
+        </Group>
 
-        <Stack gap="md">
-          <Group grow>
-            <TextInput
-              label="Número de Caso"
-              placeholder="Ej: CASO-2024-001"
-              value={data.initialCase?.case_number || ""}
-              onChange={(e) =>
-                handleInitialCaseChange("case_number", e.target.value)
-              }
-              required
-              error={errors["initialCase.case_number"]}
-              description="Número único del expediente judicial"
-            />
-            <DatePickerInput
-              label="Fecha de Inicio"
-              placeholder="Fecha del caso"
-              value={data.initialCase?.start_date || null}
-              onChange={(date) =>
-                handleInitialCaseChange("start_date", date ?? undefined)
-              }
-              error={errors["initialCase.start_date"]}
-              maxDate={new Date()}
-            />
-          </Group>
-
-          <TextInput
-            label="Delito/Causa Penal"
-            placeholder="Descripción del delito o causa"
-            value={data.initialCase?.case_type || ""}
-            onChange={(e) => handleInitialCaseChange("case_type", e.target.value)}
-            required
-            error={errors["initialCase.case_type"]}
-            description="Descripción del delito por el cual fue procesado"
-          />
-
-          <Group grow>
-            <TextInput
-              label="Nombre del Juzgado/Tribunal"
-              placeholder="Ej: Tribunal de Sentencia Penal"
-              value={data.initialCase?.court || ""}
-              onChange={(e) =>
-                handleInitialCaseChange("court", e.target.value)
-              }
-              error={errors["initialCase.court"]}
-              required
-            />
-            <TextInput
-              label="Nombre del Juez"
-              placeholder="Nombre del juez a cargo"
-              value={data.initialCase?.judge || ""}
-              onChange={(e) =>
-                handleInitialCaseChange("judge", e.target.value)
-              }
-              error={errors["initialCase.judge"]}
-              required
-            />
-          </Group>
-          <BelongingDropzone
-            onFile={(file) => {
-              const url = file ? URL.createObjectURL(file) : "";
-              const current = (data.initialCase || {}) as Partial<InitialCase>;
-              const fullCase: InitialCase = {
-                case_number: current.case_number ?? "",
-                case_type: current.case_type ?? "",
-                court: current.court ?? "",
-                judge: current.judge ?? "",
-                status: current.status ?? "",
-                start_date: current.start_date ?? "",
-                end_date: current.end_date ?? "",
-                description: current.description ?? "",
-                attachment_url: url,
-              };
-              onUpdate({ initialCase: fullCase });
-            }}
-          />
-        </Stack>
+        {cases.length === 0 ? (
+          <Text size="sm" c="dimmed" ta="center" py="xl">
+            No hay casos registrados. Agrega un caso para comenzar.
+          </Text>
+        ) : (
+          <Stack gap="md">
+            {cases.map((caseData, index) => (
+              <CaseCard
+                key={caseData.tempId || index}
+                caseData={caseData}
+                index={index}
+                onChange={handleCaseChange}
+                onMandateChange={handleMandateChange}
+                onRemove={handleRemoveCase}
+                onAddMandate={handleAddMandate}
+                onRemoveMandate={handleRemoveMandate}
+                errors={errors}
+              />
+            ))}
+          </Stack>
+        )}
       </Card>
     </Stack>
   );

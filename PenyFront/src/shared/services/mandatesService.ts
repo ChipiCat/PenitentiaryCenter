@@ -2,13 +2,20 @@ import api from './api';
 import type { AxiosError, UploadResponse } from '../types/axiosTypes';
 import type { 
   Mandate,
-  CreateMandateData,
-  UpdateMandateData
-} from '../types/mandateTypes'; 
+  CreateMandatesData,
+} from '../types/caseTypes'; 
+
+// Tipos para actualización de mandatos
+export interface UpdateMandateData {
+  type?: 'Detencion' | 'Condena' | 'Libertad' | 'Apelacion' | 'Traslado';
+  issue_date?: string;
+  description?: string;
+  status?: 'Vigente' | 'Ejecutado' | 'Anulado';
+} 
 
 export const mandatesService = {
   // POST /cases/{caseId}/mandates
-  async createMandate(caseId: string, data: CreateMandateData): Promise<Mandate> {
+  async createMandate(caseId: string, data: CreateMandatesData): Promise<Mandate> {
     try {
       const response = await api.post<Mandate>(`/cases/${caseId}/mandates`, data);
       return response.data;

@@ -3,6 +3,7 @@ import { Card, Table, Group, Avatar, Text, Badge, ActionIcon, Tooltip, Stack, Lo
 import { Eye, Edit, Calendar, FileText, MapPin, Building2, Bed, Users } from 'lucide-react';
 import type { PrisionerListItem, PrisonerBase } from '../../../../shared/types';
 import PrisonerCard from './PrisonerCard';
+import { Loading } from '../../../../shared/components/Loading';
 
 interface PrisonersListProps {
   prisoners: PrisionerListItem[];
@@ -24,7 +25,7 @@ export const PrisonersList: React.FC<PrisonersListProps> = ({
   }, [prisoners]);
   return (
     <Card withBorder pos="relative">
-      <LoadingOverlay visible={loading} overlayProps={{ blur: 2 }} />
+      {loading && <div className="!h-50 flex items-center justify-center"><Loading  /></div>}
       {viewType === 'card' ? (
         <Grid gutter="md">
           {prisoners?.map((prisoner) => (

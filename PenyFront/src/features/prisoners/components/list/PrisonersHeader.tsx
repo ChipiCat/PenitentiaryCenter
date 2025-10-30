@@ -1,6 +1,8 @@
 import React from 'react';
 import { Group, Title, Text, Button, SegmentedControl } from '@mantine/core';
 import { Plus, Users, Table, LayoutGrid } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { ROUTES } from '../../../../shared/config';
 
 interface PrisonersHeaderProps {
   onCreateNew: () => void;
@@ -9,6 +11,7 @@ interface PrisonersHeaderProps {
 }
 
 export const PrisonersHeader: React.FC<PrisonersHeaderProps> = ({ onCreateNew, viewType, onViewChange }) => {
+  const navigate = useNavigate();
   return (
     <Group justify="space-between">
       <div>
@@ -63,7 +66,7 @@ export const PrisonersHeader: React.FC<PrisonersHeaderProps> = ({ onCreateNew, v
 
         <Button
           leftSection={<Plus size={16} color="#fff" />}
-          onClick={onCreateNew}
+          onClick={() => navigate(ROUTES.PRISONERS_NEW)}
           size="sm"
           gradient={{ from: "blue", to: "cyan", deg: 45 }}
           variant="gradient"
