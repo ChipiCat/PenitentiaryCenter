@@ -10,13 +10,16 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100vh;
   width: 100vw;
-  overflow-x: hidden; /* Eliminar scroll horizontal */
-  overflow-y: auto; /* Solo scroll vertical cuando sea necesario */
+  overflow-x: hidden;
+  /* Eliminar scroll horizontal */
+  overflow-y: auto;
+  /* Solo scroll vertical cuando sea necesario */
 }
 
 #root {
@@ -24,7 +27,8 @@ html, body {
   padding: 0;
   height: 100vh;
   width: 100vw;
-  overflow: hidden; /* Contenedor principal sin scroll */
+  overflow: hidden;
+  /* Contenedor principal sin scroll */
 }
 
 /* 🆕 Mantine overrides para eliminar espacios no deseados */
@@ -35,4 +39,26 @@ html, body {
 .mantine-AppShell-root {
   margin: 0 !important;
   padding: 0 !important;
+}
+
+@theme {
+  --color-primary-50: #20263c;
+  --color-primary-100: #20263c;
+  --color-primary-200: #20263c;
+  --color-primary-300: #20263c;
+  --color-primary-400: #20263c;
+  --color-primary-500: #20263c;
+  --color-primary-600: #20263c;
+  --color-primary-700: #1e3f66;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --color-secondary-50: #161f2a;
+  --color-secondary-100: #161f2a;
+  --color-secondary-200: #161f2a;
+  --color-secondary-300: #161f2a;
+  --color-secondary-400: #161f2a;
+  --color-secondary-500: #161f2a;
+  --color-secondary-600: #161f2a;
+  --color-secondary-700: #0f172a;
+  --color-secondary-800: #0f172a; 
 }

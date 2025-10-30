@@ -22,7 +22,7 @@ export const genderOptions = [
 
 export const idDocumentTypeOptions = [
   { value: "Pasaporte", label: "Pasaporte" },
-  { value: "Carnet de Identidad", label: "Carnet de Identidad" },
+  { value: "CedulaDeIdentidad", label: "Carnet de Identidad" },
   { value: "Otro", label: "Otro" },
 ];
 
@@ -87,7 +87,7 @@ export const nationalityTypeOptions = [
 export const citizenshipTypeOptions = [
   { value: "Local", label: "Local" },
   { value: "CiudadanoNacional", label: "Ciudadano Nacional" },
-  { value: "CiudadanosExtranjero", label: "Ciudadano Extranjero" },
+  { value: "CiudadanoExtranjero", label: "Ciudadano Extranjero" },
 ];
 
 export const booleanOptions = [

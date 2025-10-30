@@ -22,6 +22,7 @@ import { useGlobalContext } from "../../shared/hooks/useGlobalContext";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../shared/config/routes";
 import { RecentActivityCard } from "../profile/components";
+import { ActionButton } from "./components/ActionButton";
 
 const HomePage = () => {
   const { user } = useGlobalContext();
@@ -67,22 +68,22 @@ const HomePage = () => {
     {
       title: "Nuevo Recluso",
       description: "Registrar nuevo interno",
-      icon: Plus,
-      color: "violet",
+      icon: <Plus className="bg-blue-200 text-blue-500 rounded-lg h-8 w-8 !p-1 text-lg" />,
+      color: "blue",
       onClick: () => navigate(ROUTES.PRISONERS),
     },
     {
       title: "Buscar Expediente",
       description: "Buscar expediente de interno",
-      icon: Search,
-      color: "green",
+      icon: <Search className="bg-amber-200 text-amber-600 rounded-lg h-8 w-8 !p-1 text-lg" />,
+      color: "blue",
       onClick: () => navigate(ROUTES.PRISONERS),
     },
     {
       title: "Ver Reclusos",
       description: "Ver lista completa",
-      icon: Eye,
-      color: "orange",
+      icon: <Eye className="bg-green-200 text-green-600 rounded-lg h-8 w-8 !p-1 text-lg" />,
+      color: "blue",
       onClick: () => navigate(ROUTES.PRISONERS),
     },
   ];
@@ -144,18 +145,13 @@ const HomePage = () => {
               </Title>
               <Stack gap="xs">
                 {quickActions.map((action, index) => (
-                  <Button
+                 <ActionButton
                     key={index}
-                    variant="light"
-                    color={action.color}
-                    size="md"
-                    leftSection={<action.icon size={18} />}
+                    title={action.title}
+                    subtitle={action.description}
+                    icon={action.icon}
                     onClick={action.onClick}
-                    fullWidth
-                    justify="flex-start"
-                  >
-                    {action.title}
-                  </Button>
+                  />
                 ))}
               </Stack>
             </Paper>

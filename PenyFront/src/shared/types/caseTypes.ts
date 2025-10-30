@@ -1,41 +1,47 @@
 import type { Entity } from "./commonTypes";
+import type { FileInfo } from "./filesTypes";
 
 export interface Case extends Entity {
-  crime: string;
-  prisoner_id: string;
-  case_number: string;
-  case_type: string;
-  court: string;
-  judge: string;
-  status: string;
-  start_date: string;
-  end_date?: string;
-  description?: string;
-  mandates?: Mandate[];
+ prisoner_id:string,
+  case_number: string,
+  crime: string,
+  status: "EnProceso" | "Condenado" | "Apelacion" | "Cerrado";
+  start_date: string,
+  end_date: string,
+  court_name: string,
+  judge_name: string,
+  sentence_years: number,
+  remarks: string,
 }
 
 export interface Mandate extends Entity {
   case_id: string;
-  mandate_number: string;
-  mandate_type: string;
-  issued_date: string;
-  expiry_date?: string;
-  status: string;
+  type: "Detencion" | "Condena" | "Libertad" | "Apelacion" | "Traslado";
+  issue_date: string;
+  file_id?: string;
+  file: FileInfo | null;
   description?: string;
-  file_url?: string;
+  status: 'Vigente' | 'Ejecutado' | 'Anulado';
 }
 
 // ==================== REQUEST TYPES ====================
 export interface CreateCaseData {
   case_number: string;
-  case_type: string;
-  court: string;
-  judge: string;
+  crime: string;
   status: string;
   start_date: string;
   end_date?: string;
+  court_name: string;
+  judge_name: string;
+  sentence_years: number;
+  remarks?: string;
+}
+
+export interface CreateMandatesData {
+  type: 'Detencion' | 'Condena' | 'Libertad' | 'Apelacion' | 'Traslado';
+  issue_date: string;
   description?: string;
-  attachment_url?: string;
+  status: 'Vigente' | 'Ejecutado' | 'Anulado';
 }
 
 export interface UpdateCaseData {

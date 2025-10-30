@@ -213,7 +213,7 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = React.memo(
               <SelectField
                 label="Tipo de Ciudadanía"
                 placeholder="Seleccione el tipo"
-                value={identity.citizenship_type || ""}
+                value={identity.citizenship_type || "Local"}
                 onChange={(value) =>
                   handleIdentityChange(
                     "citizenship_type",

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Text, ActionIcon, Tooltip } from '@mantine/core';
-import { 
-  Home, 
-  Users, 
-  Activity, 
+import {
+  Home,
+  Users,
+  Activity,
   UserCog,
   ChevronLeft,
   ChevronRight
@@ -41,11 +41,11 @@ export function NavbarSimple() {
 
   // Crear los enlaces de navegación
   const links = navigationData.map((item) => {
-    const isActive = location.pathname === item.link;
-    
+    const isActive = location.pathname.includes(item.link);
+
     return collapsed ? (
       // Versión colapsada - solo tooltip
-      <Tooltip 
+      <Tooltip
         key={item.label}
         label={item.label}
         position="right"
@@ -83,43 +83,44 @@ export function NavbarSimple() {
   });
 
   return (
-    <nav className={`${classes.navbar} ${collapsed ? classes.navbarCollapsed : ''}`}>
+    <nav className={`${classes.navbar} ${collapsed ? classes.navbarCollapsed : ''} !bg-primary-100`}>
       {/* Header del navbar con logo */}
       <div className={classes.header}>
         <div className={classes.logoSection}>
-          <img 
-            src="/assets/LogoPenitenciaria.png" 
-            alt="Logo Penitenciaria" 
+          <img
+            src="/assets/LogoPenitenciaria.png"
+            alt="Logo Penitenciaria"
             className={classes.logo}
           />
           {!collapsed && (
             <div className={classes.logoText}>
-              <Text fw={700} size="sm" c="blue">Centro Penitenciario</Text>
-              <Text size="xs" c="dimmed">Chonchocoro</Text>
+              <Text className="!text-white" fw={700} size="sm" c="blue">Centro Penitenciario</Text>
+              <Text className="!text-gray-300" size="xs" c="dimmed">Chonchocoro</Text>
             </div>
           )}
         </div>
       </div>
-
-      {/* Enlaces de navegación */}
-      <div className={classes.linksSection}>
-        {links}
-      </div>
-
-      {/* Footer con botón de colapso */}
-      <div className={classes.footer}>
-        <div className={classes.collapseSection}>
-          <ActionIcon
-            variant="light"
-            color="gray"
-            size="md"
-            onClick={toggleCollapse}
-            className={classes.collapseButton}
-          >
-            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-          </ActionIcon>
+      
+        {/* Enlaces de navegación */}
+        <div className={classes.linksSection}>
+          {links}
         </div>
-      </div>
+
+        {/* Footer con botón de colapso */}
+        <div className={`${classes.footer} `}>
+          <div className={classes.collapseSection}>
+            <ActionIcon
+              variant="light"
+              color="gray"
+              size="md"
+              onClick={toggleCollapse}
+              className={classes.collapseButton}
+            >
+              {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            </ActionIcon>
+          </div>
+        </div>
+      
     </nav>
   );
 }
