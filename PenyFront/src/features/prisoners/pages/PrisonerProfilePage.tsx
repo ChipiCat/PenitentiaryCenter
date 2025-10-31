@@ -1,46 +1,52 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Stack, Alert, Button, Group } from '@mantine/core';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
-import { completeProfileService } from '../../../shared/services';
-import type { CompletePrisonerProfile } from '../../../shared/types';
-import { ROUTES } from '../../../shared/config/routes';
-import { ProfileHeader } from '../components/profile/ProfileHeader';
-import { ProfileContent } from '../components/profile/ProfileContent';
-import { LoadingState } from '../../../shared/components/LoadingState';
-import { exportPrisonerPdf } from '../components/profile/exportPrisonerPdf';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Container, Stack, Alert, Button, Group } from "@mantine/core";
+import { ArrowLeft, AlertCircle } from "lucide-react";
+import { completeProfileService } from "../../../shared/services";
+import type { CompletePrisonerProfile } from "../../../shared/types";
+import { ROUTES } from "../../../shared/config/routes";
+import { ProfileHeader } from "../components/profile/ProfileHeader";
+import { ProfileContent } from "../components/profile/ProfileContent";
+import { LoadingState } from "../../../shared/components/LoadingState";
+import { exportPrisonerPdf } from "../components/profile/exportPrisonerPdf";
 
 export const PrisonerProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+
   const [profile, setProfile] = useState<CompletePrisonerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [tabValue, setTabValue] = useState<string>("general");
+
+  const handleTabChange = (value: string | null) => {
+    if (value) setTabValue(value);
+  };
+
   useEffect(() => {
     const loadProfile = async () => {
       if (!id) {
-        setError('ID de prisionero no proporcionado');
+        setError("ID de prisionero no proporcionado");
         setLoading(false);
         return;
       }
-      
+
       try {
         setLoading(true);
         setError(null);
-        console.log('🔍 Cargando perfil del prisionero:', id);
-        
+        console.log("🔍 Cargando perfil del prisionero:", id);
+
         const data = await completeProfileService.getCompleteProfile(id);
         if (data) {
           setProfile(data);
-          console.log('✅ Perfil cargado:', data);
+          console.log("✅ Perfil cargado:", data);
         } else {
-          setError('Prisionero no encontrado');
+          setError("Prisionero no encontrado");
         }
       } catch (err) {
-        setError('Error al cargar el perfil del prisionero');
-        console.error('❌ Error cargando perfil:', err);
+        setError("Error al cargar el perfil del prisionero");
+        console.error("❌ Error cargando perfil:", err);
       } finally {
         setLoading(false);
       }
@@ -50,27 +56,32 @@ export const PrisonerProfilePage: React.FC = () => {
   }, [id]);
 
   useEffect(() => {
-  const handleExportPDF = () => {
-    if (profile) {
-      const fecha = new Date().toISOString().slice(0, 19).replace('T', '_').replace(/:/g, '-');
-      exportPrisonerPdf(profile, fecha);
-    }
-  };
-  window.addEventListener('SIGEPEN-export-recluso-pdf', handleExportPDF);
-  return () => window.removeEventListener('SIGEPEN-export-recluso-pdf', handleExportPDF);
-}, [profile]);
+    const handleExportPDF = () => {
+      if (profile) {
+        const fecha = new Date()
+          .toISOString()
+          .slice(0, 19)
+          .replace("T", "_")
+          .replace(/:/g, "-");
+        exportPrisonerPdf(profile, fecha);
+      }
+    };
+    window.addEventListener("SIGEPEN-export-recluso-pdf", handleExportPDF);
+    return () =>
+      window.removeEventListener("SIGEPEN-export-recluso-pdf", handleExportPDF);
+  }, [profile]);
 
   const handleBack = () => {
     navigate(ROUTES.PRISONERS);
   };
 
   const handleEdit = () => {
-    console.log('📝 Editar prisionero:', id);
+    console.log("📝 Editar prisionero:", id);
     // TODO: Implementar edición
   };
 
   if (loading) {
-    return <LoadingState  />;
+    return <LoadingState />;
   }
 
   if (error || !profile) {
@@ -78,11 +89,11 @@ export const PrisonerProfilePage: React.FC = () => {
       <Container size="lg">
         <Stack gap="lg">
           <Alert icon={<AlertCircle size={16} />} color="red" title="Error">
-            {error || 'No se pudo cargar el perfil del prisionero'}
+            {error || "No se pudo cargar el perfil del prisionero"}
           </Alert>
           <Group>
-            <Button 
-              onClick={handleBack} 
+            <Button
+              onClick={handleBack}
               leftSection={<ArrowLeft size={16} />}
               variant="light"
             >
@@ -95,15 +106,24 @@ export const PrisonerProfilePage: React.FC = () => {
   }
 
   return (
-    <Container size="xl">
-      <Stack gap="lg">
-        <ProfileHeader 
+    <div className="w-full flex flex-col items-center">
+      <div className="max-w-[1080px] w-full mx-auto flex flex-col gap-5">
+        <ProfileHeader
           profile={profile}
-          onBack={handleBack}
           onEdit={handleEdit}
+          onBack={handleBack}
+          tabValue={tabValue}
+          onTabChange={handleTabChange}
         />
-        <ProfileContent profile={profile} />
-      </Stack>
-    </Container>
+        {tabValue === "general" && (
+          <ProfileContent.GeneralBlock profile={profile} />
+        )}
+        {tabValue === "medical" && <ProfileContent.Medical profile={profile} />}
+        {tabValue === "legal" && <ProfileContent.Legal profile={profile} />}
+        {tabValue === "activity" && (
+          <ProfileContent.Activity profile={profile} />
+        )}
+      </div>
+    </div>
   );
 };

@@ -164,7 +164,7 @@ export class UserService {
     const totalPages = Math.ceil(total / size);
 
     return {
-      items: users,
+      data: users,
       page,
       size,
       total,
