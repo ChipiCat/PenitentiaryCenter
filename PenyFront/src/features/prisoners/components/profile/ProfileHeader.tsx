@@ -17,6 +17,7 @@ import {
   Gavel,
   Clock,
   FileDown,
+  ArrowLeft,
 } from "lucide-react";
 import type { CompletePrisonerProfile } from "../../../../shared/types";
 
@@ -55,6 +56,14 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   return (
     <Card withBorder padding="lg" style={{ maxWidth: 1080, paddingBottom: 0 }}>
       <Group align="center" style={{ width: "100%" }}>
+        <Button
+          variant="subtle"
+          color="gray"
+          onClick={onBack}
+          style={{ borderRadius: "50%", padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
+        >
+          <ArrowLeft size={20} />
+        </Button>
         <Avatar
           size={80}
           src={identity?.photo_file?.url || undefined}

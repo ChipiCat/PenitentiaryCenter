@@ -11,8 +11,8 @@ import type { CaseFormData, MandateFormData } from "../../../../shared/types/for
 interface CaseCardProps {
   caseData: CaseFormData;
   index: number;
-  onChange: (caseIndex: number, field: keyof CaseFormData, value: any) => void;
-  onMandateChange: (caseIndex: number, mandateIndex: number, field: keyof MandateFormData, value: any) => void;
+  onChange: (caseIndex: number, field: keyof CaseFormData, value: string | number | null | Date) => void;
+  onMandateChange: (caseIndex: number, mandateIndex: number, field: keyof MandateFormData, value: string | number | null | Date | File) => void;
   onRemove: (index: number) => void;
   onAddMandate: (caseIndex: number) => void;
   onRemoveMandate: (caseIndex: number, mandateIndex: number) => void;
@@ -38,8 +38,8 @@ export const CaseCard: React.FC<CaseCardProps> = React.memo(({
 }) => {
   const errorPrefix = `cases.${index}`;
 
-  const handleStartDateChange = useCallback((value: any) => {
-    const dateValue = value as Date | string | null;
+  const handleStartDateChange = useCallback((value: Date | string | null) => {
+    const dateValue = value;
     if (dateValue instanceof Date) {
       onChange(index, 'start_date', dateValue.toISOString().split('T')[0]);
     } else if (typeof dateValue === 'string') {
@@ -49,8 +49,8 @@ export const CaseCard: React.FC<CaseCardProps> = React.memo(({
     }
   }, [index, onChange]);
 
-  const handleEndDateChange = useCallback((value: any) => {
-    const dateValue = value as Date | string | null;
+  const handleEndDateChange = useCallback((value: Date | string | null) => {
+    const dateValue = value;
     if (dateValue instanceof Date) {
       onChange(index, 'end_date', dateValue.toISOString().split('T')[0]);
     } else if (typeof dateValue === 'string') {
@@ -63,7 +63,6 @@ export const CaseCard: React.FC<CaseCardProps> = React.memo(({
   return (
     <Card withBorder padding="lg" shadow="sm">
       <Stack gap="md">
-        {/* Header */}
         <Group justify="space-between">
           <Title order={5}>Caso #{index + 1}</Title>
           <ActionIcon
@@ -76,7 +75,6 @@ export const CaseCard: React.FC<CaseCardProps> = React.memo(({
           </ActionIcon>
         </Group>
 
-        {/* Información Básica del Caso */}
         <Group grow>
           <TextInputField
             label="Número de Caso"
@@ -169,7 +167,6 @@ export const CaseCard: React.FC<CaseCardProps> = React.memo(({
           debounce
         />
 
-        {/* Sección de Mandatos */}
         <Divider my="sm" />
         
         <Group justify="space-between">
