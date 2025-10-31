@@ -14,7 +14,7 @@ type GenericListSectionProps<T> = {
   gap?: number;
 };
 
-export const GenericListSection = ({
+export const GenericListSection = <T,>({
   icon,
   title,
   button,
@@ -24,7 +24,7 @@ export const GenericListSection = ({
   className,
   order = 4,
   gap = 6,
-}: GenericListSectionProps<any>) => (
+}: GenericListSectionProps<T>) => (
   <>
     <Group justify="space-between" align="center" mb="xs">
       <Group gap={gap}>
