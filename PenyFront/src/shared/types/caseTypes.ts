@@ -46,13 +46,22 @@ export interface CreateMandatesData {
 
 export interface UpdateCaseData {
   case_number?: string;
-  case_type?: string;
-  court?: string;
-  judge?: string;
+  crime?: string;
   status?: string;
   start_date?: string;
   end_date?: string;
+  court_name?: string;
+  judge_name?: string;
+  sentence_years?: number;
+  remarks?: string;
+  // Removidos: case_type, court, judge, description
+}
+
+export interface UpdateMandateData {
+  type?: 'Detencion' | 'Condena' | 'Libertad' | 'Apelacion' | 'Traslado';
+  issue_date?: string;
   description?: string;
+  status?: 'Vigente' | 'Ejecutado' | 'Anulado';
 }
 
 // ==================== RESPONSE TYPES ====================

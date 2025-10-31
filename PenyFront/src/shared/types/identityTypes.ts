@@ -41,6 +41,7 @@ export interface UpdateIdentityData {
   residence?: string;
   citizenship_type?: string;
   country_of_origin?: string;
+  nationality_type?: string;
   nationality?: string;
 }
 
