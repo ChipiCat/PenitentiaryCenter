@@ -346,7 +346,7 @@ export function usePrisonerFormHandlers({
       color: 'blue'
     });
 
-    // PASO 6: Guardar examen médico
+    // PASO 6: Guardar registros médicos
     if (formData.medical_record && Array.isArray(formData.medical_record) && formData.medical_record.length > 0) {
       const record = formData.medical_record[0];
       const medicalData = {
@@ -356,7 +356,12 @@ export function usePrisonerFormHandlers({
         notes: (record as any).notes
       };
 
-      await medicalRecordsService.createMedicalRecord(prisonerId, medicalData);
+      const createdMedicalRecord = await medicalRecordsService.createMedicalRecord(prisonerId, medicalData);
+      
+      // Subir archivo médico si existe
+      if (formFiles.medicalFile && createdMedicalRecord.id) {
+        await medicalRecordsService.uploadMedicalFile(prisonerId, createdMedicalRecord.id, formFiles.medicalFile);
+      }
       
       notifications.show({
         title: 'Progreso 6/8',
@@ -461,14 +466,25 @@ export function usePrisonerFormHandlers({
    * Maneja el modo de edición (actualiza solo lo que cambió)
    */
   const handleEditMode = useCallback(async (prisonerId: string) => {
-    const hasFiles = !!(formFiles.photo || formFiles.fingerprintLeft || formFiles.fingerprintRight);
+    // Verificar si hay archivos pendientes de subir
+    const hasIdentityFiles = !!(
+      formFiles.photo || 
+      formFiles.fingerprintLeft || 
+      formFiles.fingerprintRight
+    );
+    const hasMedicalFile = !!formFiles.medicalFile;
     
     // Detectar qué secciones han sido modificadas
     const dirtyState = detectDirtyState(
       originalDataRef.current,
       formData,
-      hasFiles
+      hasIdentityFiles
     );
+    
+    // Agregar detección manual de archivo médico (no se detecta en formData, solo en formFiles)
+    if (hasMedicalFile) {
+      dirtyState.medical = true;
+    }
 
     // Verificar si hay cambios
     const hasChanges = Object.values(dirtyState).some(v => v);

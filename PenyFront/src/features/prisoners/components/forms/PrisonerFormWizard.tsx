@@ -83,6 +83,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
             onUpdate={(updates) =>
               handleDataUpdate({ medical_record: updates.medical_record })
             }
+            onFileUpdate={handleFileUpdate}
             errors={errors}
           />
         );

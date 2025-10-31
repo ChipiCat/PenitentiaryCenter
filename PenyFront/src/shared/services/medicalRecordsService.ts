@@ -66,6 +66,7 @@ export const medicalRecordsService = {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      console.log("🔄 Subiendo archivo médico para registro:", recordId);
 
       const response = await api.post<UploadResponse>(
         `/prisoners/${prisonerId}/medical-records/${recordId}/upload`,
