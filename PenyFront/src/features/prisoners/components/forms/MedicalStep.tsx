@@ -5,6 +5,7 @@ import type { MedicalRecord } from "../../../../shared/types";
 import { TextInputField } from "../../../../shared/components/TextInputField";
 import { TextareaField } from "../../../../shared/components/TextareaField";
 import { BelongingDropzone } from "../../../../shared/components/BelongingDropzone";
+import { toDateObject } from "./utils/dateUtils";
 
 interface MedicalStepProps {
   data: { medical_record?: Partial<MedicalRecord>[] };
@@ -56,18 +57,7 @@ export const MedicalStep: React.FC<MedicalStepProps> = React.memo(
             <DatePickerInput
               label="Fecha de Examen"
               placeholder="Selecciona la fecha"
-              value={
-                medical.examination_date
-                  ? typeof medical.examination_date === "string"
-                    ? (() => {
-                        const [year, month, day] = medical.examination_date
-                          .split("-")
-                          .map(Number);
-                        return new Date(year, month - 1, day);
-                      })()
-                    : medical.examination_date
-                  : null
-              }
+              value={toDateObject(medical.examination_date)}
               onChange={(date) =>
                 handleMedicalChange("examination_date", date ?? undefined)
               }

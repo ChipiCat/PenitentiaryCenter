@@ -1,6 +1,8 @@
 import { Card, Stack, Group, Button, ActionIcon, Title, Text } from '@mantine/core';
+import { DatePickerInput } from '@mantine/dates';
 import { Plus, Trash2 } from 'lucide-react';
 import { TextInputField } from './TextInputField';
+import { parseISODate, formatDateToISO } from '../../features/prisoners/components/forms/utils/dateUtils';
 
 interface FieldConfig {
   label: string;
@@ -53,19 +55,49 @@ export function DynamicListForm<T>({
               </ActionIcon>
             </Group>
             <Stack gap="sm">
-              {fields.map((field) => (
-                <TextInputField
-                  key={field.key}
-                  label={field.label}
-                  placeholder={field.placeholder}
-                  value={String(item[field.key as keyof T] ?? '')}
-                  onChange={(e) => onChange(index, field.key, e.target.value)}
-                  required={field.required}
-                  type={field.type || 'text'}
-                  error={errors[`${title.toLowerCase()}.${index}.${field.key}`]}
-                  debounce={true}
-                />
-              ))}
+              {fields.map((field) => {
+                const value = item[field.key as keyof T];
+                const errorKey = `child.${index}.${field.key}`;
+                
+                // Renderizar DatePickerInput para campos de tipo "date"
+                if (field.type === 'date') {
+                  return (
+                    <DatePickerInput
+                      key={field.key}
+                      label={field.label}
+                      placeholder={field.placeholder}
+                      value={parseISODate(String(value ?? ''))}
+                      onChange={(dateValue: Date | string | null) => {
+                        let dateString = '';
+                        if (dateValue instanceof Date) {
+                          dateString = formatDateToISO(dateValue) ?? '';
+                        } else if (typeof dateValue === 'string') {
+                          dateString = dateValue;
+                        }
+                        onChange(index, field.key, dateString);
+                      }}
+                      required={field.required}
+                      error={errors[errorKey]}
+                      maxDate={new Date()}
+                    />
+                  );
+                }
+                
+                // Renderizar TextInputField para otros tipos
+                return (
+                  <TextInputField
+                    key={field.key}
+                    label={field.label}
+                    placeholder={field.placeholder}
+                    value={String(value ?? '')}
+                    onChange={(e) => onChange(index, field.key, e.target.value)}
+                    required={field.required}
+                    type={field.type || 'text'}
+                    error={errors[errorKey]}
+                    debounce={true}
+                  />
+                );
+              })}
             </Stack>
           </Card>
         ))}

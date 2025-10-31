@@ -18,6 +18,7 @@ export interface Identity extends Entity {
   right_fingerprint?: FileInfo | null;
   left_fingerprint_file_id?: string;
   left_fingerprint?: FileInfo | null;
+  nationality_type?: string;
 }
 
 // ==================== REQUEST TYPES ====================
