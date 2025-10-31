@@ -35,9 +35,6 @@ export interface CreatePrisonerData {
     country_of_origin?: string;
     nationality_type?: string;
     nationality?: string;
-    profile_photo_url?: string;
-    fingerprint_right_url?: string;
-    fingerprint_left_url?: string;
   };
   
   // Datos personales y familiares (Paso 1)

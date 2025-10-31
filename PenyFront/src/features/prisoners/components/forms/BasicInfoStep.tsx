@@ -122,30 +122,18 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = React.memo(
               <ProfilePhotoDropzone
                 onFile={(file) => {
                   onFileUpdate?.("photo", file);
-                  handleIdentityChange(
-                    "profile_photo_url",
-                    URL.createObjectURL(file)
-                  );
                 }}
               />
               <FingerprintDropzone
                 label="Huella Dactilar Izquierda"
                 onFile={(file) => {
                   onFileUpdate?.("fingerprintLeft", file);
-                  handleIdentityChange(
-                    "fingerprint_left_url",
-                    URL.createObjectURL(file)
-                  );
                 }}
               />
               <FingerprintDropzone
                 label="Huella Dactilar Derecha"
                 onFile={(file) => {
                   onFileUpdate?.("fingerprintRight", file);
-                  handleIdentityChange(
-                    "fingerprint_right_url",
-                    URL.createObjectURL(file)
-                  );
                 }}
               />
             </InputGroup>
