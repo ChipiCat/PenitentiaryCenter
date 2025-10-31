@@ -42,8 +42,8 @@ export const MedicalExamCard: React.FC<MedicalExamCardProps> = ({ exam }) => {
               Fecha de Examen
             </Text>
             <Text fw={500}>
-              {exam.createdAt
-                ? new Date(exam.createdAt).toLocaleDateString("es-ES")
+              {exam.examination_date
+                ? new Date(exam.examination_date).toLocaleDateString("es-ES")
                 : <span style={{color: '#868e96'}}>No hay fecha registrada</span>}
             </Text>
           </Grid.Col>

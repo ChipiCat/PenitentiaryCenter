@@ -1,4 +1,17 @@
 import React from "react";
+// Función para calcular la edad a partir de la fecha de nacimiento
+function calcularEdad(fechaNacimientoIso?: string): string {
+  if (!fechaNacimientoIso) return "No registrado";
+  const nacimiento = new Date(fechaNacimientoIso);
+  if (isNaN(nacimiento.getTime())) return "No registrado";
+  const hoy = new Date();
+  let edad = hoy.getFullYear() - nacimiento.getFullYear();
+  const m = hoy.getMonth() - nacimiento.getMonth();
+  if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) {
+    edad--;
+  }
+  return `${edad} años`;
+}
 import { Card, Group, Button, Text, Badge } from "@mantine/core";
 import {
   UserCircle2,
@@ -67,18 +80,10 @@ export const GeneralBlock: React.FC<GeneralBlockProps> = ({
         },
         {
           label: "Edad",
-          value: profile.identity?.birth_date
-            ? `${
-                new Date().getFullYear() -
-                new Date(profile.identity.birth_date).getFullYear()
-              } años`
-            : "-",
+          value: calcularEdad(profile.identity?.birth_date),
           mt: "xs",
         },
-        {
-          label: "Lugar de Nacimiento",
-          value: profile.identity?.birth_place ?? "No registrado",
-        },
+       
       ]}
       fieldsRight={[
         {
@@ -101,10 +106,9 @@ export const GeneralBlock: React.FC<GeneralBlockProps> = ({
           value: profile.identity?.nationality ?? "No registrado",
           mt: "xs",
         },
-        {
-          label: "Tipo de Ciudadania",
-          value: profile.identity?.citizenship_type ?? "No registrado",
-          mt: "xs",
+         {
+          label: "Lugar de Nacimiento",
+          value: profile.identity?.birth_place ?? "No registrado",
         },
       ]}
     />
@@ -139,11 +143,7 @@ export const GeneralBlock: React.FC<GeneralBlockProps> = ({
           label: "Ocupación",
           value: profile.personal?.occupation ?? "No registrado",
         },
-        {
-          label: "Observaciones",
-          value: profile.personal?.observations ?? "No registrado",
-          mt: "xs",
-        },
+       
       ]}
       fieldsRight={[
         {

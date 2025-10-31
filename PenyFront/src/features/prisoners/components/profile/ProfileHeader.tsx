@@ -27,6 +27,7 @@ interface ProfileHeaderProps {
   onEdit: () => void;
   tabValue: string;
   onTabChange: (value: string | null) => void;
+  isEditMode?: boolean;
 }
 
 const getAge = (birthDate?: string) => {
@@ -47,6 +48,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   onEdit,
   tabValue,
   onTabChange,
+  isEditMode = false,
 }) => {
   const { prisoner, identity, personal, penitentiary } = profile;
   const fullName = identity
@@ -150,27 +152,31 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           </Button>
         </Group>
       </Group>
-      <Tabs
-        value={tabValue}
-        onChange={onTabChange}
-        style={{ marginTop: 24, paddingInline: 0 }}
-        variant="default"
-      >
-        <Tabs.List style={{ borderBottom: "none" }}>
-          <Tabs.Tab value="general" leftSection={<UserCircle2 size={16} />}>
-            Información General
-          </Tabs.Tab>
-          <Tabs.Tab value="medical" leftSection={<HeartPulse size={18} />}>
-            Información Médica
-          </Tabs.Tab>
-          <Tabs.Tab value="legal" leftSection={<Gavel size={18} />}>
-            Situación Legal
-          </Tabs.Tab>
-          <Tabs.Tab value="activity" leftSection={<Clock size={18} />}>
-            Actividad
-          </Tabs.Tab>
-        </Tabs.List>
-      </Tabs>
+      
+      {/* Solo mostrar las tabs cuando NO está en modo edición */}
+      {!isEditMode && (
+        <Tabs
+          value={tabValue}
+          onChange={onTabChange}
+          style={{ marginTop: 24, paddingInline: 0 }}
+          variant="default"
+        >
+          <Tabs.List style={{ borderBottom: "none" }}>
+            <Tabs.Tab value="general" leftSection={<UserCircle2 size={16} />}>
+              Información General
+            </Tabs.Tab>
+            <Tabs.Tab value="medical" leftSection={<HeartPulse size={18} />}>
+              Información Médica
+            </Tabs.Tab>
+            <Tabs.Tab value="legal" leftSection={<Gavel size={18} />}>
+              Situación Legal
+            </Tabs.Tab>
+            <Tabs.Tab value="activity" leftSection={<Clock size={18} />}>
+              Actividad
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      )}
     </Card>
   );
 };

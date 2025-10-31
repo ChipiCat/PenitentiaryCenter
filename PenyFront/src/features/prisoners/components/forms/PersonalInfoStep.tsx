@@ -200,19 +200,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = React.memo(({
               debounce={true}
             />
           </InputGroup>
-          <InputGroup>
-            <TextareaField
-              label="Observaciones"
-              value={data.personal?.observations || ""}
-              onChange={(e) =>
-                handlePersonalChange("observations", e.target.value)
-              }
-              error={errors["personal.observations"]}
-              minRows={2}
-              placeholder="Observaciones adicionales"
-              debounce={true}
-            />
-          </InputGroup>
+         
           <InputGroup>
             <TextInputField
               label="Nombre del Padre"

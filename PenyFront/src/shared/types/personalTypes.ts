@@ -7,7 +7,6 @@ export interface Personal extends Entity {
   occupation?: string;
   emergency_contact?: string;
   emergency_phone?: string;
-  observations?: string;
   gender?: Gender; 
   languages?: string;
   father_name?: string; 
