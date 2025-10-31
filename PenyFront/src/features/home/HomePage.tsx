@@ -1,91 +1,86 @@
-import {
-  Container,
-  Title,
-  Text,
-  Grid,
-  Paper,
-  Group,
-  Stack,
-  ThemeIcon,
-} from "@mantine/core";
-import {
-  Users,
-  UserCheck,
-  Scale,
-  CheckCircle,
-  Plus,
-  Search,
-  Eye,
-} from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Container, Title, Text, Grid, Paper, Stack } from "@mantine/core";
+import { Plus, Search, Eye } from "lucide-react";
 import { useGlobalContext } from "../../shared/hooks/useGlobalContext";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../shared/config/routes";
 import { RecentActivityCard } from "../profile/components";
 import { ActionButton } from "./components/ActionButton";
+import { PrisonersStats } from "../prisoners/components/list";
+import type { PrisonerBase, Statistics } from "../../shared/types";
+import { prisonersService } from "../../shared/services";
 
 const HomePage = () => {
   const { user } = useGlobalContext();
   const navigate = useNavigate();
 
-  const stats = [
-    {
-      title: "Total de Internos",
-      value: "847",
-      change: "+12 este mes",
-      changeType: "positive",
-      icon: Users,
-      color: "blue",
-    },
-    {
-      title: "Internos Activos",
-      value: "823",
-      change: "+8 este mes",
-      changeType: "positive",
-      icon: UserCheck,
-      color: "green",
-    },
-    {
-      title: "En Proceso Legal",
-      value: "156",
-      change: "-3 este mes",
-      changeType: "negative",
-      icon: Scale,
-      color: "red",
-    },
-    {
-      title: "Liberaciones Este Mes",
-      value: "24",
-      change: "+5 este mes",
-      changeType: "positive",
-      icon: CheckCircle,
-      color: "teal",
-    },
-  ];
-
-  // Acciones rápidas
   const quickActions = [
     {
       title: "Nuevo Recluso",
       description: "Registrar nuevo interno",
-      icon: <Plus className="bg-blue-200 text-blue-500 rounded-lg h-8 w-8 !p-1 text-lg" />,
+      icon: (
+        <Plus className="bg-blue-200 text-blue-500 rounded-lg h-8 w-8 !p-1 text-lg" />
+      ),
       color: "blue",
       onClick: () => navigate(ROUTES.PRISONERS),
     },
     {
       title: "Buscar Expediente",
       description: "Buscar expediente de interno",
-      icon: <Search className="bg-amber-200 text-amber-600 rounded-lg h-8 w-8 !p-1 text-lg" />,
+      icon: (
+        <Search className="bg-amber-200 text-amber-600 rounded-lg h-8 w-8 !p-1 text-lg" />
+      ),
       color: "blue",
       onClick: () => navigate(ROUTES.PRISONERS),
     },
     {
       title: "Ver Reclusos",
       description: "Ver lista completa",
-      icon: <Eye className="bg-green-200 text-green-600 rounded-lg h-8 w-8 !p-1 text-lg" />,
+      icon: (
+        <Eye className="bg-green-200 text-green-600 rounded-lg h-8 w-8 !p-1 text-lg" />
+      ),
       color: "blue",
       onClick: () => navigate(ROUTES.PRISONERS),
     },
   ];
+
+  const [statistics, setStatistics] = useState<Statistics>({
+    total: 0,
+    activos: 0,
+    trasladados: 0,
+    liberados: 0,
+    archivados: 0,
+  });
+
+  const loadStats = useCallback(async () => {
+    try {
+      const allPrisoners = await prisonersService.getPrisoners({ limit: 1000 });
+
+      const stats = {
+        total: allPrisoners.data?.length ?? 0,
+        activos: allPrisoners.data?.filter(
+          (p: PrisonerBase) => p.status === "Activo"
+        ).length,
+        trasladados: allPrisoners.data?.filter(
+          (p: PrisonerBase) => p.status === "Trasladado"
+        ).length,
+        liberados: allPrisoners.data?.filter(
+          (p: PrisonerBase) => p.status === "Liberado"
+        ).length,
+        archivados: allPrisoners.data?.filter(
+          (p: PrisonerBase) => p.status === "Archivado"
+        ).length,
+      };
+
+      setStatistics(stats);
+    } catch (error) {
+      console.error("Error cargando estadísticas:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]);
 
   return (
     <Container size="xl" py="md">
@@ -102,39 +97,7 @@ const HomePage = () => {
           <Text c="dimmed">Resumen general del centro penitenciario</Text>
         </div>
 
-        <Grid>
-          {stats.map((stat, index) => (
-            <Grid.Col key={index} span={{ base: 12, xs: 6, md: 3 }}>
-              <Paper p="md" radius="md" withBorder>
-                <Group justify="space-between">
-                  <div>
-                    <Text c="dimmed" size="sm" fw={500}>
-                      {stat.title}
-                    </Text>
-                    <Text size="xl" fw={700}>
-                      {stat.value}
-                    </Text>
-                    <Text
-                      size="xs"
-                      c={stat.changeType === "positive" ? "teal" : "red"}
-                      fw={500}
-                    >
-                      {stat.change}
-                    </Text>
-                  </div>
-                  <ThemeIcon
-                    color={stat.color}
-                    variant="light"
-                    radius="md"
-                    size="lg"
-                  >
-                    <stat.icon size={20} />
-                  </ThemeIcon>
-                </Group>
-              </Paper>
-            </Grid.Col>
-          ))}
-        </Grid>
+        <PrisonersStats statistics={statistics} />
 
         <Grid>
           <Grid.Col span={{ base: 12, md: 6 }}>
@@ -144,7 +107,7 @@ const HomePage = () => {
               </Title>
               <Stack gap="xs">
                 {quickActions.map((action, index) => (
-                 <ActionButton
+                  <ActionButton
                     key={index}
                     title={action.title}
                     subtitle={action.description}
