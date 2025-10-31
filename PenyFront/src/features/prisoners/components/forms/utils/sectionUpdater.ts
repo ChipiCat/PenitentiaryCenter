@@ -128,6 +128,27 @@ export async function updateIdentityFiles(
 }
 
 /**
+ * Actualiza el archivo médico
+ */
+export async function updateMedicalFiles(
+  prisonerId: string,
+  medicalRecordId: string,
+  files: FormFiles
+): Promise<SectionUpdateResult> {
+  try {
+    if (files.medicalFile) {
+      await medicalRecordsService.uploadMedicalFile(prisonerId, medicalRecordId, files.medicalFile);
+      return { success: true, sectionName: 'Archivo médico' };
+    }
+
+    return { success: true, sectionName: 'Archivo médico' };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return { success: false, sectionName: 'Archivo médico', error: message };
+  }
+}
+
+/**
  * Actualiza la información personal
  */
 export async function updatePersonalData(
@@ -417,6 +438,15 @@ export async function updateModifiedSections(
       
       const result = await updateMedicalData(prisonerId, originalData, currentData);
       results.push(result);
+      
+      // Subir archivo médico si existe
+      if (files.medicalFile && currentData.medical_record?.[0]) {
+        const medicalRecordId = (currentData.medical_record[0] as any).id;
+        if (medicalRecordId) {
+          const fileResult = await updateMedicalFiles(prisonerId, medicalRecordId, files);
+          results.push(fileResult);
+        }
+      }
     }
 
     // Actualizar ubicación penitenciaria

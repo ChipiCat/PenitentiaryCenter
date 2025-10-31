@@ -10,11 +10,12 @@ import { toDateObject } from "./utils/dateUtils";
 interface MedicalStepProps {
   data: { medical_record?: Partial<MedicalRecord>[] };
   onUpdate: (updates: { medical_record?: Partial<MedicalRecord>[] }) => void;
+  onFileUpdate?: (fileType: 'medicalFile', file: File | undefined) => void;
   errors?: Record<string, string>;
 }
 
 export const MedicalStep: React.FC<MedicalStepProps> = React.memo(
-  ({ data, onUpdate, errors = {} }) => {
+  ({ data, onUpdate, onFileUpdate, errors = {} }) => {
     // Memoizar datos para evitar re-crear objetos
     const medicalRecords = useMemo(
       () => data.medical_record || [],
@@ -86,8 +87,7 @@ export const MedicalStep: React.FC<MedicalStepProps> = React.memo(
             />
             <BelongingDropzone
               onFile={(file) => {
-                const url = file ? URL.createObjectURL(file) : "";
-                handleMedicalChange("attachment_url", url);
+                onFileUpdate?.('medicalFile', file);
               }}
             />
           </Stack>

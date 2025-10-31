@@ -26,6 +26,7 @@ export interface FormFiles {
   photo?: File;
   fingerprintLeft?: File;
   fingerprintRight?: File;
+  medicalFile?: File;
 }
 
 /**
