@@ -15,25 +15,10 @@ import type {
   PrisionerListItem,
   PrisonerBase,
 } from "../../../shared/types/prisonerTypes";
-import type { UserFilters } from "../../../shared/types";
+import type { UserFilters, Statistics, Pagination } from "../../../shared/types";
 import { prisonersService } from "../../../shared/services/prisonersService";
 
 type ViewMode = "list" | "create" | "edit";
-
-interface Statistics {
-  total: number;
-  activos: number;
-  trasladados: number;
-  liberados: number;
-  archivados: number;
-}
-
-interface Pagination {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
 
 export const PrisonersPage: React.FC = () => {
   const navigate = useNavigate();

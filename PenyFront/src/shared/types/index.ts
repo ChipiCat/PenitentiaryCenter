@@ -12,6 +12,7 @@ export * from './identityTypes';
 export * from './personalTypes';
 export * from './penitentiaryTypes';
 export * from './medicalRecordTypes';
+export * from './activityLogTypes';
 
 // ==================== TIPOS CON POSIBLES CONFLICTOS - EXPORTS ESPECÍFICOS ====================
 export type { 
