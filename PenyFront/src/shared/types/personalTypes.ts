@@ -29,6 +29,9 @@ export interface CreatePersonalData {
 }
 
 export interface UpdatePersonalData {
+  gender?: string;
+  father_name?: string;
+  mother_name?: string;
   marital_status?: string;
   education_level?: string;
   occupation?: string;

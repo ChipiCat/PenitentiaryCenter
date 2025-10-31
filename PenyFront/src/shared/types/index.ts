@@ -16,9 +16,9 @@ export * from './medicalRecordTypes';
 // ==================== TIPOS CON POSIBLES CONFLICTOS - EXPORTS ESPECÍFICOS ====================
 export type { 
   Mandate,
-  CreateMandateData,
+  CreateMandatesData,
   UpdateMandateData
-} from './mandateTypes';
+} from './caseTypes'
 
 export * from './caseTypes';
 export * from './completeProfileTypes';

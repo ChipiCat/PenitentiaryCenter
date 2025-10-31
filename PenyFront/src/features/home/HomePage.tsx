@@ -6,7 +6,6 @@ import {
   Paper,
   Group,
   Stack,
-  Button,
   ThemeIcon,
 } from "@mantine/core";
 import {

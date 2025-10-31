@@ -19,5 +19,5 @@ export interface UpdateBelongingData {
   description?: string;
   quantity?: number;
   condition?: string;
-  is_returned?: boolean;
+  returned?: boolean;
 }

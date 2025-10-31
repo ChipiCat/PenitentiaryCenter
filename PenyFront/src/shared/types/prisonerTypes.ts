@@ -59,7 +59,6 @@ export interface CreatePrisonerData {
 }
 
 export interface UpdatePrisonerData {
-  
   registration_number: string;
   fiscal_file_number: string,
   status:  'Activo' | 'Trasladado' | 'Liberado' | 'Archivado';
