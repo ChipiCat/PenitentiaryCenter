@@ -47,3 +47,18 @@ export interface ActivityLogsResponse {
 }
 
 export type ActionType = 'login' | 'create' | 'update' | 'export' | 'delete' | 'view' | 'print';
+
+export interface Statistics {
+  total: number;
+  activos: number;
+  trasladados: number;
+  liberados: number;
+  archivados: number;
+}
+
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
