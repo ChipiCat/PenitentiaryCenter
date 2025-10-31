@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
 export interface IPaginatedResponse<T> {
-  items: T[];
+  data: T[];
   page: number;
   size: number;
   total: number;
