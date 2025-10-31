@@ -6,7 +6,8 @@ import type { MedicalRecord } from './medicalRecordTypes';
 import type { Belonging } from './belongingTypes';
 import type { Contact } from './contactTypes';
 import type { Child } from './childTypes';
-import type { Case } from './caseTypes';
+import type { Case, Mandate } from './caseTypes';
+import type { ActivityLog } from './activityLogTypes';
 
 export interface CompletePrisonerProfile {
   prisoner: PrisonerBase;
@@ -18,4 +19,6 @@ export interface CompletePrisonerProfile {
   contacts: Contact[];
   children: Child[];
   cases: Case[];
+  mandates?: Mandate[];
+  activities?: ActivityLog[]
 }
