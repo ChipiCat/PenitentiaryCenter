@@ -20,14 +20,12 @@ export interface DirtyState {
 
 /**
  * Archivos para subir
+ * Se usan los nombres oficiales sin sufijo "File"
  */
 export interface FormFiles {
   photo?: File;
-  photoFile?: File;
   fingerprintLeft?: File;
-  fingerprintLeftFile?: File;
   fingerprintRight?: File;
-  fingerprintRightFile?: File;
 }
 
 /**

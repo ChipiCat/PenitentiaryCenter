@@ -99,19 +99,19 @@ export async function updateIdentityFiles(
   try {
     const uploadPromises: Promise<unknown>[] = [];
 
-    if (files.photoFile) {
-      uploadPromises.push(identityService.uploadPhoto(prisonerId, files.photoFile));
+    if (files.photo) {
+      uploadPromises.push(identityService.uploadPhoto(prisonerId, files.photo));
     }
 
-    if (files.fingerprintRightFile) {
+    if (files.fingerprintRight) {
       uploadPromises.push(
-        identityService.uploadFingerprint(prisonerId, files.fingerprintRightFile, 'right')
+        identityService.uploadFingerprint(prisonerId, files.fingerprintRight, 'right')
       );
     }
 
-    if (files.fingerprintLeftFile) {
+    if (files.fingerprintLeft) {
       uploadPromises.push(
-        identityService.uploadFingerprint(prisonerId, files.fingerprintLeftFile, 'left')
+        identityService.uploadFingerprint(prisonerId, files.fingerprintLeft, 'left')
       );
     }
 

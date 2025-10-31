@@ -91,26 +91,10 @@ export function usePrisonerFormHandlers({
    * Actualiza los archivos del formulario
    */
   const handleFileUpdate = useCallback((fileType: keyof FormFiles, file: File | undefined) => {
-    setFormFiles(prev => {
-      const updates: Partial<FormFiles> = { [fileType]: file };
-      
-      // Sincronizar ambos formatos de nombres (photo/photoFile, etc.)
-      if (fileType === 'photo') {
-        updates.photoFile = file;
-      } else if (fileType === 'photoFile') {
-        updates.photo = file;
-      } else if (fileType === 'fingerprintLeft') {
-        updates.fingerprintLeftFile = file;
-      } else if (fileType === 'fingerprintLeftFile') {
-        updates.fingerprintLeft = file;
-      } else if (fileType === 'fingerprintRight') {
-        updates.fingerprintRightFile = file;
-      } else if (fileType === 'fingerprintRightFile') {
-        updates.fingerprintRight = file;
-      }
-      
-      return { ...prev, ...updates };
-    });
+    setFormFiles(prev => ({
+      ...prev,
+      [fileType]: file
+    }));
   }, []);
 
   /**
@@ -295,14 +279,14 @@ export function usePrisonerFormHandlers({
     }
 
     // PASO 3: Subir archivos (foto y huellas)
-    if (formFiles.photoFile) {
-      await identityService.uploadPhoto(prisonerId, formFiles.photoFile);
+    if (formFiles.photo) {
+      await identityService.uploadPhoto(prisonerId, formFiles.photo);
     }
-    if (formFiles.fingerprintRightFile) {
-      await identityService.uploadFingerprint(prisonerId, formFiles.fingerprintRightFile, 'right');
+    if (formFiles.fingerprintRight) {
+      await identityService.uploadFingerprint(prisonerId, formFiles.fingerprintRight, 'right');
     }
-    if (formFiles.fingerprintLeftFile) {
-      await identityService.uploadFingerprint(prisonerId, formFiles.fingerprintLeftFile, 'left');
+    if (formFiles.fingerprintLeft) {
+      await identityService.uploadFingerprint(prisonerId, formFiles.fingerprintLeft, 'left');
     }
     
     notifications.show({
@@ -477,7 +461,7 @@ export function usePrisonerFormHandlers({
    * Maneja el modo de edición (actualiza solo lo que cambió)
    */
   const handleEditMode = useCallback(async (prisonerId: string) => {
-    const hasFiles = !!(formFiles.photoFile || formFiles.fingerprintLeftFile || formFiles.fingerprintRightFile);
+    const hasFiles = !!(formFiles.photo || formFiles.fingerprintLeft || formFiles.fingerprintRight);
     
     // Detectar qué secciones han sido modificadas
     const dirtyState = detectDirtyState(
