@@ -15,7 +15,7 @@ export const UPLOAD_CONFIG = {
     folder: 'medical',
   },
   belonging_inventory: {
-    allowedTypes: ['application/pdf'],
+    allowedTypes: ['application/pdf, image/jpeg', 'image/png'],
     maxSize: 10 * 1024 * 1024, // 10MB
     folder: 'inventories',
   },
