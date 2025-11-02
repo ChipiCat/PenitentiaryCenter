@@ -6,11 +6,16 @@ import { GeneralBlock } from "./cards/GeneralBlock";
 
 interface ProfileContentProps {
   profile: CompletePrisonerProfile;
+  onRefresh?: () => void;
 }
 
 export const ProfileContent = {
-  Medical: ({ profile }: ProfileContentProps) => (
-    <MedicalExamCard exam={profile.medical_records?.[0]} />
+  Medical: ({ profile, onRefresh }: ProfileContentProps) => (
+    <MedicalExamCard 
+      exams={profile.medical_records} 
+      prisonerId={profile.prisoner.id}
+      onRefresh={onRefresh}
+    />
   ),
   Legal: ({ profile }: ProfileContentProps) => (
     <LegalCasesCard
@@ -21,7 +26,7 @@ export const ProfileContent = {
   Activity: ({ profile }: ProfileContentProps) => (
     <ActivityCard activities={profile.activities ?? []} />
   ),
-  GeneralBlock: ({ profile }: ProfileContentProps) => (
-    <GeneralBlock profile={profile} />
+  GeneralBlock: ({ profile, onRefresh }: ProfileContentProps) => (
+    <GeneralBlock profile={profile} onRefresh={onRefresh} />
   ),
 };

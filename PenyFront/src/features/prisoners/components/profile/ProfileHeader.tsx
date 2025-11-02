@@ -135,21 +135,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           >
             Descargar PDF
           </Button>
-          <Button
-            leftSection={<Edit size={16} />}
-            variant="light"
-            color="gray"
-            style={{
-              minWidth: 120,
-              fontWeight: 500,
-              fontSize: 16,
-              borderRadius: 12,
-              height: 40,
-            }}
-            onClick={onEdit}
-          >
-            Editar
-          </Button>
+          
         </Group>
       </Group>
       

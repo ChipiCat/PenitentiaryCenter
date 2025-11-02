@@ -12,116 +12,7 @@ import { exportPrisonerPdf } from "../components/profile/exportPrisonerPdf";
 import { PrisonerFormWizard } from "../components/forms/PrisonerFormWizard";
 import { parseISODate } from "../components/forms/utils/dateUtils";
 
-/**
- * Convierte un perfil completo al formato esperado por el wizard de edición.
- * Las fechas se mantienen como strings except para identity.birth_date que acepta Date | string.
- * 
- * @param profile - Perfil completo del prisionero desde el backend
- * @returns Datos parciales en formato CreatePrisonerData para el wizard
- */
-const convertProfileToFormData = (profile: CompletePrisonerProfile): Partial<CreatePrisonerData> => {
-  return {
-    registration_number: profile.prisoner.registration_number,
-    admission_date: profile.prisoner.admission_date,
-    fiscal_file_number: profile.prisoner.fiscal_file_number,
-    status: profile.prisoner.status,
-    
-    // Identidad - birth_date puede ser Date o string
-    identity: profile.identity ? {
-      surname: profile.identity.surname,
-      first_name: profile.identity.first_name,
-      birth_date: parseISODate(profile.identity.birth_date) ?? undefined,
-      birth_place: profile.identity.birth_place,
-      residence: profile.identity.residence,
-      citizenship_type: profile.identity.citizenship_type,
-      country_of_origin: profile.identity.country_of_origin,
-      nationality: profile.identity.nationality,
-      nationality_type: profile.identity.nationality_type,
-    } : undefined,
-    
-    // Datos personales
-    personal: profile.personal ? {
-      gender: profile.personal.gender,
-      father_name: profile.personal.father_name,
-      mother_name: profile.personal.mother_name,
-      marital_status: profile.personal.marital_status,
-      education_level: profile.personal.education_level,
-      occupation: profile.personal.occupation,
-      languages: profile.personal.languages,
-      id_document_type: profile.personal.id_document_type,
-      id_document_number: profile.personal.id_document_number,
-      emergency_contact: profile.personal.emergency_contact,
-      emergency_phone: profile.personal.emergency_phone,
-     
-    } : undefined,
-    
-    // Penitenciario
-    penitentiary: profile.penitentiary ? {
-      building_number: profile.penitentiary.building_number,
-      cell_number: profile.penitentiary.cell_number,
-      bed_number: profile.penitentiary.bed_number,
-      category: profile.penitentiary.category,
-    } : undefined,
-    
-    // Registros médicos - mantener fechas como string
-    medical_record: profile.medical_records && profile.medical_records.length > 0 
-      ? profile.medical_records.map(record => ({
-          id: record.id,
-          doctor_name: record.doctor_name,
-          examination_date: record.examination_date,
-          reference_number: record.reference_number,
-          notes: record.notes,
-        }))
-      : undefined,
-    
-    // Contactos
-    contacts: profile.contacts && profile.contacts.length > 0
-      ? profile.contacts.map(contact => ({
-          id: contact.id,
-          name: contact.name,
-          phone: contact.phone,
-          relationship: contact.relationship,
-          address: contact.address,
-        }))
-      : undefined,
-    
-    // Hijos - mapear name a full_name, mantener birth_date como string
-    child: profile.children && profile.children.length > 0
-      ? profile.children.map(child => ({
-          id: child.id,
-          name: child.name, // Child type usa 'name', no 'full_name'
-          birth_date: child.birth_date,
-        }))
-      : undefined,
-    
-    // Pertenencias
-    belongings: profile.belongings && profile.belongings.length > 0
-      ? profile.belongings.map(belonging => ({
-          id: belonging.id,
-          description: belonging.description,
-          quantity: belonging.quantity,
-          condition: belonging.condition,
-        }))
-      : undefined,
-    
-    // Casos legales - mantener fechas como string para CaseFormData
-    cases: profile.cases && profile.cases.length > 0
-      ? profile.cases.map(caseItem => ({
-          id: caseItem.id,
-          case_number: caseItem.case_number,
-          crime: caseItem.crime,
-          status: caseItem.status,
-          start_date: caseItem.start_date,
-          end_date: caseItem.end_date,
-          court_name: caseItem.court_name,
-          judge_name: caseItem.judge_name,
-          sentence_years: caseItem.sentence_years,
-          remarks: caseItem.remarks,
-          mandates: [], // Los mandatos se cargan por separado en el wizard
-        }))
-      : undefined,
-  };
-};
+
 
 export const PrisonerProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -131,12 +22,16 @@ export const PrisonerProfilePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-
+  const [refresh, setRefresh] = useState(false);
   const [tabValue, setTabValue] = useState<string>("general");
 
   const handleTabChange = (value: string | null) => {
     if (value) setTabValue(value);
   };
+
+  const handleRefresh = () => {
+    setRefresh(!refresh);
+  }
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -167,7 +62,7 @@ export const PrisonerProfilePage: React.FC = () => {
     };
 
     loadProfile();
-  }, [id]);
+  }, [id, refresh]);
 
   useEffect(() => {
     const handleExportPDF = () => {
@@ -252,28 +147,17 @@ export const PrisonerProfilePage: React.FC = () => {
           isEditMode={isEditMode}
         />
         
-        {isEditMode ? (
-          // Modo edición: muestra el wizard en lugar de las tabs
-          <PrisonerFormWizard 
-            mode="edit"
-            prisonerId={profile.prisoner.id}
-            initialData={convertProfileToFormData(profile)}
-            onSuccess={handleSuccessEdit}
-            onCancel={handleCancelEdit}
-          />
-        ) : (
-          // Modo visualización: muestra las tabs normales
           <>
             {tabValue === "general" && (
-              <ProfileContent.GeneralBlock profile={profile} />
+              <ProfileContent.GeneralBlock profile={profile} onRefresh={handleRefresh} />
             )}
-            {tabValue === "medical" && <ProfileContent.Medical profile={profile} />}
+            {tabValue === "medical" && <ProfileContent.Medical profile={profile} onRefresh={handleRefresh} />}
             {tabValue === "legal" && <ProfileContent.Legal profile={profile} />}
             {tabValue === "activity" && (
               <ProfileContent.Activity profile={profile} />
             )}
           </>
-        )}
+        
       </div>
     </div>
   );
