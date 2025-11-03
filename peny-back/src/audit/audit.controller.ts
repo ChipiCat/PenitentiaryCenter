@@ -72,12 +72,42 @@ export class AuditController {
    */
   @Get('prisoner/:prisonerId/timeline')
   @HttpCode(HttpStatus.OK)
-  @ApiQuery({ name: 'page', required: true, type: Number, description: 'Número de página' })
-  @ApiQuery({ name: 'limit', required: true, type: Number, description: 'Cantidad de resultados por página' })
-  @ApiQuery({ name: 'start_date', required: false, type: String, description: 'Fecha de inicio' })
-  @ApiQuery({ name: 'end_date', required: false, type: String, description: 'Fecha de fin' })
-  @ApiQuery({ name: 'action', required: false, type: String, description: 'Acción de auditoría' })
-  @ApiQuery({ name: 'module', required: false, type: String, description: 'Módulo de auditoría' })
+  @ApiQuery({
+    name: 'page',
+    required: true,
+    type: Number,
+    description: 'Número de página',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: true,
+    type: Number,
+    description: 'Cantidad de resultados por página',
+  })
+  @ApiQuery({
+    name: 'start_date',
+    required: false,
+    type: String,
+    description: 'Fecha de inicio',
+  })
+  @ApiQuery({
+    name: 'end_date',
+    required: false,
+    type: String,
+    description: 'Fecha de fin',
+  })
+  @ApiQuery({
+    name: 'action',
+    required: false,
+    type: String,
+    description: 'Acción de auditoría',
+  })
+  @ApiQuery({
+    name: 'module',
+    required: false,
+    type: String,
+    description: 'Módulo de auditoría',
+  })
   async getPrisonerTimeline(
     @Param('prisonerId') prisonerId: string,
     @Query() query: PrisonerTimelineQueryDto,
@@ -98,10 +128,30 @@ export class AuditController {
    */
   @Get('prisoner/:prisonerId/identity/history')
   @HttpCode(HttpStatus.OK)
-  @ApiQuery({ name: 'page', required: true, type: Number, description: 'Número de página' })
-  @ApiQuery({ name: 'limit', required: true, type: Number, description: 'Cantidad de resultados por página' })
-  @ApiQuery({ name: 'start_date', required: false, type: String, description: 'Fecha de inicio' })
-  @ApiQuery({ name: 'end_date', required: false, type: String, description: 'Fecha de fin' })
+  @ApiQuery({
+    name: 'page',
+    required: true,
+    type: Number,
+    description: 'Número de página',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: true,
+    type: Number,
+    description: 'Cantidad de resultados por página',
+  })
+  @ApiQuery({
+    name: 'start_date',
+    required: false,
+    type: String,
+    description: 'Fecha de inicio',
+  })
+  @ApiQuery({
+    name: 'end_date',
+    required: false,
+    type: String,
+    description: 'Fecha de fin',
+  })
   async getPrisonerIdentityHistory(
     @Param('prisonerId') prisonerId: string,
     @Query('page') page?: number,

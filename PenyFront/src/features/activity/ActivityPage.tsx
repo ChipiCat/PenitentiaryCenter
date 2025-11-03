@@ -186,10 +186,10 @@ const ActivityPage = () => {
                       </Code>
                     )
                   )}
-                  {activity.data_changes &&
-                    activity.data_changes.length > 0 && (
+                  {activity.changes &&
+                    activity.changes.length > 0 && (
                       <Code block>
-                        {JSON.stringify(activity.data_changes, null, 2)}
+                        {JSON.stringify(activity.changes, null, 2)}
                       </Code>
                     )}
                 </Stack>
