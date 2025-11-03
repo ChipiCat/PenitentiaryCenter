@@ -10,6 +10,8 @@ import { ProfileContent } from "../components/profile/ProfileContent";
 import { LoadingState } from "../../../shared/components/LoadingState";
 import { exportPrisonerPdf } from "../components/profile/exportPrisonerPdf";
 
+
+
 export const PrisonerProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -17,12 +19,16 @@ export const PrisonerProfilePage: React.FC = () => {
   const [profile, setProfile] = useState<CompletePrisonerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const [refresh, setRefresh] = useState(false);
   const [tabValue, setTabValue] = useState<string>("general");
 
   const handleTabChange = (value: string | null) => {
     if (value) setTabValue(value);
   };
+
+  const handleRefresh = () => {
+    setRefresh(!refresh);
+  }
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -53,7 +59,7 @@ export const PrisonerProfilePage: React.FC = () => {
     };
 
     loadProfile();
-  }, [id]);
+  }, [id, refresh]);
 
   useEffect(() => {
     const handleExportPDF = () => {
@@ -75,11 +81,9 @@ export const PrisonerProfilePage: React.FC = () => {
     navigate(ROUTES.PRISONERS);
   };
 
-  const handleEdit = () => {
-    console.log("📝 Editar prisionero:", id);
-    // TODO: Implementar edición
-  };
 
+
+ 
   if (loading) {
     return <LoadingState />;
   }
@@ -110,19 +114,22 @@ export const PrisonerProfilePage: React.FC = () => {
       <div className="max-w-[1080px] w-full mx-auto flex flex-col gap-5">
         <ProfileHeader
           profile={profile}
-          onEdit={handleEdit}
           onBack={handleBack}
           tabValue={tabValue}
           onTabChange={handleTabChange}
         />
-        {tabValue === "general" && (
-          <ProfileContent.GeneralBlock profile={profile} />
-        )}
-        {tabValue === "medical" && <ProfileContent.Medical profile={profile} />}
-        {tabValue === "legal" && <ProfileContent.Legal profile={profile} />}
-        {tabValue === "activity" && (
-          <ProfileContent.Activity profile={profile} />
-        )}
+        
+          <>
+            {tabValue === "general" && (
+              <ProfileContent.GeneralBlock profile={profile} onRefresh={handleRefresh} />
+            )}
+            {tabValue === "medical" && <ProfileContent.Medical profile={profile} onRefresh={handleRefresh} />}
+            {tabValue === "legal" && <ProfileContent.Legal profile={profile} />}
+            {tabValue === "activity" && (
+              <ProfileContent.Activity profile={profile} onRefresh={handleRefresh}/>
+            )}
+          </>
+        
       </div>
     </div>
   );

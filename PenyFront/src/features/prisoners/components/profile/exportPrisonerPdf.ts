@@ -167,10 +167,7 @@ export async function exportPrisonerPdf(
         "Teléfono de emergencia",
         profile.personal?.emergency_phone ?? "No disponible",
       ],
-      [
-        "Observaciones personales",
-        profile.personal?.observations ?? "No disponible",
-      ],
+     
       ["Nombre del padre", profile.personal?.father_name ?? "No disponible"],
       ["Nombre de la madre", profile.personal?.mother_name ?? "No disponible"],
       [
@@ -220,7 +217,7 @@ export async function exportPrisonerPdf(
                       : m.examination_date
                   }${m.reference_number ? ", Ref: " + m.reference_number : ""}${
                     m.notes ? ", Notas: " + m.notes : ""
-                  }${m.attachment_url ? ", Archivo: " + m.attachment_url : ""}`
+                  }`
               )
               .join("; ")
           : "No hay registros médicos",
@@ -233,9 +230,7 @@ export async function exportPrisonerPdf(
                 (b) =>
                   `${b.description} (Cantidad: ${b.quantity}${
                     b.condition ? ", Estado: " + b.condition : ""
-                  }${b.is_returned ? ", Devuelto" : ", No devuelto"}${
-                    b.attachment_url ? ", Archivo: " + b.attachment_url : ""
-                  })`
+                  }${b.is_returned ? ", Devuelto" : ", No devuelto"})`
               )
               .join("; ")
           : "No hay pertenencias registradas",
@@ -257,7 +252,7 @@ export async function exportPrisonerPdf(
           ? profile.children
               .map(
                 (h) =>
-                  `${h.name}${
+                  `${h.full_name}${
                     h.birth_date ? " (Nacimiento: " + h.birth_date + ")" : ""
                   }`
               )

@@ -10,6 +10,7 @@ export const completeProfileService = {
       const response = await api.get<CompletePrisonerProfile>(
         `/prisoners/complete-profile/${prisonerId}`
       );
+      console.log("✅ Perfil completo obtenido:", response.data);
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError;

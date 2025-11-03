@@ -61,6 +61,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
             onUpdate={handleDataUpdate}
             onFileUpdate={handleFileUpdate}
             errors={errors}
+            mode={mode}
           />
         );
       case 1:
@@ -82,6 +83,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
             onUpdate={(updates) =>
               handleDataUpdate({ medical_record: updates.medical_record })
             }
+            onFileUpdate={handleFileUpdate}
             errors={errors}
           />
         );
@@ -123,7 +125,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
       default:
         return null;
     }
-  }, [activeStep, formData, errors, handleDataUpdate, handleFileUpdate]);
+  }, [activeStep, formData, errors, handleDataUpdate, handleFileUpdate, mode]);
 
   return (
     <Container size="lg" className="!p-0">
