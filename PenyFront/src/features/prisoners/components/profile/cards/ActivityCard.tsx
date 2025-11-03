@@ -69,12 +69,6 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({ prisonerId }) => {
           <>
             <Accordion variant="contained" radius="md">
               {activities.map((act) => {
-                let nombreEntidad = "";
-                if (act.description) {
-                  const match = act.description.match(/creada: ([^\n]+)/i) || act.description.match(/registered|registrado: ([^\n]+)/i);
-                  if (match && match[1]) nombreEntidad = match[1];
-                  else nombreEntidad = act.description;
-                }
                 return (
                   <Accordion.Item key={act.id} value={act.id}>
                     <Accordion.Control>
@@ -96,7 +90,6 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({ prisonerId }) => {
                     <Accordion.Panel>
                       <Stack gap={10}>
                         <Group align="flex-start" grow>
-                          {/* Columna izquierda */}
                           <Stack gap={4} style={{ flex: 1 }}>
                             <Text size="sm" c="dimmed">Fecha completa:</Text>
                             <Text size="sm">{new Date(act.timestamp).toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}</Text>
@@ -109,7 +102,6 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({ prisonerId }) => {
                             <Text size="sm" c="dimmed">Importancia:</Text>
                             <Text size="sm">{act.severity === "INFO" ? "Información" : act.severity === "WARNING" ? "Advertencia" : act.severity}</Text>
                           </Stack>
-                          {/* Columna derecha */}
                           <Stack gap={4} style={{ flex: 1 }}>
                             <Text size="sm" c="dimmed">Detalle:</Text>
                             <Text size="sm">{act.description}</Text>
@@ -123,11 +115,10 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({ prisonerId }) => {
                             <Text size="sm">{act.status === "SUCCESS" ? "Éxito" : act.status}</Text>
                           </Stack>
                         </Group>
-                        {/* Cambios realizados */}
                         {act.changes && act.changes.length > 0 && (
                           <Stack gap={4} mt={6} p={4} style={{ background: "#f3f6fa", borderRadius: 6 }}>
-                            {act.changes.map((chg) => (
-                              <Box mt={8} p={10} style={{ background: "#f8f9fa", borderRadius: 8, border: "1px solid #e0e0e0" }}>
+                            {act.changes.map((chg, idx) => (
+                              <Box key={idx} mt={8} p={10} style={{ background: "#f8f9fa", borderRadius: 8, border: "1px solid #e0e0e0" }}>
                                 <Group grow>
                                   <Stack gap={2}>
                                     <Text size="xs" fw={600} c="dimmed">Cambios realizados: {chg.field || chg.key || ""}</Text>
