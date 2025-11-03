@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  UnauthorizedException,
   Inject,
   Scope,
 } from '@nestjs/common';
@@ -52,7 +53,7 @@ export class UserService {
     createdBy?: string,
   ): Promise<User> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
-    const { email, password, name, role, photoUrl } = createUserDto;
+    const { email, password, name, role, photoFileId } = createUserDto;
 
     // Check if user already exists
     const existingUser = await this.prisma.user.findFirst({
@@ -73,8 +74,11 @@ export class UserService {
           name,
           email,
           role: role || UserRole.SECRETARY,
-          photoUrl,
+          photoFileId,
           createdBy,
+        },
+        include: {
+          photoFile: true,
         },
       });
 
@@ -157,6 +161,9 @@ export class UserService {
         skip,
         take: size,
         orderBy: { createdAt: 'desc' },
+        include: {
+          photoFile: true,
+        },
       }),
       this.prisma.user.count({ where }),
     ]);
@@ -177,6 +184,9 @@ export class UserService {
   async findOne(id: string): Promise<User> {
     const user = await this.prisma.user.findFirst({
       where: { id, isDeleted: false },
+      include: {
+        photoFile: true,
+      },
     });
 
     if (!user) {
@@ -192,7 +202,7 @@ export class UserService {
     updatedBy?: string,
   ): Promise<User> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
-    const { email, name, role, photoUrl } = updateUserDto;
+    const { email, name, role, photoFileId, isFirstLogin } = updateUserDto;
 
     // Check if user exists
     const existingUser = await this.findOne(id);
@@ -214,8 +224,12 @@ export class UserService {
         ...(name && { name }),
         ...(email && { email }),
         ...(role && { role }),
-        ...(photoUrl !== undefined && { photoUrl }),
+        ...(photoFileId !== undefined && { photoFileId }),
+        ...(isFirstLogin !== undefined && { isFirstLogin }),
         updatedBy,
+      },
+      include: {
+        photoFile: true,
       },
     });
 
@@ -271,11 +285,19 @@ export class UserService {
       });
     }
 
-    if (photoUrl !== undefined && photoUrl !== existingUser.photoUrl) {
+    if (photoFileId !== undefined && photoFileId !== existingUser.photoFileId) {
       fieldChanges.push({
-        field_name: 'photoUrl',
-        old_value: existingUser.photoUrl ?? 'null',
-        new_value: photoUrl ?? 'null',
+        field_name: 'photoFileId',
+        old_value: existingUser.photoFileId ?? 'null',
+        new_value: photoFileId ?? 'null',
+      });
+    }
+
+    if (isFirstLogin !== undefined && isFirstLogin !== existingUser.isFirstLogin) {
+      fieldChanges.push({
+        field_name: 'isFirstLogin',
+        old_value: String(existingUser.isFirstLogin),
+        new_value: String(isFirstLogin),
       });
     }
 
@@ -347,5 +369,69 @@ export class UserService {
     );
 
     return { message: 'User deleted successfully' };
+  }
+
+  /**
+   * Cambia la contraseña del usuario
+   */
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
+
+    // Verificar que el usuario existe
+    const user = await this.findOne(userId);
+
+    // Obtener el registro de autenticación
+    const userAuth = await this.prisma.userAuth.findUnique({
+      where: { userId },
+    });
+
+    if (!userAuth) {
+      throw new NotFoundException('User authentication record not found');
+    }
+
+    // Verificar la contraseña actual
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      userAuth.passwordHash,
+    );
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    // Hash de la nueva contraseña
+    const newPasswordHash = await bcrypt.hash(newPassword, 12);
+
+    // Actualizar la contraseña
+    await this.prisma.userAuth.update({
+      where: { userId },
+      data: {
+        passwordHash: newPasswordHash,
+        updatedBy: userId,
+      },
+    });
+
+    // Log del cambio de contraseña
+    await this.auditService.logActivity({
+      user_id: user.id,
+      user_email: user.email,
+      user_name: user.name,
+      user_role: user.role,
+      action: 'PASSWORD_CHANGED' as any, // This action exists in the enum
+      module: 'USERS' as any,
+      entity_type: 'USER' as any,
+      entity_id: user.id,
+      status: 'SUCCESS' as any,
+      severity: 'INFO' as any,
+      description: 'User changed their password',
+      ip_address: ipAddress,
+      user_agent: userAgent,
+    });
+
+    return { message: 'Password changed successfully' };
   }
 }

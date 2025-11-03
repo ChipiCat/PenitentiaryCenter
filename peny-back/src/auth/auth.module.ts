@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuditModule } from '../audit/audit.module';
+import { FilesModule } from '../files/files.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AuditModule } from '../audit/audit.module';
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '15m' },
     }),
     forwardRef(() => AuditModule),
+    FilesModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
