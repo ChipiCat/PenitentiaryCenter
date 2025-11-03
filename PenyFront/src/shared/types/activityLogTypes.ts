@@ -3,33 +3,34 @@ export interface ActivityUser {
   email: string;
   name: string;
   role: string;
-  //borrar
-  avatar?: string; // avatar opcional
 }
 
 export interface DataChange {
-  field_name?: string;
+  field?: string;
+  key?: string;
   old_value?: string;
+  oldValue?: string;
   new_value?: string;
+  newValue?: string;
 }
 
 export interface ActivityLog {
   id: string;
-  user: ActivityUser;
+  timestamp: string;
   action: string;
+  module: string;
   entity_type: string;
   entity_id: string;
-  timestamp: string;
+  description: string;
+  severity: string;
+  status: string;
+  user: ActivityUser;
+  changes: DataChange[];
   ip_address: string;
   user_agent: string;
-  description: string;
-  status: string;
-  module: string;
-  severity: string;
   session_log_id?: string;
   prisoner_related_id?: string;
   metadata?: Record<string, string | number | boolean>;
-  data_changes: DataChange[];
 }
 
 export interface ActivityLogsPagination {

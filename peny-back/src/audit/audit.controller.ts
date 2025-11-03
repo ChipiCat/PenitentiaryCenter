@@ -28,10 +28,9 @@ import {
   ErrorStatsResponseDto,
   GlobalSearchResponseDto,
 } from './dto/response.dto';
-import { ApiBearerAuth } from '@nestjs/swagger';
-
+import { ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { CacheInterceptor } from '@nestjs/cache-manager';
-
+import { PrisonerTimelineQueryDto } from './dto/query.dto';
 /**
  * Controlador para endpoints de auditoría y trazabilidad
  */
@@ -73,22 +72,53 @@ export class AuditController {
    */
   @Get('prisoner/:prisonerId/timeline')
   @HttpCode(HttpStatus.OK)
+  @ApiQuery({
+    name: 'page',
+    required: true,
+    type: Number,
+    description: 'Número de página',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: true,
+    type: Number,
+    description: 'Cantidad de resultados por página',
+  })
+  @ApiQuery({
+    name: 'start_date',
+    required: false,
+    type: String,
+    description: 'Fecha de inicio',
+  })
+  @ApiQuery({
+    name: 'end_date',
+    required: false,
+    type: String,
+    description: 'Fecha de fin',
+  })
+  @ApiQuery({
+    name: 'action',
+    required: false,
+    type: String,
+    description: 'Acción de auditoría',
+  })
+  @ApiQuery({
+    name: 'module',
+    required: false,
+    type: String,
+    description: 'Módulo de auditoría',
+  })
   async getPrisonerTimeline(
     @Param('prisonerId') prisonerId: string,
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-    @Query('start_date') startDate?: string,
-    @Query('end_date') endDate?: string,
-    @Query('action') action?: string,
-    @Query('module') module?: string,
+    @Query() query: PrisonerTimelineQueryDto,
   ): Promise<PrisonerTimelineResponseDto> {
     return this.auditService.getPrisonerTimeline(prisonerId, {
-      page: page ? Number(page) : 1,
-      limit: limit ? Number(limit) : 50,
-      startDate,
-      endDate,
-      action,
-      module,
+      page: query.page ?? 1,
+      limit: query.limit ?? 50,
+      startDate: query.start_date,
+      endDate: query.end_date,
+      action: query.action,
+      module: query.module,
     });
   }
 
@@ -98,6 +128,30 @@ export class AuditController {
    */
   @Get('prisoner/:prisonerId/identity/history')
   @HttpCode(HttpStatus.OK)
+  @ApiQuery({
+    name: 'page',
+    required: true,
+    type: Number,
+    description: 'Número de página',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: true,
+    type: Number,
+    description: 'Cantidad de resultados por página',
+  })
+  @ApiQuery({
+    name: 'start_date',
+    required: false,
+    type: String,
+    description: 'Fecha de inicio',
+  })
+  @ApiQuery({
+    name: 'end_date',
+    required: false,
+    type: String,
+    description: 'Fecha de fin',
+  })
   async getPrisonerIdentityHistory(
     @Param('prisonerId') prisonerId: string,
     @Query('page') page?: number,

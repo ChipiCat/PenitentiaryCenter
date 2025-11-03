@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import api from "../../../shared/services/api";
-import type { ActivityLog, ActivityLogsResponse } from "../../../shared/types/activityLogTypes";
+import type { ActivityLog } from "../../../shared/types/activityLogTypes";
+import { fetchActivityLogs } from "../../../shared/services/auditService";
 
 export function useSystemActivity() {
   const [activities, setActivities] = useState<ActivityLog[]>([]);
@@ -9,12 +9,7 @@ export function useSystemActivity() {
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   useEffect(() => {
-    api.get<ActivityLogsResponse>("/audit/activity-logs")
-      .then(res => setActivities(res.data.data))
-      .catch(err => {
-        console.error("Error al obtener logs de actividad:", err);
-        setActivities([]);
-      });
+    fetchActivityLogs().then(setActivities);
   }, []);
 
   const filteredActivities = activities.filter(a =>
