@@ -1,4 +1,4 @@
-import { IsOptional, IsEnum, IsDateString, IsInt, Min } from 'class-validator';
+import { IsOptional, IsEnum, IsDateString, IsInt, Min, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import {
   AuditAction,
@@ -173,4 +173,32 @@ export class GlobalSearchQueryDto {
   @IsInt()
   @Min(1)
   limit?: number = 50;
+}
+
+export class PrisonerTimelineQueryDto {
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limit?: number = 50;
+
+  @IsOptional()
+  @IsString()
+  start_date?: string;
+
+  @IsOptional()
+  @IsString()
+  end_date?: string;
+
+  @IsOptional()
+  @IsString()
+  action?: string;
+
+  @IsOptional()
+  @IsString()
+  module?: string;
 }
