@@ -4,13 +4,39 @@ import {
   MinLength,
   IsEnum,
   IsOptional,
-  IsUrl,
   IsInt,
   Min,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { UserRole } from 'generated/prisma';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+/**
+ * DTO para la respuesta de archivo
+ */
+export class FileResponseDto {
+  @ApiProperty({ example: 'clxxxxxxxx' })
+  id: string;
+
+  @ApiProperty({ example: 'https://example.com/photo.jpg' })
+  url: string;
+
+  @ApiProperty({ example: 'photo.jpg' })
+  filename: string;
+
+  @ApiProperty({ example: 'my-photo.jpg' })
+  originalName: string;
+
+  @ApiProperty({ example: 'image/jpeg' })
+  mimeType: string;
+
+  @ApiProperty({ example: 'jpg' })
+  extension: string;
+
+  @ApiProperty({ example: 1024000 })
+  size: number;
+}
 
 export class CreateUserDto {
   @ApiProperty({ example: 'John Doe', minLength: 2 })
@@ -32,10 +58,10 @@ export class CreateUserDto {
   @IsOptional()
   role?: UserRole;
 
-  @ApiProperty({ example: 'https://example.com/photo.jpg' })
-  @IsUrl()
+  @ApiPropertyOptional({ example: 'clxxxxxxxx', description: 'ID del archivo de foto del perfil' })
+  @IsString()
   @IsOptional()
-  photoUrl?: string;
+  photoFileId?: string;
 }
 
 export class UpdateUserDto {
@@ -55,19 +81,40 @@ export class UpdateUserDto {
   @IsOptional()
   role?: UserRole;
 
-  @ApiProperty({ example: 'https://example.com/photo.jpg' })
-  @IsUrl()
+  @ApiPropertyOptional({ example: 'clxxxxxxxx', description: 'ID del archivo de foto del perfil' })
+  @IsString()
   @IsOptional()
-  photoUrl?: string;
+  photoFileId?: string;
+
+  @ApiPropertyOptional({ example: false, description: 'Indicador de primer inicio de sesión' })
+  @IsBoolean()
+  @IsOptional()
+  isFirstLogin?: boolean;
 }
 
 export class UserResponseDto {
+  @ApiProperty({ example: 'clxxxxxxxx' })
   id: string;
+
+  @ApiProperty({ example: 'John Doe' })
   name: string;
+
+  @ApiProperty({ example: 'john@example.com' })
   email: string;
+
+  @ApiProperty({ enum: UserRole, example: UserRole.SECRETARY })
   role: UserRole;
-  photoUrl?: string;
+
+  @ApiPropertyOptional({ type: FileResponseDto, nullable: true })
+  photoFile?: FileResponseDto | null;
+
+  @ApiProperty({ example: true })
+  isFirstLogin: boolean;
+
+  @ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
   createdAt: Date;
+
+  @ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
   updatedAt: Date;
 }
 

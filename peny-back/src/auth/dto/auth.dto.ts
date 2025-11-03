@@ -4,10 +4,11 @@ import {
   MinLength,
   IsEnum,
   IsOptional,
-  IsUrl,
+  IsBoolean,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from 'generated/prisma';
+import { FileResponseDto } from '../../user/dto/user.dto';
 
 export class RegisterDto {
   @ApiProperty({ example: 'John Doe', minLength: 2 })
@@ -29,10 +30,8 @@ export class RegisterDto {
   @IsOptional()
   role?: UserRole;
 
-  @ApiPropertyOptional({ example: 'https://example.com/photo.jpg' })
-  @IsUrl()
-  @IsOptional()
-  photoUrl?: string;
+  // Este campo se omite del DTO porque se envía como archivo multipart
+  // La foto se manejará en el controller con @UploadedFile()
 }
 
 export class LoginDto {
@@ -51,11 +50,25 @@ export class RefreshTokenDto {
   refreshToken: string;
 }
 
+export class ChangePasswordDto {
+  @ApiProperty({ example: 'currentPassword123', description: 'Contraseña actual del usuario' })
+  @IsString()
+  @MinLength(6)
+  currentPassword: string;
+
+  @ApiProperty({ example: 'newPassword123', description: 'Nueva contraseña (mínimo 6 caracteres)' })
+  @IsString()
+  @MinLength(6)
+  newPassword: string;
+}
+
 export class AuthResponseDto {
   @ApiProperty({ example: 'your-access-token' })
   accessToken: string;
+  
   @ApiProperty({ example: 'your-refresh-token' })
   refreshToken: string;
+  
   @ApiProperty({
     type: 'object',
     description: 'User information',
@@ -68,11 +81,16 @@ export class AuthResponseDto {
         enum: Object.values(UserRole),
         example: UserRole.SECRETARY,
       },
-      photoUrl: {
-        type: 'string',
-        example: 'https://example.com/photo.jpg',
+      photoFile: {
+        type: 'object',
         nullable: true,
+        properties: {
+          id: { type: 'string' },
+          url: { type: 'string' },
+          filename: { type: 'string' },
+        },
       },
+      isFirstLogin: { type: 'boolean', example: true },
     },
   })
   user: {
@@ -80,7 +98,8 @@ export class AuthResponseDto {
     name: string;
     email: string;
     role: UserRole;
-    photoUrl?: string;
+    photoFile?: FileResponseDto | null;
+    isFirstLogin: boolean;
   };
 }
 
