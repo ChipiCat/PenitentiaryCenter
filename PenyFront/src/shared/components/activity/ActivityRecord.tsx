@@ -44,7 +44,7 @@ export const ActivityRecord: React.FC<ActivityRecordProps> = ({
             <UserAvatar
               name={activity.user.name}
               role={activity.user.role}
-              email={activity.user.email}
+              avatar={activity.user.avatar || ""}
               size="md"
             />
           </div>

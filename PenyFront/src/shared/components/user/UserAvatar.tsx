@@ -5,7 +5,6 @@ export interface UserAvatarProps {
   name: string;
   role?: string;
   avatar?: string;
-  email?: string;
   size?: "xs" | "sm" | "md" | "lg" | "xl";
 }
 
@@ -13,7 +12,6 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   name,
   role,
   avatar,
-  email,
   size = "md",
 }) => {
   const getUserInitials = (userName: string) => {
@@ -40,11 +38,6 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
       <Avatar size={size} color={getUserColor(role)} src={avatar}>
         {getUserInitials(name)}
       </Avatar>
-      {email && (
-        <span style={{ fontSize: "0.8em", color: "#888", marginTop: 4 }}>
-          {email}
-        </span>
-      )}
     </div>
   );
 };
