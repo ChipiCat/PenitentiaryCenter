@@ -69,4 +69,14 @@ export const casesService = {
       throw new Error(axiosError.response?.data?.message || 'Error al eliminar caso');
     }
   },
+
+  async getCompleteCase(prisonerId: string): Promise<Case[]> {
+    try {
+      const response = await api.get<Case[]>(`/prisoners/${prisonerId}/cases/complete`);
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      throw new Error(axiosError.response?.data?.message || 'Error al obtener caso completo');
+    }
+  },
 };

@@ -5,15 +5,17 @@ import type { MedicalRecord } from "../../../../shared/types";
 import { TextInputField } from "../../../../shared/components/TextInputField";
 import { TextareaField } from "../../../../shared/components/TextareaField";
 import { BelongingDropzone } from "../../../../shared/components/BelongingDropzone";
+import { toDateObject } from "./utils/dateUtils";
 
 interface MedicalStepProps {
   data: { medical_record?: Partial<MedicalRecord>[] };
   onUpdate: (updates: { medical_record?: Partial<MedicalRecord>[] }) => void;
+  onFileUpdate?: (fileType: 'medicalFile', file: File | undefined) => void;
   errors?: Record<string, string>;
 }
 
 export const MedicalStep: React.FC<MedicalStepProps> = React.memo(
-  ({ data, onUpdate, errors = {} }) => {
+  ({ data, onUpdate, onFileUpdate, errors = {} }) => {
     // Memoizar datos para evitar re-crear objetos
     const medicalRecords = useMemo(
       () => data.medical_record || [],
@@ -56,18 +58,7 @@ export const MedicalStep: React.FC<MedicalStepProps> = React.memo(
             <DatePickerInput
               label="Fecha de Examen"
               placeholder="Selecciona la fecha"
-              value={
-                medical.examination_date
-                  ? typeof medical.examination_date === "string"
-                    ? (() => {
-                        const [year, month, day] = medical.examination_date
-                          .split("-")
-                          .map(Number);
-                        return new Date(year, month - 1, day);
-                      })()
-                    : medical.examination_date
-                  : null
-              }
+              value={toDateObject(medical.examination_date)}
               onChange={(date) =>
                 handleMedicalChange("examination_date", date ?? undefined)
               }
@@ -96,8 +87,7 @@ export const MedicalStep: React.FC<MedicalStepProps> = React.memo(
             />
             <BelongingDropzone
               onFile={(file) => {
-                const url = file ? URL.createObjectURL(file) : "";
-                handleMedicalChange("attachment_url", url);
+                onFileUpdate?.('medicalFile', file);
               }}
             />
           </Stack>

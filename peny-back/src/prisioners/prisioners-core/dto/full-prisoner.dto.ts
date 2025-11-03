@@ -7,6 +7,8 @@ import { MedicalRecordResponseDto } from '../../prisoner-medical-record/dto/medi
 import { BelongingResponseDto } from '../../prisoner-belonging/dto/belonging.dto';
 import { ContactResponseDto } from '../../prisoner-contact/dto/contact.dto';
 import { ChildResponseDto } from '../../prisoner-children/dto/childre.dto';
+import { CaseResponseDto } from 'src/prisioners/prisoner-case/dto/case.dto';
+import { MandateResponseDto } from 'src/prisioners/prisoner-case/dto/mandate.dto';
 
 /**
  * DTO para el perfil completo del prisionero
@@ -53,4 +55,9 @@ export class CompletePrisonerProfileDto {
     type: [ChildResponseDto],
   })
   children: ChildResponseDto[];
+  @ApiProperty({
+    description: 'Casos legales del prisionero',
+    type: [CaseResponseDto],
+  })
+  cases: Array<CaseResponseDto & { mandates: MandateResponseDto[] }>;
 }

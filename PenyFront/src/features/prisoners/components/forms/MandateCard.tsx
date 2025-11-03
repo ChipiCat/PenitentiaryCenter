@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { Card, Group, Stack, Text, ActionIcon, Badge } from "@mantine/core";
 import { Trash2 } from "lucide-react";
 import { DatePickerInput } from "@mantine/dates";
@@ -6,12 +6,13 @@ import { SelectField } from "../../../../shared/components/SelectField";
 import { TextareaField } from "../../../../shared/components/TextareaField";
 import { BelongingDropzone } from "../../../../shared/components/BelongingDropzone";
 import type { MandateFormData } from "../../../../shared/types/forms/legalCaseFormTypes";
+import { toDateObject, formatDateToISO } from "./utils/dateUtils";
 
 interface MandateCardProps {
   mandate: MandateFormData;
   index: number;
   caseIndex: number;
-  onChange: (caseIndex: number, mandateIndex: number, field: keyof MandateFormData, value: any) => void;
+  onChange: (caseIndex: number, mandateIndex: number, field: keyof MandateFormData, value: string | number | null | Date | File) => void;
   onRemove: (caseIndex: number, mandateIndex: number) => void;
   errors?: Record<string, string>;
 }
@@ -40,9 +41,19 @@ export const MandateCard: React.FC<MandateCardProps> = React.memo(({
 }) => {
   const errorPrefix = `cases.${caseIndex}.mandates.${index}`;
 
-  const handleFileChange = (file: File) => {
+  const handleFileChange = useCallback((file: File) => {
     onChange(caseIndex, index, 'file', file);
-  };
+  }, [caseIndex, index, onChange]);
+
+  const handleIssueDateChange = useCallback((dateValue: Date | string | null) => {
+    let dateString = '';
+    if (dateValue instanceof Date) {
+      dateString = formatDateToISO(dateValue) ?? '';
+    } else if (typeof dateValue === 'string') {
+      dateString = dateValue;
+    }
+    onChange(caseIndex, index, 'issue_date', dateString);
+  }, [caseIndex, index, onChange]);
 
   return (
     <Card withBorder padding="md" bg="gray.0">
@@ -92,17 +103,8 @@ export const MandateCard: React.FC<MandateCardProps> = React.memo(({
         <DatePickerInput
           label="Fecha de Emisión"
           placeholder="Fecha del mandato"
-          value={mandate.issue_date ? new Date(mandate.issue_date) : null}
-          onChange={(value) => {
-            const dateValue = value as Date | string | null;
-            if (dateValue instanceof Date) {
-              onChange(caseIndex, index, 'issue_date', dateValue.toISOString().split('T')[0]);
-            } else if (typeof dateValue === 'string') {
-              onChange(caseIndex, index, 'issue_date', dateValue);
-            } else {
-              onChange(caseIndex, index, 'issue_date', '');
-            }
-          }}
+          value={toDateObject(mandate.issue_date)}
+          onChange={handleIssueDateChange}
           error={errors[`${errorPrefix}.issue_date`]}
           maxDate={new Date()}
           required

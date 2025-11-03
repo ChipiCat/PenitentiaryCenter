@@ -20,7 +20,4 @@ export interface UpdateContactData {
   name?: string;
   relationship?: string;
   phone?: string;
-  email?: string;
-  address?: string;
-  is_emergency?: boolean;
 }

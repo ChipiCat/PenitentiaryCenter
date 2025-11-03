@@ -18,6 +18,7 @@ export interface Identity extends Entity {
   right_fingerprint?: FileInfo | null;
   left_fingerprint_file_id?: string;
   left_fingerprint?: FileInfo | null;
+  nationality_type?: string;
 }
 
 // ==================== REQUEST TYPES ====================
@@ -41,6 +42,7 @@ export interface UpdateIdentityData {
   residence?: string;
   citizenship_type?: string;
   country_of_origin?: string;
+  nationality_type?: string;
   nationality?: string;
 }
 
