@@ -16,7 +16,7 @@ export interface CreatePenitentiaryData {
 }
 
 export interface UpdatePenitentiaryData {
-  category?: string;
+  category?: "DerechoComun" | "PrisionPreventiva" | "PrisioneroAcusado";
   building_number?: string;
   cell_number?: string;
   bed_number?: string;

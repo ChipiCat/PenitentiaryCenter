@@ -12,6 +12,7 @@ export interface Case extends Entity {
   judge_name: string,
   sentence_years: number,
   remarks: string,
+  mandates?: Mandate[];
 }
 
 export interface Mandate extends Entity {
@@ -46,13 +47,21 @@ export interface CreateMandatesData {
 
 export interface UpdateCaseData {
   case_number?: string;
-  case_type?: string;
-  court?: string;
-  judge?: string;
-  status?: string;
+  crime?: string;
+  status?: "EnProceso" | "Condenado" | "Apelacion" | "Cerrado";
   start_date?: string;
   end_date?: string;
+  court_name?: string;
+  judge_name?: string;
+  sentence_years?: number;
+  remarks?: string;
+}
+
+export interface UpdateMandateData {
+  type?: 'Detencion' | 'Condena' | 'Libertad' | 'Apelacion' | 'Traslado';
+  issue_date?: string;
   description?: string;
+  status?: 'Vigente' | 'Ejecutado' | 'Anulado';
 }
 
 // ==================== RESPONSE TYPES ====================

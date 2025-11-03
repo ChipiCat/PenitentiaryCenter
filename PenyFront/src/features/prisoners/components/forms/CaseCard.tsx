@@ -7,6 +7,7 @@ import { SelectField } from "../../../../shared/components/SelectField";
 import { TextareaField } from "../../../../shared/components/TextareaField";
 import { MandateCard } from "./MandateCard";
 import type { CaseFormData, MandateFormData } from "../../../../shared/types/forms/legalCaseFormTypes";
+import { toDateObject, formatDateToISO } from "./utils/dateUtils";
 
 interface CaseCardProps {
   caseData: CaseFormData;
@@ -38,26 +39,24 @@ export const CaseCard: React.FC<CaseCardProps> = React.memo(({
 }) => {
   const errorPrefix = `cases.${index}`;
 
-  const handleStartDateChange = useCallback((value: Date | string | null) => {
-    const dateValue = value;
+  const handleStartDateChange = useCallback((dateValue: Date | string | null) => {
+    let dateString = '';
     if (dateValue instanceof Date) {
-      onChange(index, 'start_date', dateValue.toISOString().split('T')[0]);
+      dateString = formatDateToISO(dateValue) ?? '';
     } else if (typeof dateValue === 'string') {
-      onChange(index, 'start_date', dateValue);
-    } else {
-      onChange(index, 'start_date', '');
+      dateString = dateValue;
     }
+    onChange(index, 'start_date', dateString as string | number | null | Date);
   }, [index, onChange]);
 
-  const handleEndDateChange = useCallback((value: Date | string | null) => {
-    const dateValue = value;
+  const handleEndDateChange = useCallback((dateValue: Date | string | null) => {
+    let dateString = '';
     if (dateValue instanceof Date) {
-      onChange(index, 'end_date', dateValue.toISOString().split('T')[0]);
+      dateString = formatDateToISO(dateValue) ?? '';
     } else if (typeof dateValue === 'string') {
-      onChange(index, 'end_date', dateValue);
-    } else {
-      onChange(index, 'end_date', '');
+      dateString = dateValue;
     }
+    onChange(index, 'end_date', dateString as string | number | null | Date);
   }, [index, onChange]);
 
   return (
@@ -110,7 +109,7 @@ export const CaseCard: React.FC<CaseCardProps> = React.memo(({
           <DatePickerInput
             label="Fecha de Inicio"
             placeholder="Fecha del caso"
-            value={caseData.start_date ? new Date(caseData.start_date) : null}
+            value={toDateObject(caseData.start_date)}
             onChange={handleStartDateChange}
             error={errors[`${errorPrefix}.start_date`]}
             maxDate={new Date()}
@@ -119,7 +118,7 @@ export const CaseCard: React.FC<CaseCardProps> = React.memo(({
           <DatePickerInput
             label="Fecha de Fin"
             placeholder="Fecha estimada de fin"
-            value={caseData.end_date ? new Date(caseData.end_date) : null}
+            value={toDateObject(caseData.end_date)}
             onChange={handleEndDateChange}
             error={errors[`${errorPrefix}.end_date`]}
           />

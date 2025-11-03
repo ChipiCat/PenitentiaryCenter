@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { Stack, Title, Card } from "@mantine/core";
 import type {
   CreatePrisonerData,
@@ -14,6 +14,7 @@ import { SelectField } from "../../../../shared/components/SelectField";
 import { GenericCombobox } from "../../../../shared/components/GenericCombobox";
 import { TextareaField } from "../../../../shared/components/TextareaField";
 import { DatePickerInput } from "@mantine/dates";
+import { parseISODate } from "./utils/dateUtils";
 import { SelectWithOther } from "../../../../shared/components/SelectWithOther";
 import {
   ProfilePhotoDropzone,
@@ -31,10 +32,11 @@ interface BasicInfoStepProps {
     file: File
   ) => void;
   errors?: Record<string, string>;
+  mode?: 'edit' | 'create';
 }
 
 export const BasicInfoStep: React.FC<BasicInfoStepProps> = React.memo(
-  ({ data, onUpdate, onFileUpdate, errors = {} }) => {
+  ({ data, onUpdate, onFileUpdate, errors = {}, mode  }) => {
     // Memoizar identity para evitar re-crear el objeto
     const identity = useMemo(() => data.identity || {}, [data.identity]);
 
@@ -56,6 +58,10 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = React.memo(
       },
       [onUpdate, identity]
     );
+
+    useEffect(() => {
+      console.log("BasicInfoStep data updated:", data);
+    }, [data]);
 
     return (
       <Stack gap="lg">
@@ -80,20 +86,16 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = React.memo(
                 placeholder="Seleccione la fecha"
                 value={
                   data.admission_date
-                    ? typeof data.admission_date === "string"
-                      ? (() => {
-                          const [year, month, day] = data.admission_date
-                            .split("-")
-                            .map(Number);
-                          return new Date(year, month - 1, day);
-                        })()
-                      : data.admission_date
+                    ? (typeof data.admission_date === 'string'
+                        ? parseISODate(data.admission_date)
+                        : data.admission_date)
                     : null
                 }
                 onChange={(date) =>
                   handleMainDataChange("admission_date", date ?? undefined)
                 }
                 error={errors.admission_date}
+                disabled={mode === 'edit'}
                 required
                 maxDate={new Date()}
               />
@@ -120,30 +122,18 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = React.memo(
               <ProfilePhotoDropzone
                 onFile={(file) => {
                   onFileUpdate?.("photo", file);
-                  handleIdentityChange(
-                    "profile_photo_url",
-                    URL.createObjectURL(file)
-                  );
                 }}
               />
               <FingerprintDropzone
                 label="Huella Dactilar Izquierda"
                 onFile={(file) => {
                   onFileUpdate?.("fingerprintLeft", file);
-                  handleIdentityChange(
-                    "fingerprint_left_url",
-                    URL.createObjectURL(file)
-                  );
                 }}
               />
               <FingerprintDropzone
                 label="Huella Dactilar Derecha"
                 onFile={(file) => {
                   onFileUpdate?.("fingerprintRight", file);
-                  handleIdentityChange(
-                    "fingerprint_right_url",
-                    URL.createObjectURL(file)
-                  );
                 }}
               />
             </InputGroup>

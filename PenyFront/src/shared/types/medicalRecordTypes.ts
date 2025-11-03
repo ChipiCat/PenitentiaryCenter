@@ -1,4 +1,5 @@
 import type { Entity } from "./commonTypes";
+import type { FileInfo } from "./filesTypes";
 
 export interface MedicalRecord extends Entity {
   prisoner_id: string;
@@ -6,7 +7,8 @@ export interface MedicalRecord extends Entity {
   examination_date: string;
   reference_number?: string;
   notes?: string;
-  attachment_url?: string;
+  file_id?: string;
+  file: FileInfo | null;
 }
 
 export interface CreateMedicalRecordData {

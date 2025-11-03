@@ -109,8 +109,7 @@ export function BelongingsListForm({
               <InputGroup>
                 <BelongingDropzone
                   onFile={(file) => {
-                    const url = file ? URL.createObjectURL(file) : "";
-                    onChange(index, "attachment_url", url);
+                    console.log("Archivo seleccionado para pertenencia:", file);
                   }}
                 />
               </InputGroup>
