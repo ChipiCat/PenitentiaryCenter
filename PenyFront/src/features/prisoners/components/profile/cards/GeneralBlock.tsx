@@ -1,14 +1,13 @@
 import React from "react";
-import { Card, Text, Badge, ActionIcon, Tooltip, Image, Stack } from "@mantine/core";
+import { Card, Text, Badge, ActionIcon,  Stack } from "@mantine/core";
 import {
   UserCircle2,
   Building,
   UserSquare,
-  FileText,
+  
   Edit3,
 } from "lucide-react";
 import type { CompletePrisonerProfile } from "../../../../../shared/types";
-import type { FileInfo } from "../../../../../shared/types/filesTypes";
 import { GenericInfoSection } from "../../../../../shared/components/user/GenericInfoSection";
 import { ChildrenSection } from "../sections/ChildrenSection";
 import { BelongingsSection } from "../sections/BelongingsSection";
@@ -35,47 +34,7 @@ function calcularEdad(fechaNacimientoIso?: string): string {
   return `${edad} años`;
 }
 
-// Componente para previsualizar archivo de huella (imagen/pdf)
-interface FingerprintFilePreviewProps {
-  fileInfo: FileInfo;
-  label: string;
-}
 
-const FingerprintFilePreview: React.FC<FingerprintFilePreviewProps> = ({ fileInfo, label }) => {
-  if (!fileInfo || !fileInfo.url) return null;
-  const isImage = fileInfo.mimeType?.startsWith("image/");
-  const isPdf = fileInfo.mimeType === "application/pdf";
-  return (
-    <Tooltip label={label} withArrow>
-      <ActionIcon
-        component="a"
-        href={fileInfo.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        variant="light"
-        color="blue"
-        size="lg"
-        aria-label={label}
-        style={{ padding: 2 }}
-      >
-        {isImage ? (
-          <Image
-            src={fileInfo.url}
-            alt={label}
-            width={32}
-            height={32}
-            radius="sm"
-            style={{ objectFit: "cover" }}
-          />
-        ) : isPdf ? (
-          <FileText size={28} />
-        ) : (
-          <FileText size={28} />
-        )}
-      </ActionIcon>
-    </Tooltip>
-  );
-};
 
 interface GeneralBlockProps {
   profile: CompletePrisonerProfile;

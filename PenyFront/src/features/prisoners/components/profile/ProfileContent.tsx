@@ -17,10 +17,11 @@ export const ProfileContent = {
       onRefresh={onRefresh}
     />
   ),
-  Legal: ({ profile }: ProfileContentProps) => (
+  Legal: ({ profile, onRefresh }: ProfileContentProps) => (
     <LegalCasesCard
       cases={profile.cases ?? []}
-      mandates={profile.mandates ?? []}
+      prisonerId={profile.prisoner.id}
+      onRefresh={onRefresh}
     />
   ),
   Activity: ({ profile }: ProfileContentProps) => (

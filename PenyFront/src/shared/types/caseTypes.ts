@@ -12,6 +12,7 @@ export interface Case extends Entity {
   judge_name: string,
   sentence_years: number,
   remarks: string,
+  mandates?: Mandate[];
 }
 
 export interface Mandate extends Entity {
@@ -47,14 +48,13 @@ export interface CreateMandatesData {
 export interface UpdateCaseData {
   case_number?: string;
   crime?: string;
-  status?: string;
+  status?: "EnProceso" | "Condenado" | "Apelacion" | "Cerrado";
   start_date?: string;
   end_date?: string;
   court_name?: string;
   judge_name?: string;
   sentence_years?: number;
   remarks?: string;
-  // Removidos: case_type, court, judge, description
 }
 
 export interface UpdateMandateData {

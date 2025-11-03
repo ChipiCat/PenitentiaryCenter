@@ -16,7 +16,7 @@ import {
   Box,
 } from "@mantine/core";
 import { Stethoscope, Plus, Edit3, Trash2 } from "lucide-react";
-import type { MedicalRecord } from "../../../../../shared/types";
+import type { CreateMedicalRecordData, MedicalRecord } from "../../../../../shared/types";
 import { useMedicalRecordEditor } from "../hooks/useMedicalRecordEditor";
 import { MedicalRecordForm } from "../forms/MedicalRecordForm";
 import FileView from "../../../../../shared/components/FileView";
@@ -27,10 +27,10 @@ interface MedicalExamCardProps {
   onRefresh?: () => void;
 }
 
-export const MedicalExamCard: React.FC<MedicalExamCardProps> = ({ 
-  exams, 
-  prisonerId, 
-  onRefresh 
+export const MedicalExamCard: React.FC<MedicalExamCardProps> = ({
+  exams,
+  prisonerId,
+  onRefresh
 }) => {
   const {
     isCreating,
@@ -57,7 +57,7 @@ export const MedicalExamCard: React.FC<MedicalExamCardProps> = ({
             Exámenes Médicos
           </Title>
         </Group>
-        
+
         {!isCreating && !editingRecordId && (
           <Button
             leftSection={<Plus size={16} />}
@@ -68,7 +68,7 @@ export const MedicalExamCard: React.FC<MedicalExamCardProps> = ({
           </Button>
         )}
       </Group>
-      
+
       <Divider mb="md" />
 
       {/* Formulario de creación */}
@@ -78,8 +78,8 @@ export const MedicalExamCard: React.FC<MedicalExamCardProps> = ({
           <MedicalRecordForm
             mode="create"
             onSubmit={async (data, file) => {
-              await createMedicalRecord(data as any, file);
-              onRefresh && onRefresh();
+              await createMedicalRecord(data as CreateMedicalRecordData, file);
+              if (onRefresh) onRefresh();
             }}
             onCancel={cancelEditing}
             isLoading={isLoading}
@@ -105,7 +105,7 @@ export const MedicalExamCard: React.FC<MedicalExamCardProps> = ({
                   </div>
                 </Group>
               </Accordion.Control>
-              
+
               <Accordion.Panel>
                 {editingRecordId === exam.id ? (
                   <Box p="md" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
@@ -115,7 +115,7 @@ export const MedicalExamCard: React.FC<MedicalExamCardProps> = ({
                       initialData={exam}
                       onSubmit={async (data, file) => {
                         await updateMedicalRecord(exam.id, data, file);
-                        onRefresh && onRefresh();
+                        if (onRefresh) onRefresh();
                       }}
                       onCancel={cancelEditing}
                       isLoading={isLoading}
@@ -130,14 +130,14 @@ export const MedicalExamCard: React.FC<MedicalExamCardProps> = ({
                           Referencia/Ubicación
                         </Text>
                         <Text fw={500}>
-                          {exam.reference_number || <span style={{color: '#868e96'}}>No registrado</span>}
+                          {exam.reference_number || <span style={{ color: '#868e96' }}>No registrado</span>}
                         </Text>
 
                         <Text size="sm" c="dimmed" mt="md">
                           Notas
                         </Text>
                         <Text>
-                          {exam.notes || <span style={{color: '#868e96'}}>Sin notas</span>}
+                          {exam.notes || <span style={{ color: '#868e96' }}>Sin notas</span>}
                         </Text>
                       </Grid.Col>
 
@@ -145,7 +145,7 @@ export const MedicalExamCard: React.FC<MedicalExamCardProps> = ({
                         <Text size="sm" c="dimmed" mb="xs">
                           Archivo Adjunto
                         </Text>
-                        
+
                         {exam.file ? (
                           <FileView
                             fileInfo={exam.file}
@@ -177,7 +177,7 @@ export const MedicalExamCard: React.FC<MedicalExamCardProps> = ({
                           <Edit3 size={16} />
                         </ActionIcon>
                       </Tooltip>
-                      
+
                       <Tooltip label="Eliminar registro">
                         <ActionIcon
                           variant="subtle"

@@ -10,7 +10,6 @@ import {
   Tabs,
 } from "@mantine/core";
 import {
-  Edit,
   User,
   UserCircle2,
   HeartPulse,
@@ -24,7 +23,6 @@ import type { CompletePrisonerProfile } from "../../../../shared/types";
 interface ProfileHeaderProps {
   profile: CompletePrisonerProfile;
   onBack: () => void;
-  onEdit: () => void;
   tabValue: string;
   onTabChange: (value: string | null) => void;
   isEditMode?: boolean;
@@ -45,7 +43,6 @@ const getAge = (birthDate?: string) => {
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   profile,
   onBack,
-  onEdit,
   tabValue,
   onTabChange,
   isEditMode = false,
