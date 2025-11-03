@@ -12,7 +12,6 @@ import { InputGroup } from "../../../../shared/components/InputGroup";
 import { GenericCombobox } from "../../../../shared/components/GenericCombobox";
 import { SelectField } from "../../../../shared/components/SelectField";
 import { TextInputField } from "../../../../shared/components/TextInputField";
-import { TextareaField } from "../../../../shared/components/TextareaField";
 import { SelectWithOther } from "../../../../shared/components/SelectWithOther";
 import { DynamicListForm } from "../../../../shared/components/DynamicListForm";
 import { BelongingsListForm } from "./BelongingsListForm";
@@ -80,7 +79,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = React.memo(({
           quantity: 1,
           condition: "",
           is_returned: false,
-          attachment_url: "",
+     
         },
       ],
       child: data.child,
@@ -114,7 +113,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = React.memo(({
     onUpdate({
       personal: data.personal,
       belongings: data.belongings,
-      child: [...children, { name: "", birth_date: "" }],
+      child: [...children, { full_name: "", birth_date: "" }],
     });
   }, [onUpdate, data.personal, data.belongings, children]);
 
@@ -200,19 +199,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = React.memo(({
               debounce={true}
             />
           </InputGroup>
-          <InputGroup>
-            <TextareaField
-              label="Observaciones"
-              value={data.personal?.observations || ""}
-              onChange={(e) =>
-                handlePersonalChange("observations", e.target.value)
-              }
-              error={errors["personal.observations"]}
-              minRows={2}
-              placeholder="Observaciones adicionales"
-              debounce={true}
-            />
-          </InputGroup>
+         
           <InputGroup>
             <TextInputField
               label="Nombre del Padre"

@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { Stack, Title, Card, Text, Button, Group } from "@mantine/core";
 import { Plus } from "lucide-react";
 import { CaseCard } from "./CaseCard";
@@ -15,7 +15,7 @@ export const LegalCaseStep: React.FC<LegalCaseStepProps> = ({
   onUpdate,
   errors = {},
 }) => {
-  const cases = data.cases || [];
+  const cases = useMemo(() => data.cases || [], [data.cases]);
 
   const handleAddCase = useCallback(() => {
     const newCase: CaseFormData = {
@@ -42,12 +42,13 @@ export const LegalCaseStep: React.FC<LegalCaseStepProps> = ({
   const handleCaseChange = useCallback((
     caseIndex: number,
     field: keyof CaseFormData,
-    value: any
+    value: unknown
   ) => {
     const updatedCases = [...cases];
+    // Type guard: asignar solo si el tipo es correcto
     updatedCases[caseIndex] = {
       ...updatedCases[caseIndex],
-      [field]: value,
+      [field]: value as CaseFormData[typeof field],
     };
     onUpdate({ cases: updatedCases });
   }, [cases, onUpdate]);
@@ -82,13 +83,13 @@ export const LegalCaseStep: React.FC<LegalCaseStepProps> = ({
     caseIndex: number,
     mandateIndex: number,
     field: keyof MandateFormData,
-    value: any
+    value: unknown
   ) => {
     const updatedCases = [...cases];
     const updatedMandates = [...updatedCases[caseIndex].mandates];
     updatedMandates[mandateIndex] = {
       ...updatedMandates[mandateIndex],
-      [field]: value,
+      [field]: value as MandateFormData[typeof field],
     };
     updatedCases[caseIndex] = {
       ...updatedCases[caseIndex],

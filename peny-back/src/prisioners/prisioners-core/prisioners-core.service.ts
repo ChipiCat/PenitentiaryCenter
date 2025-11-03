@@ -39,6 +39,7 @@ import {
   AuditAction,
   AuditModule,
   EntityType,
+  PrisonerMandate,
 } from '../../../generated/prisma';
 import {
   CreatePrisonerDTO,
@@ -67,6 +68,7 @@ import { AuditService } from '../../audit/audit.service';
 import { Inject, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import type { Request } from 'express';
+import { MandateResponseDto } from '../prisoner-case/dto/mandate.dto';
 
 @Injectable({ scope: Scope.REQUEST })
 export class PrisionersService {
@@ -421,6 +423,16 @@ export class PrisionersService {
           where: { isDeleted: false },
           orderBy: { birthDate: 'desc' },
         },
+        cases: {
+          where: { isDeleted: false },
+          include: {
+            mandates: {
+              where: { isDeleted: false },
+              include: { file: true },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
       },
     });
 
@@ -450,6 +462,51 @@ export class PrisionersService {
         this.mapContactToDto(contact),
       ),
       children: prisoner.children.map((child) => this.mapChildToDto(child)),
+      cases: prisoner.cases.map((c) => ({
+        ...this.mapCaseToDto(c),
+        mandates: c.mandates.map((m) => this.mapMandateToDto(m)),
+      })),
+    };
+  }
+
+  /**
+   * Mapper de mandato a DTO (helper para getCompleteProfile)
+   */
+  private mapMandateToDto(
+    mandate: PrisonerMandate & { file?: File | null },
+  ): MandateResponseDto {
+    return {
+      id: mandate.id,
+      case_id: mandate.caseId,
+      type: mandate.type,
+      issue_date: mandate.issueDate.toISOString().split('T')[0],
+      file_id: mandate.fileId || undefined,
+      file: mandate.file
+        ? {
+            id: mandate.file.id,
+            url: mandate.file.url,
+            storagePath: mandate.file.storagePath || undefined,
+            filename: mandate.file.filename,
+            originalName: mandate.file.originalName,
+            mimeType: mandate.file.mimeType,
+            extension: mandate.file.extension,
+            size: mandate.file.size,
+            storageType: mandate.file.storageType,
+            entityType: mandate.file.entityType,
+            entityId: mandate.file.entityId,
+            fieldName: mandate.file.fieldName,
+            createdBy: mandate.file.createdBy,
+            createdAt: mandate.file.createdAt.toISOString(),
+            deletedAt: mandate.file.deletedAt?.toISOString() || undefined,
+          }
+        : undefined,
+      description: mandate.description || undefined,
+      status: mandate.status,
+      is_deleted: mandate.isDeleted,
+      created_by: mandate.createdBy || '',
+      updated_by: mandate.updatedBy || '',
+      created_at: mandate.createdAt.toISOString(),
+      updated_at: mandate.updatedAt.toISOString(),
     };
   }
 

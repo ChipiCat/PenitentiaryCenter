@@ -1,11 +1,11 @@
-import type { Entity } from "./commonTypes";
+import type { Entity, FileInfo } from "./commonTypes";
 
 export interface Belonging extends Entity {
   description: string;
   quantity: number;
   condition?: string;
   is_returned: boolean;
-  attachment_url?: string;
+  file: FileInfo | null;
 }
 
 export interface CreateBelongingData {
@@ -19,5 +19,5 @@ export interface UpdateBelongingData {
   description?: string;
   quantity?: number;
   condition?: string;
-  is_returned?: boolean;
+  returned?: boolean;
 }

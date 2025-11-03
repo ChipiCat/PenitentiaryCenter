@@ -3,15 +3,9 @@ import type { AxiosError, UploadResponse } from '../types/axiosTypes';
 import type { 
   Mandate,
   CreateMandatesData,
+  UpdateMandateData,
 } from '../types/caseTypes'; 
 
-// Tipos para actualización de mandatos
-export interface UpdateMandateData {
-  type?: 'Detencion' | 'Condena' | 'Libertad' | 'Apelacion' | 'Traslado';
-  issue_date?: string;
-  description?: string;
-  status?: 'Vigente' | 'Ejecutado' | 'Anulado';
-} 
 
 export const mandatesService = {
   // POST /cases/{caseId}/mandates

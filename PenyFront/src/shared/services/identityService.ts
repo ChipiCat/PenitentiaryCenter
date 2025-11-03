@@ -33,7 +33,9 @@ export const identityService = {
   // PUT /prisoners/{prisonerId}/identity
   async updateIdentity(prisonerId: string, data: UpdateIdentityData): Promise<Identity> {
     try {
+      console.log("🔄 Actualizando identidad para prisionero:", prisonerId, data);
       const response = await api.put<Identity>(`/prisoners/${prisonerId}/identity`, data);
+      console.log("respuesta code:", response.status, "data:", response.data);
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError;
