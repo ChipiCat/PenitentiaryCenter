@@ -26,9 +26,6 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({ prisonerId }) => {
         });
         setActivities(data?.events || []);
         setTotalPages(data?.pagination?.total_pages || 1);
-      } catch (error) {
-        setActivities([]);
-        setTotalPages(1);
       } finally {
         setLoading(false);
       }
@@ -129,7 +126,7 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({ prisonerId }) => {
                         {/* Cambios realizados */}
                         {act.changes && act.changes.length > 0 && (
                           <Stack gap={4} mt={6} p={4} style={{ background: "#f3f6fa", borderRadius: 6 }}>
-                            {act.changes.map((chg, idx) => (
+                            {act.changes.map((chg) => (
                               <Box mt={8} p={10} style={{ background: "#f8f9fa", borderRadius: 8, border: "1px solid #e0e0e0" }}>
                                 <Group grow>
                                   <Stack gap={2}>

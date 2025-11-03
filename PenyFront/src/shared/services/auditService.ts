@@ -1,5 +1,5 @@
 import api from "./api";
-import type { ActivityLogsResponse } from "../types/activityLogTypes";
+import type { ActivityLog, ActivityLogsPagination, ActivityLogsResponse } from "../types/activityLogTypes";
 
 export async function fetchActivityLogs() {
   try {
@@ -11,36 +11,33 @@ export async function fetchActivityLogs() {
   }
 }
 
-export async function fetchPrisonerTimeline({
-  prisonerId,
-  module,
-  action,
-  start_date,
-  end_date,
-  limit,
-  page
-}: {
-  prisonerId: string;
-  module?: string;
-  action?: string;
-  start_date?: string;
-  end_date?: string;
-  limit: number;
-  page: number;
-}) {
-  const params: Record<string, any> = {
-    ...(module && { module }),
-    ...(action && { action }),
-    ...(start_date && { start_date }),
-    ...(end_date && { end_date }),
-    limit,
-    page
+export const fetchPrisonerTimeline = async (
+  params: {
+    prisonerId: string;
+    module?: string;
+    action?: string;
+    start_date?: string;
+    end_date?: string;
+    limit: number;
+    page: number;
+  }
+): Promise<{
+  events: ActivityLog[];
+  pagination: ActivityLogsPagination;
+}> => {
+  const queryParams: Record<string, string | number | undefined> = {
+    module: params.module,
+    action: params.action,
+    start_date: params.start_date,
+    end_date: params.end_date,
+    limit: params.limit,
+    page: params.page,
   };
   try {
-    const res = await api.get(`/audit/prisoner/${prisonerId}/timeline`, { params });
+    const res = await api.get(`/audit/prisoner/${params.prisonerId}/timeline`, { params: queryParams });
     return res.data;
   } catch (err) {
     console.error("Error al obtener timeline de prisionero:", err);
-    return null;
+    return { events: [], pagination: { page: 1, limit: 10, total: 0, total_pages: 1, has_next: false, has_prev: false } };
   }
-}
+};
