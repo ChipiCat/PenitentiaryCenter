@@ -234,8 +234,7 @@ export function usePrisonerFormHandlers({
    * Maneja el modo de creación (crea todo desde cero)
    */
   const handleCreateMode = useCallback(async () => {
-    let prisonerId: string | undefined;
-
+   
     // PASO 1: Crear prisionero básico
     const prisonerData: CreatePrisonerData = {
       registration_number: formData.registration_number!,
@@ -245,7 +244,7 @@ export function usePrisonerFormHandlers({
     };
 
     const prisoner = await prisonersService.createPrisoner(prisonerData);
-    prisonerId = prisoner.id;
+    const prisonerId = prisoner.id;
     
     notifications.show({
       title: 'Progreso 1/8',
@@ -321,8 +320,15 @@ export function usePrisonerFormHandlers({
     // PASO 5: Guardar hijos y pertenencias
     if (formData.child && formData.child.length > 0) {
       for (const child of formData.child) {
+        // child puede ser { full_name, birth_date } o { name, birth_date }
+        let full_name: string = '';
+        if ('full_name' in child && typeof child.full_name === 'string') {
+          full_name = child.full_name;
+        } else if ('name' in child && typeof child.name === 'string') {
+          full_name = child.name;
+        }
         const childData = {
-          full_name: (child as any).full_name || (child as any).name || '',
+          full_name,
           birth_date: child.birth_date || ''
         };
         await childrenService.createChild(prisonerId, childData);
@@ -350,10 +356,10 @@ export function usePrisonerFormHandlers({
     if (formData.medical_record && Array.isArray(formData.medical_record) && formData.medical_record.length > 0) {
       const record = formData.medical_record[0];
       const medicalData = {
-        doctor_name: (record as any).doctor_name || 'No especificado',
-        examination_date: (record as any).examination_date || new Date().toISOString().split('T')[0],
-        reference_number: (record as any).reference_number,
-        notes: (record as any).notes
+        doctor_name: record && 'doctor_name' in record && record.doctor_name ? record.doctor_name : 'No especificado',
+        examination_date: record && 'examination_date' in record && record.examination_date ? record.examination_date : new Date().toISOString().split('T')[0],
+        reference_number: record && 'reference_number' in record ? record.reference_number : undefined,
+        notes: record && 'notes' in record ? record.notes : undefined
       };
 
       const createdMedicalRecord = await medicalRecordsService.createMedicalRecord(prisonerId, medicalData);
@@ -428,10 +434,10 @@ export function usePrisonerFormHandlers({
         if (caseData.mandates && caseData.mandates.length > 0 && createdCase.id) {
           for (const mandate of caseData.mandates) {
             const mandatePayload = {
-              type: mandate.type || 'Detencion',
-              issue_date: mandate.issue_date || '',
-              status: mandate.status || 'Vigente',
-              description: mandate.description
+              type: 'type' in mandate && mandate.type ? mandate.type : 'Detencion',
+              issue_date: 'issue_date' in mandate && mandate.issue_date ? mandate.issue_date : '',
+              status: 'status' in mandate && mandate.status ? mandate.status : 'Vigente',
+              description: 'description' in mandate ? mandate.description : undefined
             };
 
             await mandatesService.createMandate(createdCase.id, mandatePayload);

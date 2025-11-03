@@ -21,7 +21,7 @@ export const BelongingsSection: React.FC<BelongingsSectionProps> = ({
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [belongingToDelete, setBelongingToDelete] = useState<Belonging | null>(null);
 
-  const { deleteBelonging, markAsReturned, isDeleting, isUpdating } = useBelongingsManager(
+  const { deleteBelonging, isDeleting } = useBelongingsManager(
     prisonerId,
     onUpdate
   );
@@ -49,15 +49,11 @@ export const BelongingsSection: React.FC<BelongingsSectionProps> = ({
       setDeleteModalOpen(false);
       setBelongingToDelete(null);
     } catch (error) {
-      // Error ya manejado en el hook
+      console.error('Error deleting belonging:', error);
     }
   };
 
-  const handleToggleReturned = async (belonging: Belonging) => {
-    if (!belonging.is_returned) {
-      await markAsReturned(belonging.id);
-    }
-  };
+
 
   const handleModalClose = () => {
     setIsModalOpen(false);
@@ -135,7 +131,8 @@ export const BelongingsSection: React.FC<BelongingsSectionProps> = ({
                             size="sm"
                             variant="subtle"
                             color="blue"
-                            onClick={() => handleViewFile(belonging.file?.url!)}
+                            onClick={() => handleViewFile(belonging.file?.url || "")}
+                            disabled={!belonging.file?.url}
                           >
                             <Eye size={14} />
                           </ActionIcon>

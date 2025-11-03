@@ -46,7 +46,7 @@ export const ContactsSection: React.FC<ContactsSectionProps> = ({
       setDeleteModalOpen(false);
       setContactToDelete(null);
     } catch (error) {
-      // Error ya manejado en el hook
+      console.error('Error deleting contact:', error);
     }
   };
 

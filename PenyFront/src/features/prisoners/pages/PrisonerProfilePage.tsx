@@ -3,14 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Container, Stack, Alert, Button, Group } from "@mantine/core";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import { completeProfileService } from "../../../shared/services";
-import type { CompletePrisonerProfile, CreatePrisonerData } from "../../../shared/types";
+import type { CompletePrisonerProfile } from "../../../shared/types";
 import { ROUTES } from "../../../shared/config/routes";
 import { ProfileHeader } from "../components/profile/ProfileHeader";
 import { ProfileContent } from "../components/profile/ProfileContent";
 import { LoadingState } from "../../../shared/components/LoadingState";
 import { exportPrisonerPdf } from "../components/profile/exportPrisonerPdf";
-import { PrisonerFormWizard } from "../components/forms/PrisonerFormWizard";
-import { parseISODate } from "../components/forms/utils/dateUtils";
 
 
 
@@ -21,7 +19,6 @@ export const PrisonerProfilePage: React.FC = () => {
   const [profile, setProfile] = useState<CompletePrisonerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [tabValue, setTabValue] = useState<string>("general");
 
@@ -84,32 +81,9 @@ export const PrisonerProfilePage: React.FC = () => {
     navigate(ROUTES.PRISONERS);
   };
 
-  const handleEdit = () => {
-    console.log("📝 Editar prisionero:", id);
-    setIsEditMode(true);
-  };
 
-  const handleCancelEdit = () => {
-    console.log("❌ Cancelar edición");
-    setIsEditMode(false);
-  };
 
-  const handleSuccessEdit = async (result: { prisoner: any; id: string }) => {
-    console.log("✅ Prisionero actualizado exitosamente:", result);
-    
-    // Recargar el perfil completo
-    if (id) {
-      try {
-        const updatedProfile = await completeProfileService.getCompleteProfile(id);
-        setProfile(updatedProfile);
-      } catch (err) {
-        console.error("Error al recargar perfil:", err);
-      }
-    }
-    
-    setIsEditMode(false);
-  };
-
+ 
   if (loading) {
     return <LoadingState />;
   }
@@ -140,11 +114,9 @@ export const PrisonerProfilePage: React.FC = () => {
       <div className="max-w-[1080px] w-full mx-auto flex flex-col gap-5">
         <ProfileHeader
           profile={profile}
-          onEdit={handleEdit}
           onBack={handleBack}
           tabValue={tabValue}
           onTabChange={handleTabChange}
-          isEditMode={isEditMode}
         />
         
           <>
@@ -154,7 +126,7 @@ export const PrisonerProfilePage: React.FC = () => {
             {tabValue === "medical" && <ProfileContent.Medical profile={profile} onRefresh={handleRefresh} />}
             {tabValue === "legal" && <ProfileContent.Legal profile={profile} />}
             {tabValue === "activity" && (
-              <ProfileContent.Activity profile={profile} />
+              <ProfileContent.Activity profile={profile} onRefresh={handleRefresh}/>
             )}
           </>
         

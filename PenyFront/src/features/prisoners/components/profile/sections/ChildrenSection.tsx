@@ -46,7 +46,7 @@ export const ChildrenSection: React.FC<ChildrenSectionProps> = ({
       setDeleteModalOpen(false);
       setChildToDelete(null);
     } catch (error) {
-      // Error ya manejado en el hook
+      console.log('Error deleting child:', error);
     }
   };
 

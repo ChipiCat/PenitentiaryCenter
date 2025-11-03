@@ -18,7 +18,9 @@ import type {
   UpdatePenitentiaryData,
   UpdateMedicalRecordData,
   UpdateCaseData,
-  UpdateMandateData
+  UpdateMandateData,
+  UpdatePrisonerData,
+  MedicalRecord
 } from '../../../../../shared/types';
 import type { FormFiles, SectionUpdateResult } from '../types/formState';
 import { getChangedFields } from './changeDetection';
@@ -48,7 +50,7 @@ export async function updatePrisonerBasicData(
     );
 
     if (Object.keys(changes).length > 0) {
-      await prisonersService.updatePrisoner(prisonerId, changes as any);
+      await prisonersService.updatePrisoner(prisonerId, changes as UpdatePrisonerData);
       return { success: true, sectionName: 'Datos básicos' };
     }
 
@@ -196,14 +198,14 @@ export async function updateMedicalData(
     const originalRecord = originalData.medical_record?.[0];
 
     // Si no existe registro original, no actualizamos (se requiere crear primero)
-    if (!originalRecord || !(currentRecord as any).id) {
+    if (!originalRecord || !(currentRecord as Partial<MedicalRecord>).id) {
       return { success: true, sectionName: 'Registros médicos' };
     }
 
     const changes = getChangedFields(originalRecord, currentRecord) as UpdateMedicalRecordData;
 
     if (Object.keys(changes).length > 0) {
-      const recordId = (currentRecord as any).id;
+      const recordId = (currentRecord as Partial<MedicalRecord>).id ?? '';
       await medicalRecordsService.updateMedicalRecord(prisonerId, recordId, changes);
       return { success: true, sectionName: 'Registros médicos' };
     }
@@ -290,19 +292,25 @@ export async function updateCasesData(
       return { success: true, sectionName: 'Casos legales' };
     }
 
-    const originalCases = originalData.cases || [];
-    const currentCases = currentData.cases;
+    type CaseWithMandates = UpdateCaseData & { id: string; mandates?: (UpdateMandateData & { id: string })[] };
+    type MandateWithId = UpdateMandateData & { id: string };
+
+    const originalCases = (originalData.cases || []) as CaseWithMandates[];
+    const currentCases = currentData.cases as CaseWithMandates[];
 
     // Actualizar casos existentes
     for (const currentCase of currentCases) {
-      const caseId = (currentCase as any).id;
+      const caseId = currentCase.id;
       
       if (caseId) {
         // Caso existente - actualizar
-        const originalCase = originalCases.find((c: any) => c.id === caseId);
+        const originalCase = originalCases.find((c) => c.id === caseId);
         
         if (originalCase) {
-          const caseChanges = getChangedFields(originalCase as any, currentCase as any) as UpdateCaseData;
+          const caseChanges = getChangedFields(
+            originalCase as unknown as Record<string, unknown>,
+            currentCase as unknown as Record<string, unknown>
+          ) as UpdateCaseData;
           
           if (Object.keys(caseChanges).length > 0) {
             await casesService.updateCase(caseId, caseChanges);
@@ -310,19 +318,19 @@ export async function updateCasesData(
 
           // Actualizar mandatos del caso
           if (currentCase.mandates && currentCase.mandates.length > 0) {
-            const originalMandates = (originalCase as any).mandates || [];
+            const originalMandates = (originalCase.mandates || []) as MandateWithId[];
             
             for (const currentMandate of currentCase.mandates) {
-              const mandateId = (currentMandate as any).id;
+              const mandateId = currentMandate.id;
               
               if (mandateId) {
                 // Mandato existente - actualizar
-                const originalMandate = originalMandates.find((m: any) => m.id === mandateId);
+                const originalMandate = originalMandates.find((m) => m.id === mandateId);
                 
                 if (originalMandate) {
                   const mandateChanges = getChangedFields(
-                    originalMandate,
-                    currentMandate as any
+                    originalMandate as unknown as Record<string, unknown>,
+                    currentMandate as unknown as Record<string, unknown>
                   ) as UpdateMandateData;
                   
                   if (Object.keys(mandateChanges).length > 0) {
@@ -441,7 +449,7 @@ export async function updateModifiedSections(
       
       // Subir archivo médico si existe
       if (files.medicalFile && currentData.medical_record?.[0]) {
-        const medicalRecordId = (currentData.medical_record[0] as any).id;
+        const medicalRecordId = (currentData.medical_record[0] as { id: string }).id;
         if (medicalRecordId) {
           const fileResult = await updateMedicalFiles(prisonerId, medicalRecordId, files);
           results.push(fileResult);

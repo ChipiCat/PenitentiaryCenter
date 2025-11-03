@@ -477,7 +477,7 @@ export class PrisonerCaseService {
   /**
    * Mapper de mandato a DTO (helper para getCompleteProfile)
    */
-  private mapMandateToDto(
+  public mapMandateToDto(
     mandate: PrisonerMandate & { file?: File | null },
   ): MandateResponseDto {
     return {
