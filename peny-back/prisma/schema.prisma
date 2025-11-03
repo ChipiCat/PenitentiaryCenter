@@ -23,6 +23,7 @@ datasource db {
 
 enum UserRole {
   ADMIN
+  DIRECTOR
   SECRETARY
 }
 
@@ -31,7 +32,8 @@ model User {
   name     String
   email    String   @unique
   role     UserRole @default(SECRETARY)
-  photoUrl String?
+  photoFileId String? @unique
+  isFirstLogin Boolean @default(true)
 
   // Base entity fields
   isDeleted Boolean  @default(false)
@@ -46,6 +48,8 @@ model User {
   updatedUsers  User[]    @relation("UserUpdatedBy")
   createdByUser User?     @relation("UserCreatedBy", fields: [createdBy], references: [id])
   updatedByUser User?     @relation("UserUpdatedBy", fields: [updatedBy], references: [id])
+  photoFile        File?    @relation("IdentityPhoto", fields: [photoFileId], references: [id], onDelete: SetNull)
+
 
   @@map("users")
 }
@@ -338,12 +342,14 @@ model File {
 
   // Relaciones inversas
   identityPhotos      PrisonerIdentity[]  @relation("IdentityPhoto")
+  userPhoto           User?               @relation("IdentityPhoto")
   identityRightPrints PrisonerIdentity[]  @relation("RightFingerprint")
   identityLeftPrints  PrisonerIdentity[]  @relation("LeftFingerprint")
   medicalRecords      MedicalRecord[]     @relation("MedicalFile")
   belongings          PrisonerBelonging[] @relation("BelongingInventory")
 
   mandates            PrisonerMandate[] @relation("MandateDocument")
+
 
   @@index([entityType, entityId])
   @@index([entityType, entityId, fieldName])

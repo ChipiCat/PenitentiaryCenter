@@ -2,22 +2,27 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  NotFoundException,
   Inject,
   Scope,
+  BadRequestException,
 } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import type { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
+import { FilesService } from '../files/files.service';
 import {
   RegisterDto,
   LoginDto,
   RefreshTokenDto,
   AuthResponseDto,
+  ChangePasswordDto,
 } from './dto/auth.dto';
 import * as bcrypt from 'bcryptjs';
 import { UserRole, LogoutReason } from '../../generated/prisma';
 import { AuditService } from '../audit/audit.service';
+import { UploadedFile } from '../files/interfaces/uploaded-file.interface';
 
 /**
  * Interfaz para los metadatos de auditoría extraídos del request
@@ -33,6 +38,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private auditService: AuditService,
+    private filesService: FilesService,
     @Inject(REQUEST) private readonly request: Request,
   ) {}
 
@@ -49,9 +55,13 @@ export class AuthService {
     };
   }
 
-  async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
+  async register(
+    registerDto: RegisterDto,
+    photoFile?: UploadedFile,
+  ): Promise<AuthResponseDto> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
-    const { email, password, name, role, photoUrl } = registerDto;
+    const { email, password, name, role } = registerDto;
+    
     const existingUser = await this.prisma.user.findFirst({
       where: { email },
     });
@@ -59,14 +69,18 @@ export class AuthService {
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
     }
+    
     const passwordHash = await bcrypt.hash(password, 12);
+    
     const result = await this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
           name,
           email,
           role: role || UserRole.SECRETARY,
-          photoUrl,
+        },
+        include: {
+          photoFile: true,
         },
       });
 
@@ -76,6 +90,28 @@ export class AuthService {
           passwordHash,
         },
       });
+
+      // Si se proporcionó un archivo de foto, subirlo
+      if (photoFile) {
+        const uploadedFile = await this.filesService.uploadFile(
+          photoFile,
+          'user',
+          user.id,
+          'photo',
+          user.id,
+        );
+
+        // Actualizar el usuario con el ID del archivo
+        const updatedUser = await tx.user.update({
+          where: { id: user.id },
+          data: { photoFileId: uploadedFile.id },
+          include: {
+            photoFile: true,
+          },
+        });
+
+        return updatedUser;
+      }
 
       return user;
     });
@@ -110,7 +146,8 @@ export class AuthService {
         name: result.name,
         email: result.email,
         role: result.role,
-        photoUrl: result.photoUrl || undefined,
+        photoFile: result.photoFile || null,
+        isFirstLogin: result.isFirstLogin,
       },
     };
   }
@@ -120,7 +157,10 @@ export class AuthService {
     const { email, password } = loginDto;
     const user = await this.prisma.user.findFirst({
       where: { email, isDeleted: false },
-      include: { userAuth: true },
+      include: { 
+        userAuth: true,
+        photoFile: true,
+      },
     });
 
     if (!user || !user.userAuth) {
@@ -185,7 +225,8 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
-        photoUrl: user.photoUrl || 'hola',
+        photoFile: user.photoFile || null,
+        isFirstLogin: user.isFirstLogin,
       },
     };
   }
@@ -203,7 +244,13 @@ export class AuthService {
           refreshToken,
           tokenExpiry: { gt: new Date() },
         },
-        include: { user: true },
+        include: { 
+          user: {
+            include: {
+              photoFile: true,
+            },
+          },
+        },
       });
 
       if (!userAuth || userAuth.user.isDeleted) {
@@ -238,7 +285,8 @@ export class AuthService {
           name: userAuth.user.name,
           email: userAuth.user.email,
           role: userAuth.user.role,
-          photoUrl: userAuth.user.photoUrl || undefined,
+          photoFile: userAuth.user.photoFile || null,
+          isFirstLogin: userAuth.user.isFirstLogin,
         },
       };
     } catch {
@@ -318,6 +366,98 @@ export class AuthService {
     }
 
     return { message: 'Logged out successfully' };
+  }
+
+  /**
+   * Cambia la contraseña del usuario autenticado
+   */
+  async changePassword(
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
+    const { ipAddress, userAgent } = this.getAuditMetadata();
+    const { currentPassword, newPassword } = changePasswordDto;
+
+    // Verificar que el usuario existe
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, isDeleted: false },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Obtener el registro de autenticación
+    const userAuth = await this.prisma.userAuth.findUnique({
+      where: { userId },
+    });
+
+    if (!userAuth) {
+      throw new NotFoundException('User authentication record not found');
+    }
+
+    // Verificar la contraseña actual
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      userAuth.passwordHash,
+    );
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    // Validar que la nueva contraseña sea diferente
+    const isSamePassword = await bcrypt.compare(
+      newPassword,
+      userAuth.passwordHash,
+    );
+
+    if (isSamePassword) {
+      throw new BadRequestException(
+        'New password must be different from current password',
+      );
+    }
+
+    // Hash de la nueva contraseña
+    const newPasswordHash = await bcrypt.hash(newPassword, 12);
+
+    // Actualizar la contraseña y marcar isFirstLogin como false
+    await this.prisma.$transaction(async (tx) => {
+      await tx.userAuth.update({
+        where: { userId },
+        data: {
+          passwordHash: newPasswordHash,
+          updatedBy: userId,
+        },
+      });
+
+      // Si es el primer login, actualizar el flag
+      if (user.isFirstLogin) {
+        await tx.user.update({
+          where: { id: userId },
+          data: { isFirstLogin: false },
+        });
+      }
+    });
+
+    // Log del cambio de contraseña
+    await this.auditService.logActivity({
+      user_id: user.id,
+      user_email: user.email,
+      user_name: user.name,
+      user_role: user.role,
+      action: 'PASSWORD_CHANGED' as any,
+      module: 'AUTH' as any,
+      entity_type: 'USER' as any,
+      entity_id: user.id,
+      status: 'SUCCESS' as any,
+      severity: 'INFO' as any,
+      description: 'User changed their password',
+      ip_address: ipAddress,
+      user_agent: userAgent,
+    });
+
+    return { message: 'Password changed successfully' };
   }
 
   private generateTokens(userId: string) {

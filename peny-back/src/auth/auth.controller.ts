@@ -5,16 +5,28 @@ import {
   UseGuards,
   Get,
   Request,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
+import { 
+  ApiTags, 
+  ApiOperation, 
+  ApiBody, 
+  ApiResponse, 
+  ApiBearerAuth,
+  ApiConsumes,
+} from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
 import {
   RegisterDto,
   LoginDto,
   RefreshTokenDto,
   LogoutDto,
+  ChangePasswordDto,
 } from './dto/auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import type { UploadedFile as UploadedFileType } from '../files/interfaces/uploaded-file.interface';
 
 interface AuthenticatedRequest {
   user?: {
@@ -32,11 +44,35 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @UseInterceptors(FileInterceptor('photo'))
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Register a new user' })
-  @ApiBody({ type: RegisterDto })
+  @ApiBody({
+    description: 'User registration data with optional photo',
+    schema: {
+      type: 'object',
+      required: ['name', 'email', 'password'],
+      properties: {
+        name: { type: 'string', example: 'John Doe' },
+        email: { type: 'string', example: 'john@example.com' },
+        password: { type: 'string', example: 'password123' },
+        role: { type: 'string', enum: ['ADMIN', 'DIRECTOR', 'SECRETARY'], example: 'SECRETARY' },
+        photo: { 
+          type: 'string', 
+          format: 'binary',
+          description: 'Profile photo file (optional, max 5MB, jpg/png)',
+        },
+      },
+    },
+  })
   @ApiResponse({ status: 201, description: 'User registered successfully.' })
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+  @ApiResponse({ status: 400, description: 'Invalid data or file.' })
+  @ApiResponse({ status: 409, description: 'User already exists.' })
+  async register(
+    @Body() registerDto: RegisterDto,
+    @UploadedFile() photo?: UploadedFileType,
+  ) {
+    return this.authService.register(registerDto, photo);
   }
 
   @Post('login')
@@ -70,6 +106,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Current user profile.' })
   async getProfile(@Request() req: AuthenticatedRequest) {
@@ -83,5 +120,24 @@ export class AuthController {
       role: user.role ?? null,
       photoUrl: user.photoUrl ?? null,
     };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Change user password' })
+  @ApiBody({ type: ChangePasswordDto })
+  @ApiResponse({ status: 200, description: 'Password changed successfully.' })
+  @ApiResponse({ status: 401, description: 'Current password is incorrect.' })
+  @ApiResponse({ status: 400, description: 'New password must be different from current password.' })
+  async changePassword(
+    @Body() changePasswordDto: ChangePasswordDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user?.id;
+    if (!userId) {
+      throw new Error('User ID not found in request');
+    }
+    return this.authService.changePassword(userId, changePasswordDto);
   }
 }
