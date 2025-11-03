@@ -19,7 +19,7 @@ export const ProfileContent = {
     />
   ),
   Activity: ({ profile }: ProfileContentProps) => (
-    <ActivityCard activities={profile.activities ?? []} />
+    <ActivityCard prisonerId={profile.prisoner.id} />
   ),
   GeneralBlock: ({ profile }: ProfileContentProps) => (
     <GeneralBlock profile={profile} />
