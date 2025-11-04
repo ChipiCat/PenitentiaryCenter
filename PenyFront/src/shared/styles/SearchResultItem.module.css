@@ -1,0 +1,17 @@
+/* SearchResultItem optimizado */
+.resultItem {
+  width: 100%;
+  padding: var(--mantine-spacing-md);
+  transition: background-color 0.15s ease-out;
+  cursor: pointer;
+  will-change: background-color;
+  display: block;
+
+  &:hover {
+    background-color: var(--mantine-color-gray-0);
+  }
+
+  &:active {
+    background-color: var(--mantine-color-gray-1);
+  }
+}

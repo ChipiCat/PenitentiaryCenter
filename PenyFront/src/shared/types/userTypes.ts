@@ -4,12 +4,10 @@ import type { Entity } from "./commonTypes";
 export interface User extends Entity {
   email: string;
   name: string;
-  role: string;
-  photoUrl?: string;
-  celular?: string;
-  ci?: string;
-  departamento?: string;
-  unidadDireccionDepartamental?: string;
+  role: "SECRETARY" | "DIRECTOR" | "ADMIN";
+  photoFileId?: string;
+  photoFile?: string;
+  isFirstLogin: boolean;
 }
 
 export interface UserStat {
