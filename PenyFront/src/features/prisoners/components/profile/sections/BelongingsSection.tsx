@@ -4,6 +4,7 @@ import { FileDown, Plus, Pencil, Trash2, CheckCircle2, XCircle, Eye } from 'luci
 import type { Belonging } from '../../../../../shared/types/belongingTypes';
 import { BelongingFormModal } from '../modals/BelongingFormModal';
 import { useBelongingsManager } from '../hooks/useBelongingsManager';
+import { useGlobalContext } from '../../../../../shared/hooks/useGlobalContext';
 
 interface BelongingsSectionProps {
   prisonerId: string;
@@ -64,6 +65,8 @@ export const BelongingsSection: React.FC<BelongingsSectionProps> = ({
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
+  const { user } = useGlobalContext();
+
   return (
     <>
       <Card withBorder padding="lg" className="h-full">
@@ -77,6 +80,7 @@ export const BelongingsSection: React.FC<BelongingsSectionProps> = ({
               {belongings.length}
             </Badge>
           </Group>
+          {(user?.role === 'ADMIN' || user?.role === 'SECRETARY') && (
           <Button
             leftSection={<Plus size={16} />}
             variant="light"
@@ -85,6 +89,7 @@ export const BelongingsSection: React.FC<BelongingsSectionProps> = ({
           >
             Agregar Pertenencia
           </Button>
+          )}
         </Group>
 
         {belongings.length === 0 ? (
@@ -140,20 +145,8 @@ export const BelongingsSection: React.FC<BelongingsSectionProps> = ({
                       )}
                     </Group>
                   </div>
+                  {user?.role === 'ADMIN' || user?.role === 'SECRETARY' ? (
                   <Group gap="xs">
-                    {/*!belonging.is_returned && (
-                      <Tooltip label="Marcar como devuelto">
-                        <ActionIcon
-                          variant="light"
-                          color="green"
-                          onClick={() => handleToggleReturned(belonging)}
-                          loading={isUpdating}
-                          aria-label="Marcar como devuelto"
-                        >
-                          <CheckCircle2 size={16} />
-                        </ActionIcon>
-                      </Tooltip>
-                    )*/}
                     <ActionIcon
                       variant="light"
                       color="blue"
@@ -171,6 +164,7 @@ export const BelongingsSection: React.FC<BelongingsSectionProps> = ({
                       <Trash2 size={16} />
                     </ActionIcon>
                   </Group>
+                  ) : null}
                 </Group>
               </Card>
             ))}

@@ -20,6 +20,7 @@ import type { CreateMedicalRecordData, MedicalRecord } from "../../../../../shar
 import { useMedicalRecordEditor } from "../hooks/useMedicalRecordEditor";
 import { MedicalRecordForm } from "../forms/MedicalRecordForm";
 import FileView from "../../../../../shared/components/FileView";
+import { useGlobalContext } from "../../../../../shared/hooks/useGlobalContext";
 
 interface MedicalExamCardProps {
   exams: MedicalRecord[];
@@ -46,6 +47,7 @@ export const MedicalExamCard: React.FC<MedicalExamCardProps> = ({
     uploadMedicalFile,
   } = useMedicalRecordEditor({ prisonerId, onSuccess: onRefresh });
 
+  const { user } = useGlobalContext();
   return (
     <Card withBorder padding="lg" h="100%">
       <Group justify="space-between" mb="md">
@@ -58,7 +60,7 @@ export const MedicalExamCard: React.FC<MedicalExamCardProps> = ({
           </Title>
         </Group>
 
-        {!isCreating && !editingRecordId && (
+        {!isCreating && !editingRecordId && (user?.role === 'ADMIN' || user?.role === 'SECRETARY') && (
           <Button
             leftSection={<Plus size={16} />}
             size="xs"
@@ -166,32 +168,33 @@ export const MedicalExamCard: React.FC<MedicalExamCardProps> = ({
                     </Grid>
 
                     <Divider />
+                    {(user?.role === 'ADMIN' || user?.role === 'SECRETARY') && (
+                      <Group justify="flex-end">
+                        <Tooltip label="Editar registro">
+                          <ActionIcon
+                            variant="subtle"
+                            color="blue"
+                            onClick={() => startEditing(exam.id)}
+                          >
+                            <Edit3 size={16} />
+                          </ActionIcon>
+                        </Tooltip>
 
-                    <Group justify="flex-end">
-                      <Tooltip label="Editar registro">
-                        <ActionIcon
-                          variant="subtle"
-                          color="blue"
-                          onClick={() => startEditing(exam.id)}
-                        >
-                          <Edit3 size={16} />
-                        </ActionIcon>
-                      </Tooltip>
-
-                      <Tooltip label="Eliminar registro">
-                        <ActionIcon
-                          variant="subtle"
-                          color="red"
-                          onClick={() => {
-                            if (window.confirm('¿Estás seguro de eliminar este registro médico?')) {
-                              deleteMedicalRecord(exam.id);
-                            }
-                          }}
-                        >
-                          <Trash2 size={16} />
-                        </ActionIcon>
-                      </Tooltip>
-                    </Group>
+                        <Tooltip label="Eliminar registro">
+                          <ActionIcon
+                            variant="subtle"
+                            color="red"
+                            onClick={() => {
+                              if (window.confirm('¿Estás seguro de eliminar este registro médico?')) {
+                                deleteMedicalRecord(exam.id);
+                              }
+                            }}
+                          >
+                            <Trash2 size={16} />
+                          </ActionIcon>
+                        </Tooltip>
+                      </Group>
+                    )}
                   </Stack>
                 )}
               </Accordion.Panel>

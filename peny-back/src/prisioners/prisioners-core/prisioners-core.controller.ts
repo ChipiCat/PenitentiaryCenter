@@ -8,11 +8,9 @@ import {
   Param,
   Query,
   UseGuards,
-  UseInterceptors,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { CacheInterceptor } from '@nestjs/cache-manager';
 import {
   ApiTags,
   ApiOperation,
@@ -39,7 +37,6 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 @ApiTags('Prisoners')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@UseInterceptors(CacheInterceptor)
 @Controller('prisoners')
 export class PrisionersController {
   constructor(private readonly prisionersService: PrisionersService) {}

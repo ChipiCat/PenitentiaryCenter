@@ -3,6 +3,7 @@ import { Group, Title, Text, Button, SegmentedControl } from '@mantine/core';
 import { Plus, Users, Table, LayoutGrid } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { ROUTES } from '../../../../shared/config';
+import { useGlobalContext } from '../../../../shared/hooks/useGlobalContext';
 
 interface PrisonersHeaderProps {
   viewType: 'table' | 'cards';
@@ -11,6 +12,7 @@ interface PrisonersHeaderProps {
 
 export const PrisonersHeader: React.FC<PrisonersHeaderProps> = ({ viewType, onViewChange }) => {
   const navigate = useNavigate();
+  const { user } = useGlobalContext();
   return (
     <Group justify="space-between">
       <div>
@@ -98,7 +100,7 @@ export const PrisonersHeader: React.FC<PrisonersHeaderProps> = ({ viewType, onVi
             }}
           />
         </Group>
-
+        {(user?.role === 'ADMIN' || user?.role === 'SECRETARY') && (
         <Button
           leftSection={<Plus size={16} color="#fff" />}
           onClick={() => navigate(ROUTES.PRISONERS_NEW)}
@@ -109,6 +111,7 @@ export const PrisonersHeader: React.FC<PrisonersHeaderProps> = ({ viewType, onVi
         >
           Nuevo Interno
         </Button>
+        )}
       </Group>
     </Group>
   );

@@ -1,9 +1,11 @@
 export const getRoleLabel = (role: string) => {
-    switch (role.toLowerCase()) {
-        case 'admin':
+    switch (role.toUpperCase()) {
+        case 'ADMIN':
             return 'Administrador';
-        case 'secretario general':
+        case 'SECRETARY':
             return 'Secretario';
+        case 'DIRECTOR':
+            return 'Director';
         default:
             return 'Desconocido';
     }
