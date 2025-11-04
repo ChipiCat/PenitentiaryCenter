@@ -22,16 +22,18 @@ const HomePage = () => {
         <Plus className="bg-blue-200 text-blue-500 rounded-lg h-8 w-8 !p-1 text-lg" />
       ),
       color: "blue",
-      onClick: () => navigate(ROUTES.PRISONERS),
+      onClick: () => navigate(ROUTES.PRISONERS_NEW),
+      roles: ["ADMIN", "SECRETARY"], // quién puede ver esta acción
     },
     {
-      title: "Buscar Expediente",
-      description: "Buscar expediente de interno",
+      title: "Ver Actividad",
+      description: "Ver registros de actividad recientes",
       icon: (
         <Search className="bg-amber-200 text-amber-600 rounded-lg h-8 w-8 !p-1 text-lg" />
       ),
       color: "blue",
-      onClick: () => navigate(ROUTES.PRISONERS),
+      onClick: () => navigate(ROUTES.ACTIVITY),
+      roles: ["ADMIN", "SECRETARY", "DIRECTOR"],
     },
     {
       title: "Ver Reclusos",
@@ -41,8 +43,13 @@ const HomePage = () => {
       ),
       color: "blue",
       onClick: () => navigate(ROUTES.PRISONERS),
+      roles: ["ADMIN", "SECRETARY", "DIRECTOR"],
     },
-  ];
+  ].filter((action) => {
+    // si no hay usuario o no hay roles definidos, ocultar por seguridad
+    if (!user?.role) return false;
+    return action.roles ? action.roles.includes(user.role) : true;
+  });
 
   const [statistics, setStatistics] = useState<Statistics>({
     total: 0,
