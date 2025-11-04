@@ -54,6 +54,7 @@ export class UserController {
   @ApiOperation({ summary: 'Get all users with pagination' })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'offset', required: false, type: Number })
+  @ApiQuery({ name: 'search', required: false, type: String })
   @ApiResponse({ status: 200, description: 'List of users.' })
   findAll(@Query() query: PaginationQueryDto) {
     return this.userService.findAll(query);

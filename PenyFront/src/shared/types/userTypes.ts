@@ -34,8 +34,11 @@ export interface CreateUserData {
   name: string;
   role: string;
   photoUrl?: string;
+  cellphone?: string;
+  ci?: string;
+  department?: string;
+  departmentalDirectorateUnit?: string;
 }
-
 export interface UpdateUserData {
   email?: string;
   name?: string;

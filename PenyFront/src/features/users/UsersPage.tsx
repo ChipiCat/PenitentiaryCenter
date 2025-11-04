@@ -11,10 +11,18 @@ import type {
 import { useState } from "react";
 
 const UsersPage = () => {
-  const { users, handleNewUser, handleEditUser, handleDeleteUser } = useUsers();
+  const { users, handleNewUser, handleEditUser, handleDeleteUser, setFilters } = useUsers();
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [search, setSearch] = useState("");
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setFilters((prev) => ({ ...prev, search: value }));
+  };
+
+    useUsers();
 
   // Nuevo usuario
   const handleNewUserHeader = (data: CreateUserData) => {
@@ -36,7 +44,6 @@ const UsersPage = () => {
     }
   };
 
-  // Eliminar usuario
   const handleDeleteUserTable = (userId: string) => {
     handleDeleteUser(userId);
   };
@@ -49,7 +56,11 @@ const UsersPage = () => {
   return (
     <Container size="xl" py="md">
       <Stack gap="lg">
-        <UsersHeader onNewUser={handleNewUserHeader} />
+        <UsersHeader
+          onNewUser={handleNewUserHeader}
+          search={search}
+          onSearchChange={handleSearchChange}
+        />
         <UsersTable users={users} actions={userActions} />
         <UserModal
           opened={editModalOpen}

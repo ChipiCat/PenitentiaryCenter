@@ -21,12 +21,6 @@ interface UserStats {
     total_sessions: number;
     total_data_changes: number;
   };
-  activities_breakdown: {
-    by_action: Record<string, number>;
-    by_module: Record<string, number>;
-    by_status: Record<string, number>;
-    by_entity_type: Record<string, number>;
-  };
   trends: {
     last_24h: number;
     last_7d: number;
@@ -63,7 +57,7 @@ const UsageStatsCard = () => {
   if (loading) return <Loader />;
   if (error || !stats) return <Text c="red">{error || 'Error al cargar datos'}</Text>;
 
-  const { overview, activities_breakdown, trends, sessions_summary } = stats;
+  const { overview, trends, sessions_summary } = stats;
 
   return (
     <Paper shadow="sm" p="lg" radius="md">
@@ -120,42 +114,7 @@ const UsageStatsCard = () => {
         <Badge color="blue">ÚLTIMAS 24H: {trends.last_24h}</Badge>
         <Badge color="indigo">ÚLTIMOS 7 DÍAS: {trends.last_7d}</Badge>
         <Badge color="teal">ÚLTIMOS 30 DÍAS: {trends.last_30d}</Badge>
-      </Group>
-      <Divider label="Breakdown" my="sm" />
-      <Grid gutter="md" mb="md">
-        <Grid.Col span={6}>
-          <Card shadow="xs" radius="sm" withBorder>
-            <Text size="sm" fw={500} mb={4}>Por acción</Text>
-            <Stack gap={2}>{Object.entries(activities_breakdown.by_action).map(([k, v]) => (
-              <Group key={k} gap={4}><Badge color="blue" size="xs">{k}</Badge><Text size="xs">{String(v)}</Text></Group>
-            ))}</Stack>
-          </Card>
-        </Grid.Col>
-        <Grid.Col span={6}>
-          <Card shadow="xs" radius="sm" withBorder>
-            <Text size="sm" fw={500} mb={4}>Por módulo</Text>
-            <Stack gap={2}>{Object.entries(activities_breakdown.by_module).map(([k, v]) => (
-              <Group key={k} gap={4}><Badge color="indigo" size="xs">{k}</Badge><Text size="xs">{String(v)}</Text></Group>
-            ))}</Stack>
-          </Card>
-        </Grid.Col>
-        <Grid.Col span={6}>
-          <Card shadow="xs" radius="sm" withBorder>
-            <Text size="sm" fw={500} mb={4}>Por estado</Text>
-            <Stack gap={2}>{Object.entries(activities_breakdown.by_status).map(([k, v]) => (
-              <Group key={k} gap={4}><Badge color="teal" size="xs">{k}</Badge><Text size="xs">{String(v)}</Text></Group>
-            ))}</Stack>
-          </Card>
-        </Grid.Col>
-        <Grid.Col span={6}>
-          <Card shadow="xs" radius="sm" withBorder>
-            <Text size="sm" fw={500} mb={4}>Por entidad</Text>
-            <Stack gap={2}>{Object.entries(activities_breakdown.by_entity_type).map(([k, v]) => (
-              <Group key={k} gap={4}><Badge color="gray" size="xs">{k}</Badge><Text size="xs">{String(v)}</Text></Group>
-            ))}</Stack>
-          </Card>
-        </Grid.Col>
-      </Grid>
+      </Group>     
       <Divider label="Sesiones" my="sm" />
       <Group gap="md" mb="md">
         <Badge color="green">Último login: {new Date(sessions_summary.last_login).toLocaleString()}</Badge>

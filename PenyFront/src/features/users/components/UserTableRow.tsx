@@ -9,9 +9,10 @@ import {
 interface UserTableRowProps {
   user: User;
   actions: UserActions;
+  roleLabel: string;
 }
 
-export const UserTableRow = ({ user, actions }: UserTableRowProps) => {
+export const UserTableRow = ({ user, actions, roleLabel }: UserTableRowProps) => {
   return (
     <Table.Tr>
       <Table.Td>
@@ -19,22 +20,14 @@ export const UserTableRow = ({ user, actions }: UserTableRowProps) => {
           <Avatar size="md" color={getRoleColor(user.role)}>
             {getUserInitials(user.name)}
           </Avatar>
-          <div>
-            <Text fw={500} size="sm">
-              {user.name}
-            </Text>
-            <Text size="xs" c="dimmed">
-              {user.name}
-            </Text>
-            <Text size="xs" c="dimmed">
-              {user.email}
-            </Text>
-          </div>
+          <Text fw={500} size="sm">
+            {user.name}
+          </Text>
         </Group>
       </Table.Td>
       <Table.Td>
         <Badge color={getRoleColor(user.role)} variant="light">
-          {user.role}
+          {roleLabel}
         </Badge>
       </Table.Td>
       <Table.Td>

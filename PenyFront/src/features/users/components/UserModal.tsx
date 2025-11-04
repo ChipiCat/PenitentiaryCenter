@@ -10,7 +10,7 @@ import {
 import { useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
 import type { CreateUserData } from "../../../shared/types/userTypes";
-import type { User } from "../../../shared/types/userResponse";
+import type { User } from "../../../shared/types/userTypes";
 import { ProfilePhotoDropzone } from "../../../shared/components/BelongingDropzone";
 
 const roleOptions = [
@@ -41,6 +41,10 @@ export const UserModal = ({
       email: "",
       password: "",
       role: "USER",
+      cellphone: "",
+      ci: "",
+      department: "",
+      departmentalDirectorateUnit: "",
     },
     validate: {
       name: (value: string) =>
@@ -54,7 +58,7 @@ export const UserModal = ({
       },
       role: (value: string) => (!value ? "Selecciona un rol" : null),
       password: (value: string) =>
-        !value || value.length < 6
+        !user && (!value || value.length < 6)
           ? "La contraseña debe tener al menos 6 caracteres"
           : null,
     },
@@ -67,7 +71,11 @@ export const UserModal = ({
           name: user.name ?? "",
           email: user.email ?? "",
           role: user.role ?? "USER",
-          password: "", // No se muestra la contraseña actual
+          password: "",
+          cellphone: user.cellphone ?? "",
+          ci: user.ci ?? "",
+          department: user.department ?? "",
+          departmentalDirectorateUnit: user.departmentalDirectorateUnit ?? "",
         });
       } else {
         form.reset();
@@ -77,18 +85,26 @@ export const UserModal = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opened, user]);
 
-  const handleSubmit = (values: CreateUserData) => {
-    const data: CreateUserData = {
-      ...values,
-      photoUrl: photoFile ? URL.createObjectURL(photoFile) : undefined,
-    };
-    onSubmit(data);
-    if (!isLoading) {
-      form.reset();
-      setPhotoFile(null);
-      onClose();
-    }
+const handleSubmit = (values: Record<string, any>) => {
+  const data: CreateUserData = {
+    email: values.email,
+    password: values.password,
+    name: values.name,
+    role: values.role,
+    photoUrl: photoFile ? URL.createObjectURL(photoFile) : undefined,
+    // Si quieres enviar los campos extra, agrégalos aquí
+    cellphone: values.cellphone,
+    ci: values.ci,
+    department: values.department,
+    departmentalDirectorateUnit: values.departmentalDirectorateUnit,
   };
+  onSubmit(data);
+  if (!isLoading) {
+    form.reset();
+    setPhotoFile(null);
+    onClose();
+  }
+};
 
   const handleClose = () => {
     form.reset();
@@ -126,7 +142,7 @@ export const UserModal = ({
             {...form.getInputProps("email")}
           />
           <Select
-            label="Rol"
+            label="Rol del Usuario"
             placeholder="Selecciona un rol"
             required
             disabled={isLoading}
@@ -139,6 +155,30 @@ export const UserModal = ({
             required={!user}
             disabled={isLoading}
             {...form.getInputProps("password")}
+          />
+          <TextInput
+            label="Celular"
+            placeholder="No disponible"
+            disabled={isLoading}
+            {...form.getInputProps("cellphone")}
+          />
+          <TextInput
+            label="CI"
+            placeholder="No disponible"
+            disabled={isLoading}
+            {...form.getInputProps("ci")}
+          />
+          <TextInput
+            label="Departamento"
+            placeholder="No disponible"
+            disabled={isLoading}
+            {...form.getInputProps("department")}
+          />
+          <TextInput
+            label="Unidad/Dirección Departamental"
+            placeholder="No disponible"
+            disabled={isLoading}
+            {...form.getInputProps("departmentalDirectorateUnit")}
           />
           <Group justify="flex-end" mt="md">
             <Button variant="subtle" onClick={handleClose} disabled={isLoading}>
