@@ -15,7 +15,7 @@ import {
   PaginationQueryDto,
 } from './dto/user.dto';
 import { IPaginatedResponse } from '../common/interfaces/entity.interface';
-import { User, UserRole } from '../../generated/prisma';
+import { User, UserRole, Prisma } from '../../generated/prisma';
 import * as bcrypt from 'bcryptjs';
 import { AuditService } from '../audit/audit.service';
 
@@ -25,6 +25,25 @@ import { AuditService } from '../audit/audit.service';
 export interface AuditMetadata {
   ipAddress?: string;
   userAgent?: string;
+}
+
+/**
+ * Interfaz para la información básica de usuario usado en auditoría
+ */
+interface UserInfo {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+}
+
+/**
+ * Interfaz para los cambios de campo en auditoría
+ */
+interface FieldChange {
+  field_name: string;
+  old_value?: string;
+  new_value?: string;
 }
 
 @Injectable({ scope: Scope.REQUEST })
@@ -94,12 +113,7 @@ export class UserService {
     });
 
     // Get creator info if createdBy provided
-    let creatorInfo: {
-      id: string;
-      email: string;
-      name: string;
-      role: string;
-    } | null = null;
+    let creatorInfo: UserInfo | null = null;
     if (createdBy) {
       const creator = await this.prisma.user.findFirst({
         where: { id: createdBy },
@@ -134,15 +148,7 @@ export class UserService {
     const { page = 1, size = 10, search, role } = query;
     const skip = (page - 1) * size;
 
-    type UserWhere = {
-      isDeleted: boolean;
-      OR?: Array<
-        | { name: { contains: string; mode: 'insensitive' } }
-        | { email: { contains: string; mode: 'insensitive' } }
-      >;
-      role?: UserRole;
-    };
-    const where: UserWhere = { isDeleted: false };
+    const where: Prisma.UserWhereInput = { isDeleted: false };
 
     if (search) {
       where.OR = [
@@ -234,12 +240,7 @@ export class UserService {
     });
 
     // Get updater info if updatedBy provided
-    let updaterInfo: {
-      id: string;
-      email: string;
-      name: string;
-      role: string;
-    } | null = null;
+    let updaterInfo: UserInfo | null = null;
     if (updatedBy) {
       const updater = await this.prisma.user.findFirst({
         where: { id: updatedBy },
@@ -255,11 +256,7 @@ export class UserService {
     }
 
     // Build field-level changes array for DataChangeLog
-    const fieldChanges: Array<{
-      field_name: string;
-      old_value?: string;
-      new_value?: string;
-    }> = [];
+    const fieldChanges: FieldChange[] = [];
 
     if (name && name !== existingUser.name) {
       fieldChanges.push({
@@ -293,7 +290,10 @@ export class UserService {
       });
     }
 
-    if (isFirstLogin !== undefined && isFirstLogin !== existingUser.isFirstLogin) {
+    if (
+      isFirstLogin !== undefined &&
+      isFirstLogin !== existingUser.isFirstLogin
+    ) {
       fieldChanges.push({
         field_name: 'isFirstLogin',
         old_value: String(existingUser.isFirstLogin),
@@ -335,12 +335,7 @@ export class UserService {
     });
 
     // Get deleter info if updatedBy provided
-    let deleterInfo: {
-      id: string;
-      email: string;
-      name: string;
-      role: string;
-    } | null = null;
+    let deleterInfo: UserInfo | null = null;
     if (updatedBy) {
       const deleter = await this.prisma.user.findFirst({
         where: { id: updatedBy },
@@ -421,12 +416,11 @@ export class UserService {
       user_email: user.email,
       user_name: user.name,
       user_role: user.role,
-      action: 'PASSWORD_CHANGED' as any, // This action exists in the enum
-      module: 'USERS' as any,
-      entity_type: 'USER' as any,
+      action: 'PASSWORD_CHANGED',
+      entity_type: 'USER',
       entity_id: user.id,
-      status: 'SUCCESS' as any,
-      severity: 'INFO' as any,
+      status: 'SUCCESS',
+      severity: 'INFO',
       description: 'User changed their password',
       ip_address: ipAddress,
       user_agent: userAgent,

@@ -4,7 +4,6 @@ import {
   MinLength,
   IsEnum,
   IsOptional,
-  IsBoolean,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from 'generated/prisma';
@@ -51,12 +50,18 @@ export class RefreshTokenDto {
 }
 
 export class ChangePasswordDto {
-  @ApiProperty({ example: 'currentPassword123', description: 'Contraseña actual del usuario' })
+  @ApiProperty({
+    example: 'currentPassword123',
+    description: 'Contraseña actual del usuario',
+  })
   @IsString()
   @MinLength(6)
   currentPassword: string;
 
-  @ApiProperty({ example: 'newPassword123', description: 'Nueva contraseña (mínimo 6 caracteres)' })
+  @ApiProperty({
+    example: 'newPassword123',
+    description: 'Nueva contraseña (mínimo 6 caracteres)',
+  })
   @IsString()
   @MinLength(6)
   newPassword: string;
@@ -65,10 +70,10 @@ export class ChangePasswordDto {
 export class AuthResponseDto {
   @ApiProperty({ example: 'your-access-token' })
   accessToken: string;
-  
+
   @ApiProperty({ example: 'your-refresh-token' })
   refreshToken: string;
-  
+
   @ApiProperty({
     type: 'object',
     description: 'User information',

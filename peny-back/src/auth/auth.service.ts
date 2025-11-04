@@ -32,6 +32,16 @@ export interface AuditMetadata {
   userAgent?: string;
 }
 
+/**
+ * Interfaz para la información básica de usuario
+ */
+interface UserInfo {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+}
+
 @Injectable({ scope: Scope.REQUEST })
 export class AuthService {
   constructor(
@@ -61,7 +71,7 @@ export class AuthService {
   ): Promise<AuthResponseDto> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
     const { email, password, name, role } = registerDto;
-    
+
     const existingUser = await this.prisma.user.findFirst({
       where: { email },
     });
@@ -69,9 +79,9 @@ export class AuthService {
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
     }
-    
+
     const passwordHash = await bcrypt.hash(password, 12);
-    
+
     const result = await this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
@@ -157,7 +167,7 @@ export class AuthService {
     const { email, password } = loginDto;
     const user = await this.prisma.user.findFirst({
       where: { email, isDeleted: false },
-      include: { 
+      include: {
         userAuth: true,
         photoFile: true,
       },
@@ -244,7 +254,7 @@ export class AuthService {
           refreshToken,
           tokenExpiry: { gt: new Date() },
         },
-        include: { 
+        include: {
           user: {
             include: {
               photoFile: true,
@@ -300,8 +310,7 @@ export class AuthService {
   ): Promise<{ message: string }> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
     // Get user info from refresh token if userId not provided
-    let user: { id: string; email: string; name: string; role: string } | null =
-      null;
+    let user: UserInfo | null = null;
     if (userId) {
       const foundUser = await this.prisma.user.findFirst({
         where: { id: userId },
@@ -446,12 +455,11 @@ export class AuthService {
       user_email: user.email,
       user_name: user.name,
       user_role: user.role,
-      action: 'PASSWORD_CHANGED' as any,
-      module: 'AUTH' as any,
-      entity_type: 'USER' as any,
+      action: 'PASSWORD_CHANGED',
+      entity_type: 'USER',
       entity_id: user.id,
-      status: 'SUCCESS' as any,
-      severity: 'INFO' as any,
+      status: 'SUCCESS',
+      severity: 'INFO',
       description: 'User changed their password',
       ip_address: ipAddress,
       user_agent: userAgent,
@@ -460,7 +468,10 @@ export class AuthService {
     return { message: 'Password changed successfully' };
   }
 
-  private generateTokens(userId: string) {
+  private generateTokens(userId: string): {
+    accessToken: string;
+    refreshToken: string;
+  } {
     const payload = { sub: userId };
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET,
