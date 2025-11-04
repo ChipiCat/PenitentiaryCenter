@@ -1,26 +1,27 @@
-import React, { useState, useCallback, useEffect, startTransition, useDeferredValue } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Container, Stack } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useNavigate } from "react-router-dom";
-import { PrisonerFormWizard } from "../components/forms/PrisonerFormWizard";
-import { ROUTES } from "../../../shared/config/routes";
 import { PrisonersHeader } from "../components/list/PrisonersHeader";
 import { PrisonersStats } from "../components/list/PrisonersStats";
 import { PrisonersList } from "../components/list/PrisonersList";
 import { EmptyPrisonersState } from "../components/list/EmptyPrisonersState";
 import { PrisonersFilters } from "../components/list/PrisonersFilters";
 import { PrisonersPagination } from "../components/list/PrisonersPagination";
+import { ROUTES } from "../../../shared/config/routes";
 import type {
   PrisionerListItem,
   PrisonerBase,
 } from "../../../shared/types/prisonerTypes";
-import type { UserFilters, Statistics, Pagination } from "../../../shared/types";
+import type { Statistics, Pagination } from "../../../shared/types";
+import type { PrisonerSearchFilters } from "../../../shared/types/prisonerSearchTypes";
 import { prisonersService } from "../../../shared/services/prisonersService";
 import PrisonersSearchBar from "../components/list/PrisonersSearchBar";
 
-
 export const PrisonersPage: React.FC = () => {
   const navigate = useNavigate();
+  
+  // State management
   const [prisoners, setPrisoners] = useState<PrisionerListItem[]>([]);
   const [statistics, setStatistics] = useState<Statistics>({
     total: 0,
@@ -31,24 +32,21 @@ export const PrisonersPage: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [filters, setFilters] = useState<UserFilters>({});
+  const [filters, setFilters] = useState<PrisonerSearchFilters>({});
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
-    limit: 10,
+    limit: 12,
     total: 0,
     totalPages: 0,
   });
   const [viewType, setViewType] = useState<'table' | 'cards'>('cards');
 
-
-
+  // Memoized callback for viewing profile
   const handleViewProfile = useCallback((prisoner: PrisonerBase) => {
-    console.log("🔍 Navegando al perfil de:", prisoner.id);
     navigate(ROUTES.PRISONER_PROFILE.replace(":id", prisoner.id));
   }, [navigate]);
 
-
-
+  // Load prisoners data
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
@@ -61,16 +59,13 @@ export const PrisonersPage: React.FC = () => {
         "admissionDate",
         "desc"
       );
-      console.log("Datos de prisioneros cargados:", response);
-      // Update large state inside a transition so rendering stays responsive
       
-        setPrisoners(response.data);
-        setPagination((prev) => ({
-          ...prev,
-          total: response.pagination.total,
-          totalPages: response.pagination.totalPages,
-        }));
-      
+      setPrisoners(response.data);
+      setPagination((prev) => ({
+        ...prev,
+        total: response.pagination.total,
+        totalPages: response.pagination.totalPages,
+      }));
     } catch (error) {
       console.error("Error cargando prisioneros:", error);
       notifications.show({
@@ -83,6 +78,7 @@ export const PrisonersPage: React.FC = () => {
     }
   }, [pagination.page, pagination.limit, searchQuery, filters]);
 
+  // Load statistics
   const loadStats = useCallback(async () => {
     try {
       const allPrisoners = await prisonersService.getPrisoners({ limit: 1000 });
@@ -109,24 +105,20 @@ export const PrisonersPage: React.FC = () => {
     }
   }, []);
 
+  // Initial data load
   useEffect(() => {
     loadData();
     loadStats();
   }, [loadData, loadStats]);
 
-  // use a deferred value for prisoners to avoid blocking urgent UI updates
-  const deferredPrisoners = useDeferredValue(prisoners);
-
-  // Handlers para búsqueda y filtros
+  // Search handler - only updates state, debounce happens at page level
   const handleSearch = useCallback((query: string) => {
-    // mark the search update as low-priority to avoid blocking urgent UI work
-    startTransition(() => {
-      setSearchQuery(query);
-      setPagination((prev) => ({ ...prev, page: 1 }));
-    });
+    setSearchQuery(query);
+    setPagination((prev) => ({ ...prev, page: 1 }));
   }, []);
 
-  const handleFiltersChange = useCallback((newFilters: UserFilters) => {
+  // Filters handlers
+  const handleFiltersChange = useCallback((newFilters: PrisonerSearchFilters) => {
     setFilters(newFilters);
     setPagination((prev) => ({ ...prev, page: 1 }));
   }, []);
@@ -136,12 +128,24 @@ export const PrisonersPage: React.FC = () => {
     setPagination((prev) => ({ ...prev, page: 1 }));
   }, []);
 
+  // Pagination handlers
   const handlePageChange = useCallback((page: number) => {
     setPagination((prev) => ({ ...prev, page }));
   }, []);
 
   const handlePageSizeChange = useCallback((limit: number) => {
     setPagination((prev) => ({ ...prev, limit, page: 1 }));
+  }, []);
+
+  // Create new prisoner handler
+  const handleCreateNew = useCallback(() => {
+    // Navigate to create page or open modal
+    console.log("Create new prisoner");
+  }, []);
+
+  // Edit prisoner handler (stub for now)
+  const handleEdit = useCallback(() => {
+    console.log("Edit prisoner");
   }, []);
 
   return (
@@ -160,19 +164,19 @@ export const PrisonersPage: React.FC = () => {
         {loading ? (
           <PrisonersList
             prisoners={[]}
-            onViewProfile={() => {}}
-            onEdit={() => {}}
+            onViewProfile={handleViewProfile}
+            onEdit={handleEdit}
             loading={true}
             viewType={viewType === 'cards' ? 'card' : 'table'}
           />
         ) : prisoners?.length === 0 ? (
-          <EmptyPrisonersState onCreateNew={() => {}} />
+          <EmptyPrisonersState onCreateNew={handleCreateNew} />
         ) : (
           <>
             <PrisonersList
-              prisoners={deferredPrisoners}
+              prisoners={prisoners}
               onViewProfile={handleViewProfile}
-              onEdit={() => {}}
+              onEdit={handleEdit}
               loading={false}
               viewType={viewType === 'cards' ? 'card' : 'table'}
             />
