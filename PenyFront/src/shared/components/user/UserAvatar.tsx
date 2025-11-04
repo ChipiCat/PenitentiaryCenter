@@ -4,14 +4,14 @@ import { Avatar } from "@mantine/core";
 export interface UserAvatarProps {
   name: string;
   role?: string;
-  avatar?: string;
+  photoUrl?: string;
   size?: "xs" | "sm" | "md" | "lg" | "xl";
 }
 
 export const UserAvatar: React.FC<UserAvatarProps> = ({
   name,
   role,
-  avatar,
+  photoUrl,
   size = "md",
 }) => {
   const getUserInitials = (userName: string) => {
@@ -35,7 +35,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
     <div
       style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
     >
-      <Avatar size={size} color={getUserColor(role)} src={avatar}>
+      <Avatar size={size} color={getUserColor(role)} src={photoUrl}>
         {getUserInitials(name)}
       </Avatar>
     </div>
