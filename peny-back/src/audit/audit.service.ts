@@ -886,7 +886,7 @@ export class AuditService {
         take: limit,
         orderBy: { timestamp: 'desc' },
         include: {
-          dataChanges: true
+          dataChanges: true,
         },
       }),
       this.prisma.activityLog.count({ where }),
