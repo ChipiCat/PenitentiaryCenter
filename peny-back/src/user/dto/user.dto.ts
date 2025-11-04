@@ -65,6 +65,26 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   photoFileId?: string;
+
+  @ApiPropertyOptional({ example: '+591 12345678' })
+  @IsString()
+  @IsOptional()
+  cellphone?: string;
+
+  @ApiPropertyOptional({ example: '1234567' })
+  @IsString()
+  @IsOptional()
+  ci?: string;
+
+  @ApiPropertyOptional({ example: 'Santa Cruz' })
+  @IsString()
+  @IsOptional()
+  department?: string;
+
+  @ApiPropertyOptional({ example: 'Dirección Regional Norte' })
+  @IsString()
+  @IsOptional()
+  departmentalDirectorateUnit?: string;
 }
 
 export class UpdateUserDto {
@@ -99,6 +119,26 @@ export class UpdateUserDto {
   @IsBoolean()
   @IsOptional()
   isFirstLogin?: boolean;
+
+  @ApiPropertyOptional({ example: '+591 12345678' })
+  @IsString()
+  @IsOptional()
+  cellphone?: string;
+
+  @ApiPropertyOptional({ example: '1234567' })
+  @IsString()
+  @IsOptional()
+  ci?: string;
+
+  @ApiPropertyOptional({ example: 'Santa Cruz' })
+  @IsString()
+  @IsOptional()
+  department?: string;
+
+  @ApiPropertyOptional({ example: 'Dirección Regional Norte' })
+  @IsString()
+  @IsOptional()
+  departmentalDirectorateUnit?: string;
 }
 
 export class UserResponseDto {
@@ -119,6 +159,18 @@ export class UserResponseDto {
 
   @ApiProperty({ example: true })
   isFirstLogin: boolean;
+
+  @ApiPropertyOptional({ example: '+591 12345678', nullable: true })
+  cellphone?: string | null;
+
+  @ApiPropertyOptional({ example: '1234567', nullable: true })
+  ci?: string | null;
+
+  @ApiPropertyOptional({ example: 'Santa Cruz', nullable: true })
+  department?: string | null;
+
+  @ApiPropertyOptional({ example: 'Dirección Regional Norte', nullable: true })
+  departmentalDirectorateUnit?: string | null;
 
   @ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
   createdAt: Date;

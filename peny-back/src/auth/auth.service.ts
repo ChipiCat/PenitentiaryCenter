@@ -70,7 +70,7 @@ export class AuthService {
     photoFile?: UploadedFile,
   ): Promise<AuthResponseDto> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
-    const { email, password, name, role } = registerDto;
+    const { email, password, name, role, cellphone, ci, department, departmentalDirectorateUnit } = registerDto;
 
     const existingUser = await this.prisma.user.findFirst({
       where: { email },
@@ -82,48 +82,53 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(password, 12);
 
-    const result = await this.prisma.$transaction(async (tx) => {
-      const user = await tx.user.create({
+    // Crear usuario y auth en transacción (solo operaciones de DB)
+    const user = await this.prisma.$transaction(async (tx) => {
+      const newUser = await tx.user.create({
         data: {
           name,
           email,
           role: role || UserRole.SECRETARY,
-        },
-        include: {
-          photoFile: true,
+          cellphone,
+          ci,
+          department,
+          departmentalDirectorateUnit,
         },
       });
 
       await tx.userAuth.create({
         data: {
-          userId: user.id,
+          userId: newUser.id,
           passwordHash,
         },
       });
 
-      // Si se proporcionó un archivo de foto, subirlo
-      if (photoFile) {
-        const uploadedFile = await this.filesService.uploadFile(
-          photoFile,
-          'user',
-          user.id,
-          'photo',
-          user.id,
-        );
+      return newUser;
+    });
 
-        // Actualizar el usuario con el ID del archivo
-        const updatedUser = await tx.user.update({
-          where: { id: user.id },
-          data: { photoFileId: uploadedFile.id },
-          include: {
-            photoFile: true,
-          },
-        });
+    // Si se proporcionó un archivo de foto, subirlo FUERA de la transacción
+    if (photoFile) {
+      const uploadedFile = await this.filesService.uploadFile(
+        photoFile,
+        'user',
+        user.id,
+        'photo',
+        user.id,
+      );
 
-        return updatedUser;
-      }
+      // Actualizar el usuario con el ID del archivo
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { photoFileId: uploadedFile.id },
+      });
+    }
 
-      return user;
+    // Obtener el usuario con sus relaciones para la respuesta
+    const result = await this.prisma.user.findUniqueOrThrow({
+      where: { id: user.id },
+      include: {
+        photoFile: true,
+      },
     });
 
     const tokens = this.generateTokens(result.id);
@@ -158,6 +163,10 @@ export class AuthService {
         role: result.role,
         photoFile: result.photoFile || null,
         isFirstLogin: result.isFirstLogin,
+        cellphone: result.cellphone || null,
+        ci: result.ci || null,
+        department: result.department || null,
+        departmentalDirectorateUnit: result.departmentalDirectorateUnit || null,
       },
     };
   }
@@ -237,6 +246,10 @@ export class AuthService {
         role: user.role,
         photoFile: user.photoFile || null,
         isFirstLogin: user.isFirstLogin,
+        cellphone: user.cellphone || null,
+        ci: user.ci || null,
+        department: user.department || null,
+        departmentalDirectorateUnit: user.departmentalDirectorateUnit || null,
       },
     };
   }

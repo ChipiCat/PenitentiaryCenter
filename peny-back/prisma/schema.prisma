@@ -34,6 +34,12 @@ model User {
   role     UserRole @default(SECRETARY)
   photoFileId String? @unique
   isFirstLogin Boolean @default(true)
+  
+  // Additional user fields
+  cellphone String?
+  ci String?
+  department String?
+  departmentalDirectorateUnit String?
 
   // Base entity fields
   isDeleted Boolean  @default(false)

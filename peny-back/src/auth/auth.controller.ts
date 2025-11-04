@@ -61,6 +61,13 @@ export class AuthController {
           enum: ['ADMIN', 'DIRECTOR', 'SECRETARY'],
           example: 'SECRETARY',
         },
+        cellphone: { type: 'string', example: '+591 12345678' },
+        ci: { type: 'string', example: '1234567' },
+        department: { type: 'string', example: 'Santa Cruz' },
+        departmentalDirectorateUnit: { 
+          type: 'string', 
+          example: 'Dirección Regional Norte' 
+        },
         photo: {
           type: 'string',
           format: 'binary',
