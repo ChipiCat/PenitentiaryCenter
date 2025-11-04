@@ -24,14 +24,6 @@ export interface AuditInfo {
   deleted_by?: string;
 }
 
-export interface FileInfo {
-  url: string;
-  filename: string;
-  size: number;
-  mime_type?: string;
-  uploaded_at: string;
-}
-
 export type CitizenshipType =
   | "Local"
   | "Ciudadano Nacional"
