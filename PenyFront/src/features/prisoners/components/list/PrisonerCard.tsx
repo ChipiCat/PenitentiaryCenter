@@ -26,7 +26,7 @@ const PrisonerCard: React.FC<PrisonerCardProps> = ({ prisoner, onViewProfile, on
     return colors[status] || 'gray';
   };
   return (
-    <Card withBorder shadow="lg" radius="lg" padding="md" style={{ background: 'var(--mantine-color-body)', minHeight: 350 }}>
+    <Card withBorder shadow="xs" radius="lg" padding="md" style={{ background: 'var(--mantine-color-body)', minHeight: 370 }}>
       <Group gap="md" wrap="nowrap" align="flex-start">
         <Avatar
           size={64}
@@ -129,17 +129,7 @@ const PrisonerCard: React.FC<PrisonerCardProps> = ({ prisoner, onViewProfile, on
           Ver Perfil
         </Button>
 
-        <Tooltip label="Editar prisionero">
-          <ActionIcon
-            variant="outline"
-            size="lg"
-            onClick={() => onEdit(prisoner.prisoner)}
-            color="gray"
-            radius="xl"
-          >
-            <Edit size={20} />
-          </ActionIcon>
-        </Tooltip>
+        
       </Group>
     </Card>
   );

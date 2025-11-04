@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, startTransition, useDeferredValue } from "react";
 import { Container, Stack } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useNavigate } from "react-router-dom";
@@ -8,7 +8,6 @@ import { PrisonersHeader } from "../components/list/PrisonersHeader";
 import { PrisonersStats } from "../components/list/PrisonersStats";
 import { PrisonersList } from "../components/list/PrisonersList";
 import { EmptyPrisonersState } from "../components/list/EmptyPrisonersState";
-import { PrisonersSearchBar } from "../components/list/PrisonersSearchBar";
 import { PrisonersFilters } from "../components/list/PrisonersFilters";
 import { PrisonersPagination } from "../components/list/PrisonersPagination";
 import type {
@@ -17,15 +16,11 @@ import type {
 } from "../../../shared/types/prisonerTypes";
 import type { UserFilters, Statistics, Pagination } from "../../../shared/types";
 import { prisonersService } from "../../../shared/services/prisonersService";
+import PrisonersSearchBar from "../components/list/PrisonersSearchBar";
 
-type ViewMode = "list" | "create" | "edit";
 
 export const PrisonersPage: React.FC = () => {
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
-  const [selectedPrisoner, setSelectedPrisoner] = useState<PrisonerBase | null>(
-    null
-  );
   const [prisoners, setPrisoners] = useState<PrisionerListItem[]>([]);
   const [statistics, setStatistics] = useState<Statistics>({
     total: 0,
@@ -45,31 +40,14 @@ export const PrisonersPage: React.FC = () => {
   });
   const [viewType, setViewType] = useState<'table' | 'cards'>('cards');
 
-  const handleCreateNew = () => {
-    setSelectedPrisoner(null);
-    setViewMode("create");
-  };
 
-  const handleEdit = (prisoner: PrisonerBase) => {
-    setSelectedPrisoner(prisoner);
-    setViewMode("edit");
-  };
 
-  const handleViewProfile = (prisoner: PrisonerBase) => {
+  const handleViewProfile = useCallback((prisoner: PrisonerBase) => {
     console.log("🔍 Navegando al perfil de:", prisoner.id);
     navigate(ROUTES.PRISONER_PROFILE.replace(":id", prisoner.id));
-  };
+  }, [navigate]);
 
-  const handleSuccess = (result: { prisoner: PrisonerBase; id: string }) => {
-    console.log("Prisionero guardado:", result.prisoner);
-    setViewMode("list");
-    loadData();
-    loadStats();
-  };
 
-  const handleCancel = () => {
-    setViewMode("list");
-  };
 
   const loadData = useCallback(async () => {
     try {
@@ -84,12 +62,15 @@ export const PrisonersPage: React.FC = () => {
         "desc"
       );
       console.log("Datos de prisioneros cargados:", response);
-      setPrisoners(response.data);
-      setPagination((prev) => ({
-        ...prev,
-        total: response.pagination.total,
-        totalPages: response.pagination.totalPages,
-      }));
+      // Update large state inside a transition so rendering stays responsive
+      
+        setPrisoners(response.data);
+        setPagination((prev) => ({
+          ...prev,
+          total: response.pagination.total,
+          totalPages: response.pagination.totalPages,
+        }));
+      
     } catch (error) {
       console.error("Error cargando prisioneros:", error);
       notifications.show({
@@ -133,10 +114,16 @@ export const PrisonersPage: React.FC = () => {
     loadStats();
   }, [loadData, loadStats]);
 
+  // use a deferred value for prisoners to avoid blocking urgent UI updates
+  const deferredPrisoners = useDeferredValue(prisoners);
+
   // Handlers para búsqueda y filtros
   const handleSearch = useCallback((query: string) => {
-    setSearchQuery(query);
-    setPagination((prev) => ({ ...prev, page: 1 }));
+    // mark the search update as low-priority to avoid blocking urgent UI work
+    startTransition(() => {
+      setSearchQuery(query);
+      setPagination((prev) => ({ ...prev, page: 1 }));
+    });
   }, []);
 
   const handleFiltersChange = useCallback((newFilters: UserFilters) => {
@@ -157,18 +144,6 @@ export const PrisonersPage: React.FC = () => {
     setPagination((prev) => ({ ...prev, limit, page: 1 }));
   }, []);
 
-  if (viewMode === "create" || viewMode === "edit") {
-    return (
-      
-      <PrisonerFormWizard
-        mode={viewMode}
-        initialData={selectedPrisoner || undefined}
-        onSuccess={handleSuccess}
-        onCancel={handleCancel}
-      />
-    );
-  }
-
   return (
     <Container size="xl" className="!mt-1">
       <Stack gap="lg">
@@ -182,15 +157,23 @@ export const PrisonersPage: React.FC = () => {
           onClearFilters={handleClearFilters}
         />
 
-        {prisoners?.length === 0 && !loading ? (
-          <EmptyPrisonersState onCreateNew={handleCreateNew} />
+        {loading ? (
+          <PrisonersList
+            prisoners={[]}
+            onViewProfile={() => {}}
+            onEdit={() => {}}
+            loading={true}
+            viewType={viewType === 'cards' ? 'card' : 'table'}
+          />
+        ) : prisoners?.length === 0 ? (
+          <EmptyPrisonersState onCreateNew={() => {}} />
         ) : (
           <>
             <PrisonersList
-              prisoners={prisoners}
+              prisoners={deferredPrisoners}
               onViewProfile={handleViewProfile}
-              onEdit={handleEdit}
-              loading={loading}
+              onEdit={() => {}}
+              loading={false}
               viewType={viewType === 'cards' ? 'card' : 'table'}
             />
             <PrisonersPagination

@@ -23,13 +23,25 @@ export const PrisonersList: React.FC<PrisonersListProps> = ({
   useEffect(() => {
     console.log("Renderizando lista de prisioneros. Cantidad:", prisoners?.length ?? 0);
   }, [prisoners]);
+
+  if (loading) {
+    return (
+      <Card withBorder pos="relative">
+       <div className="!h-50 flex items-center justify-center"><Loading /></div>
+      </Card>
+    );
+  }
   return (
     <Card withBorder pos="relative">
-      {loading && <div className="!h-50 flex items-center justify-center"><Loading  /></div>}
+      
       {viewType === 'card' ? (
         <Grid gutter="md">
           {prisoners?.map((prisoner) => (
-            <Grid.Col span={{ base: 12, sm: 6, md: 4, lg: 3 }} key={prisoner.prisoner.id}>
+            <Grid.Col
+              span={{ base: 12, sm: 6, md: 4, lg: 3 }}
+              
+              key={prisoner.prisoner.id}
+            >
               <PrisonerCard
                 prisoner={prisoner}
                 onViewProfile={onViewProfile}

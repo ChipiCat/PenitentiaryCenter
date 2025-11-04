@@ -4,6 +4,7 @@ import { User, Plus, Pencil, Trash2, Calendar } from 'lucide-react';
 import type { Child } from '../../../../../shared/types/childTypes';
 import { ChildFormModal } from '../modals/ChildFormModal';
 import { useChildrenManager } from '../hooks/useChildrenManager';
+import { useGlobalContext } from '../../../../../shared/hooks/useGlobalContext';
 
 interface ChildrenSectionProps {
   prisonerId: string;
@@ -20,6 +21,7 @@ export const ChildrenSection: React.FC<ChildrenSectionProps> = ({
   const [editingChild, setEditingChild] = useState<Child | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [childToDelete, setChildToDelete] = useState<Child | null>(null);
+  const { user } = useGlobalContext();
 
   const { deleteChild, isDeleting } = useChildrenManager(prisonerId, onUpdate);
 
@@ -77,6 +79,7 @@ export const ChildrenSection: React.FC<ChildrenSectionProps> = ({
               {children.length}
             </Badge>
           </Group>
+          {user?.role === 'ADMIN' || user?.role === 'SECRETARY' ? (
           <Button
             leftSection={<Plus size={16} />}
             variant="light"
@@ -85,6 +88,7 @@ export const ChildrenSection: React.FC<ChildrenSectionProps> = ({
           >
             Agregar Hijo
           </Button>
+          ) : null}
         </Group>
 
         {children.length === 0 ? (
@@ -109,6 +113,7 @@ export const ChildrenSection: React.FC<ChildrenSectionProps> = ({
                       </Text>
                     </Group>
                   </div>
+                  {user?.role === 'ADMIN' || user?.role === 'SECRETARY' ? (
                   <Group gap="xs">
                     <ActionIcon
                       variant="light"
@@ -127,6 +132,7 @@ export const ChildrenSection: React.FC<ChildrenSectionProps> = ({
                       <Trash2 size={16} />
                     </ActionIcon>
                   </Group>
+                  ) : null}
                 </Group>
               </Card>
             ))}

@@ -23,6 +23,7 @@ import { useMandateEditor } from '../hooks/useMandateEditor';
 import { CaseForm } from '../forms/CaseForm';
 import { MandateForm } from '../forms/MandateForm';
 import FileView from '../../../../../shared/components/FileView';
+import { useGlobalContext } from '../../../../../shared/hooks/useGlobalContext';
 
 interface LegalCasesCardProps {
   cases: Case[];
@@ -123,6 +124,8 @@ export const LegalCasesCard: React.FC<LegalCasesCardProps> = ({
     }
   };
 
+  const {user} = useGlobalContext();
+
   return (
     <Card withBorder padding="lg" h="100%">
       <Group justify="space-between" mb="md">
@@ -134,8 +137,8 @@ export const LegalCasesCard: React.FC<LegalCasesCardProps> = ({
             Casos Judiciales
           </Title>
         </Group>
-        
-        {!isCreatingCase && !editingCaseId && (
+
+        {!isCreatingCase && !editingCaseId && (user?.role === 'ADMIN' || user?.role === 'SECRETARY') && (
           <Button
             leftSection={<Plus size={16} />}
             size="xs"
@@ -144,6 +147,7 @@ export const LegalCasesCard: React.FC<LegalCasesCardProps> = ({
             Nuevo Caso
           </Button>
         )}
+
       </Group>
       
       <Divider mb="md" />
@@ -247,6 +251,7 @@ export const LegalCasesCard: React.FC<LegalCasesCardProps> = ({
                     {/* Acciones del caso */}
                     <Group justify="space-between">
                       <Title order={5} size="h6">Mandatos Judiciales</Title>
+                      {(user?.role === 'ADMIN' || user?.role === 'SECRETARY') && (
                       <Group>
                         <Button
                           leftSection={<Plus size={14} />}
@@ -280,6 +285,7 @@ export const LegalCasesCard: React.FC<LegalCasesCardProps> = ({
                           </ActionIcon>
                         </Tooltip>
                       </Group>
+                      )}
                     </Group>
 
                     {/* Formulario de creación de mandato */}

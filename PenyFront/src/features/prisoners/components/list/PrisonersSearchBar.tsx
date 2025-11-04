@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import { TextInput } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { Search } from 'lucide-react';
@@ -8,7 +8,7 @@ interface PrisonersSearchBarProps {
   placeholder?: string;
 }
 
-export const PrisonersSearchBar: React.FC<PrisonersSearchBarProps> = ({
+const PrisonersSearchBar: React.FC<PrisonersSearchBarProps> = ({
   onSearch,
   placeholder = 'Buscar por nombre, registro, expediente...',
 }) => {
@@ -41,3 +41,5 @@ export const PrisonersSearchBar: React.FC<PrisonersSearchBarProps> = ({
     />
   );
 };
+
+export default memo(PrisonersSearchBar);

@@ -27,22 +27,11 @@ export const EmptyPrisonersState: React.FC<EmptyPrisonersStateProps> = ({ onCrea
 
           <div>
             <Title order={3} size="h4" mb="xs">
-              No hay prisioneros registrados
+              Ningún prisionero encontrado
             </Title>
-            <Text c="dimmed" size="sm" maw={400}>
-              Este centro penitenciario aún no tiene prisioneros registrados en el sistema. 
-              Comienza registrando el primer prisionero para empezar a gestionar la información.
-            </Text>
+            
           </div>
 
-          <Button
-            onClick={onCreateNew}
-            variant="light"
-            leftSection={<Plus size={16} />}
-            size="md"
-          >
-            Registrar Primer Prisionero
-          </Button>
         </Stack>
       </Center>
     </Card>

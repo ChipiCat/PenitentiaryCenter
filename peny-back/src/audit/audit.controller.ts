@@ -6,7 +6,6 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  UseInterceptors,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuditService } from './audit.service';
@@ -29,7 +28,6 @@ import {
   GlobalSearchResponseDto,
 } from './dto/response.dto';
 import { ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
-import { CacheInterceptor } from '@nestjs/cache-manager';
 import { PrisonerTimelineQueryDto } from './dto/query.dto';
 /**
  * Controlador para endpoints de auditoría y trazabilidad
@@ -38,7 +36,6 @@ import { PrisonerTimelineQueryDto } from './dto/query.dto';
 @ApiBearerAuth()
 @Controller('audit')
 @UseGuards(JwtAuthGuard)
-@UseInterceptors(CacheInterceptor)
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
