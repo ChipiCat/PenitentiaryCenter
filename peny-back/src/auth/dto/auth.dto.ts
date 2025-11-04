@@ -29,6 +29,26 @@ export class RegisterDto {
   @IsOptional()
   role?: UserRole;
 
+  @ApiPropertyOptional({ example: '+591 12345678' })
+  @IsString()
+  @IsOptional()
+  cellphone?: string;
+
+  @ApiPropertyOptional({ example: '1234567' })
+  @IsString()
+  @IsOptional()
+  ci?: string;
+
+  @ApiPropertyOptional({ example: 'Santa Cruz' })
+  @IsString()
+  @IsOptional()
+  department?: string;
+
+  @ApiPropertyOptional({ example: 'Dirección Regional Norte' })
+  @IsString()
+  @IsOptional()
+  departmentalDirectorateUnit?: string;
+
   // Este campo se omite del DTO porque se envía como archivo multipart
   // La foto se manejará en el controller con @UploadedFile()
 }
@@ -96,6 +116,14 @@ export class AuthResponseDto {
         },
       },
       isFirstLogin: { type: 'boolean', example: true },
+      cellphone: { type: 'string', nullable: true, example: '+591 12345678' },
+      ci: { type: 'string', nullable: true, example: '1234567' },
+      department: { type: 'string', nullable: true, example: 'Santa Cruz' },
+      departmentalDirectorateUnit: { 
+        type: 'string', 
+        nullable: true, 
+        example: 'Dirección Regional Norte' 
+      },
     },
   })
   user: {
@@ -105,6 +133,10 @@ export class AuthResponseDto {
     role: UserRole;
     photoFile?: FileResponseDto | null;
     isFirstLogin: boolean;
+    cellphone?: string | null;
+    ci?: string | null;
+    department?: string | null;
+    departmentalDirectorateUnit?: string | null;
   };
 }
 
