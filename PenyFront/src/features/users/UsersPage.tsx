@@ -3,8 +3,7 @@ import { UsersHeader } from './components/UsersHeader';
 import { UsersTable } from './components/UsersTable';
 import { UserModal } from './components/UserModal';
 import { useUsers } from './hooks/useUsers';
-import type { User } from '../../shared/types/userResponse';
-import type { CreateUserData, UpdateUserData } from '../../shared/types/userTypes';
+import type { CreateUserData, UpdateUserData, User } from '../../shared/types/userTypes';
 import { useState } from 'react';
 
 const UsersPage = () => {
@@ -26,7 +25,7 @@ const UsersPage = () => {
   // Editar usuario
   const handleEditUserTable = (userId: string) => {
     const user = users.find(u => u.id === userId) || null;
-    setSelectedUser(user ? { ...user, photoUrl: user.photoUrl ?? "" } : null);
+    setSelectedUser(user ? { ...user, } : null);
     setEditModalOpen(true);
   };
 

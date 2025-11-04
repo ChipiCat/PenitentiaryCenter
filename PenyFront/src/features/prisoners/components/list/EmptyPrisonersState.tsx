@@ -1,12 +1,17 @@
-import React from 'react';
-import { Card, Center, Stack, Title, Text, Button } from '@mantine/core';
-import { Plus, Users } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Card, Center, Stack, Title } from '@mantine/core';
+import {  Users } from 'lucide-react';
 
 interface EmptyPrisonersStateProps {
-  onCreateNew: () => void;
+  onCreateNew?: () => void;
 }
 
 export const EmptyPrisonersState: React.FC<EmptyPrisonersStateProps> = ({ onCreateNew }) => {
+  useEffect(() => {
+    if(onCreateNew) {
+    console.log("EmptyPrisonersState mounted");
+    }
+  }, [onCreateNew]);
   return (
     <Card withBorder padding="xl">
       <Center>

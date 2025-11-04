@@ -3,10 +3,11 @@ import type { AxiosError, PaginationResponse } from '../types/axiosTypes';  // â
 import type { 
   CreateUserData,
   UpdateUserData,
-  GetUsersParams
+  GetUsersParams,
+  User
 } from '../types/userTypes'; 
 import { handleApiError } from "../utils/handleApiError";
-import type { User } from "../types/userResponse";
+
 
 export const getUserById = async (id: string): Promise<User | null> => {
     try {

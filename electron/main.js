@@ -1,237 +1,246 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
-const { join } = require('path');
-const puppeteer = require('puppeteer');
-const { writeFileSync, unlinkSync, mkdtempSync } = require('fs');
-const { tmpdir } = require('os');
-
-// Variables para los procesos
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const electron_1 = require("electron");
+const path_1 = require("path");
+const child_process_1 = require("child_process");
+const express_1 = __importDefault(require("express"));
+const CONFIG = {
+    ports: { frontend: 4321, backend: 3000 },
+    memory: { maxOldSpace: 1024 },
+    isDev: process.env.NODE_ENV === "development",
+    isPackaged: electron_1.app.isPackaged,
+};
 let mainWindow = null;
-
-// Configuración
-const isDev = process.env.NODE_ENV === 'development';
-
-function getFrontendUrl() {
-  // En desarrollo, usar el dev server de Vite
-  if (isDev && !app.isPackaged) {
-    return 'http://localhost:4321';
-  }
-  
-  // En producción, usar archivos estáticos desde file://
-  const frontendDistPath = join(__dirname, '..', 'frontend', 'dist', 'index.html');
-  return `file://${frontendDistPath}`;
-}
-
-function createWindow() {
-  // Crear la ventana principal
-  mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    minWidth: 800,
-    minHeight: 600,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: join(__dirname, 'preload.js'),
-      webSecurity: true
-    },
-    show: false, // No mostrar hasta que esté listo
-    titleBarStyle: 'default',
-    autoHideMenuBar: true // Ocultar barra de menú por defecto
-  });
-
-  // Mostrar ventana cuando esté lista
-  mainWindow.once('ready-to-show', () => {
-    mainWindow?.show();
-    
-    // Abrir DevTools en desarrollo
-    if (isDev) {
-      mainWindow?.webContents.openDevTools();
+let backendProcess = null;
+let frontendServer = null;
+class BackendManager {
+    process = null;
+    port;
+    isDev;
+    constructor(port, isDev) {
+        this.port = port;
+        this.isDev = isDev;
     }
-  });
-
-  // Limpiar referencia cuando se cierre
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
-
-  // Manejar ventanas nuevas (incluyendo popups e impresión)
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    // Si es una URL blob (para impresión) o about:blank, permitir
-    if (url.startsWith('blob:') || url === 'about:blank' || url === '') {
-      return {
-        action: 'allow',
-        overrideBrowserWindowOptions: {
-          width: 800,
-          height: 600,
-          show: true,
-          webPreferences: {
+    async start() {
+        return new Promise((resolve, reject) => {
+            console.log(`[Backend] Iniciando en puerto ${this.port}...`);
+            const backendPath = this.isDev
+                ? (0, path_1.join)(__dirname, "..", "peny-back")
+                : (0, path_1.join)(process.resourcesPath, "backend");
+            const command = this.isDev ? "npm" : "node";
+            const args = this.isDev
+                ? ["run", "start:dev"]
+                : [(0, path_1.join)(backendPath, "dist", "main.js")];
+            this.process = (0, child_process_1.spawn)(command, args, {
+                cwd: backendPath,
+                shell: true,
+                env: {
+                    ...process.env,
+                    PORT: this.port.toString(),
+                    NODE_ENV: this.isDev ? "development" : "production",
+                },
+            });
+            this.process.stdout?.on("data", (data) => {
+                const output = data.toString();
+                console.log(`[Backend] ${output}`);
+                if (output.includes("Application is running")) {
+                    console.log("[Backend]  Iniciado correctamente");
+                    resolve();
+                }
+            });
+            this.process.stderr?.on("data", (data) => {
+                console.error(`[Backend Error] ${data.toString()}`);
+            });
+            this.process.on("error", (error) => {
+                console.error("[Backend] Error al iniciar:", error.message);
+                reject(error);
+            });
+            this.process.on("exit", (code) => {
+                console.log(`[Backend] Proceso terminado con código ${code}`);
+                this.process = null;
+            });
+            setTimeout(() => {
+                if (this.process && !this.process.killed) {
+                    console.log("[Backend]  Timeout alcanzado, asumiendo inicio exitoso");
+                    resolve();
+                }
+            }, 30000);
+        });
+    }
+    stop() {
+        if (!this.process || this.process.killed)
+            return;
+        console.log("[Backend] Deteniendo...");
+        this.process.kill("SIGTERM");
+        setTimeout(() => {
+            if (this.process && !this.process.killed) {
+                console.log("[Backend] Forzando cierre...");
+                this.process.kill("SIGKILL");
+            }
+        }, 5000);
+    }
+}
+class FrontendManager {
+    server = null;
+    port;
+    isDev;
+    constructor(port, isDev) {
+        this.port = port;
+        this.isDev = isDev;
+    }
+    async start() {
+        if (this.isDev) {
+            console.log(`[Frontend] Modo desarrollo: esperando Vite en puerto ${this.port}...`);
+            // Esperar a que Vite esté disponible
+            return this.waitForServer();
+        }
+        return new Promise((resolve, reject) => {
+            console.log(`[Frontend] Iniciando servidor Express en puerto ${this.port}...`);
+            const app = (0, express_1.default)();
+            const distPath = (0, path_1.join)(process.resourcesPath, "app", "PenyFront", "dist");
+            console.log(`[Frontend] Sirviendo desde: ${distPath}`);
+            app.use(express_1.default.static(distPath));
+            app.get("*", (_, res) => {
+                res.sendFile((0, path_1.join)(distPath, "index.html"));
+            });
+            this.server = app.listen(this.port, "localhost", () => {
+                console.log(`[Frontend]  Servidor iniciado en http://localhost:${this.port}`);
+                resolve();
+            });
+            this.server.on("error", (error) => {
+                console.error("[Frontend] Error al iniciar servidor:", error.message);
+                reject(error);
+            });
+        });
+    }
+    async waitForServer() {
+        const maxAttempts = 60; // 60 segundos máximo
+        const delayMs = 1000; // 1 segundo entre intentos
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                const response = await fetch(`http://localhost:${this.port}`);
+                if (response.ok || response.status === 200) {
+                    console.log(`[Frontend] ✓ Vite está listo en puerto ${this.port}`);
+                    return;
+                }
+            }
+            catch (error) {
+                // Servidor no está listo todavía
+                if (attempt % 5 === 0) {
+                    console.log(`[Frontend] Esperando Vite... (intento ${attempt}/${maxAttempts})`);
+                }
+            }
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
+        throw new Error(`[Frontend] Timeout: Vite no está disponible en puerto ${this.port} después de ${maxAttempts} segundos`);
+    }
+    stop() {
+        if (!this.server)
+            return;
+        console.log("[Frontend] Deteniendo servidor...");
+        this.server.close(() => {
+            console.log("[Frontend]  Servidor detenido");
+        });
+        this.server = null;
+    }
+}
+function createMainWindow() {
+    mainWindow = new electron_1.BrowserWindow({
+        width: 1280,
+        height: 800,
+        minWidth: 1024,
+        minHeight: 768,
+        webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
-            webSecurity: false // Permitir contenido local para impresión
-          }
+            preload: (0, path_1.join)(__dirname, "preload.js"),
+            webSecurity: true,
+        },
+        show: false,
+        backgroundColor: "#ffffff",
+        autoHideMenuBar: true,
+    });
+    mainWindow.once("ready-to-show", () => {
+        mainWindow?.show();
+        if (CONFIG.isDev) {
+            mainWindow?.webContents.openDevTools();
         }
-      };
-    }
-    
-    // Para URLs externas, abrir en navegador por defecto
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      shell.openExternal(url);
-      return { action: 'deny' };
-    }
-    
-    // Denegar otras URLs por seguridad
-    return { action: 'deny' };
-  });
-
-  // Prevenir navegación externa no deseada
-  mainWindow.webContents.on('will-navigate', (event, url) => {
-    if (!url.startsWith('http://localhost') && !url.startsWith('file://')) {
-      event.preventDefault();
-    }
-  });
-
-  // Cargar la aplicación
-  const frontendUrl = getFrontendUrl();
-  mainWindow.loadURL(frontendUrl);
+    });
+    mainWindow.on("closed", () => {
+        mainWindow = null;
+    });
+    const url = `http://localhost:${CONFIG.ports.frontend}`;
+    console.log(`[Window] Cargando aplicación desde: ${url}`);
+    mainWindow.loadURL(url).catch((error) => {
+        console.error("[Window] Error al cargar URL:", error);
+    });
+    mainWindow.webContents.on("did-fail-load", (_, errorCode, errorDescription) => {
+        console.error(`[Window] Error al cargar: [${errorCode}] ${errorDescription}`);
+    });
+    mainWindow.webContents.on("did-finish-load", () => {
+        console.log("[Window]  Aplicación cargada correctamente");
+    });
 }
-
 async function initializeApp() {
-  try {
-    
-    if (isDev && !app.isPackaged) {
-      console.log('📱 Modo desarrollo: Esperando que Vite esté disponible en http://localhost:5175');
-      console.log('💡 Asegúrate de ejecutar "npm run dev:frontend" en otra terminal');
-    } else {
+    console.log("=".repeat(50));
+    console.log("Iniciando PenitentiaryCenter");
+    console.log(`Modo: ${CONFIG.isDev ? "Desarrollo" : "Producción"}`);
+    console.log(`Empaquetado: ${CONFIG.isPackaged ? "Sí" : "No"}`);
+    console.log("=".repeat(50));
+    const backend = new BackendManager(CONFIG.ports.backend, CONFIG.isDev);
+    const frontend = new FrontendManager(CONFIG.ports.frontend, CONFIG.isDev);
+    try {
+        await backend.start();
+        backendProcess = backend;
+        await frontend.start();
+        frontendServer = frontend;
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        console.log("[App] Creando ventana principal...");
+        createMainWindow();
+        console.log("=".repeat(50));
+        console.log(" Aplicación iniciada correctamente");
+        console.log(`  Frontend: http://localhost:${CONFIG.ports.frontend}`);
+        console.log(`  Backend:  http://localhost:${CONFIG.ports.backend}`);
+        console.log("=".repeat(50));
     }
-    
-    // Crear ventana principal
-    createWindow();
-  } catch (error) {
-    app.quit();
-  }
-}
-
-// Eventos de la aplicación
-app.whenReady().then(initializeApp);
-
-app.on('window-all-closed', () => {
-  // En macOS es común mantener la app activa aunque no haya ventanas
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
-});
-
-app.on('activate', () => {
-  // En macOS, recrear ventana cuando se hace clic en el dock
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
-});
-
-// Limpieza al cerrar
-app.on('before-quit', async () => {
-  console.log('🔄 Cerrando FarmaApp...');
-});
-
-// IPC handlers para comunicación con el renderer
-ipcMain.handle('get-app-version', () => {
-  return app.getVersion();
-});
-
-ipcMain.handle('get-app-info', async () => {
-  return {
-    version: app.getVersion(),
-    name: app.getName(),
-    isDev: isDev,
-    platform: process.platform
-  };
-});
-
-// Función para generar PDF usando Puppeteer
-async function generatePDFFromHTML(htmlContent) {
-  let browser;
-  let tempDir;
-  
-  try {
-    // Crear directorio temporal
-    tempDir = mkdtempSync(join(tmpdir(), 'farmacia-pdf-'));
-    const tempHtmlPath = join(tempDir, 'report.html');
-    const tempPdfPath = join(tempDir, 'report.pdf');
-    
-    // Escribir HTML temporal
-    writeFileSync(tempHtmlPath, htmlContent, 'utf8');
-    
-    // Lanzar Puppeteer
-    browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-    
-    const page = await browser.newPage();
-    
-    // Cargar el HTML
-    await page.goto(`file://${tempHtmlPath}`, { 
-      waitUntil: 'networkidle0',
-      timeout: 10000 
-    });
-    
-    // Generar PDF con configuración exacta
-    await page.pdf({
-      path: tempPdfPath,
-      format: 'Letter',
-      margin: {
-        top: '0mm',
-        right: '10mm', 
-        bottom: '10mm',
-        left: '10mm'
-      },
-      printBackground: true,
-      preferCSSPageSize: true
-    });
-    
-    // Limpiar HTML temporal
-    try { unlinkSync(tempHtmlPath); } catch (e) {}
-    
-    return tempPdfPath;
-    
-  } finally {
-    if (browser) {
-      await browser.close();
+    catch (error) {
+        console.error("[App] Error al inicializar:", error);
+        electron_1.app.quit();
     }
-  }
 }
-
-// Handler para generar PDF e imprimir
-ipcMain.handle('generate-and-print-pdf', async (_event, htmlContent) => {
-  try {
-    console.log('📄 Generando PDF desde HTML...');
-    
-    // Generar PDF usando Puppeteer
-    const pdfPath = await generatePDFFromHTML(htmlContent);
-    console.log('✅ PDF generado:', pdfPath);
-    
-    // Abrir el PDF con el visor por defecto para imprimir
-    await shell.openPath(pdfPath);
-    
-    // Limpiar PDF después de 30 segundos (tiempo para que se abra)
-    setTimeout(() => {
-      try {
-        unlinkSync(pdfPath);
-        console.log('🗑️ PDF temporal eliminado');
-      } catch (e) {
-        console.warn('⚠️ No se pudo eliminar PDF temporal:', e);
-      }
-    }, 30000);
-    
-    return { success: true };
-    
-  } catch (error) {
-    console.error('❌ Error generando PDF:', error);
-    return { 
-      success: false, 
-      error: error.message || 'Error desconocido'
-    };
-  }
+function cleanup() {
+    console.log("[App] Limpiando recursos...");
+    if (backendProcess && typeof backendProcess.stop === "function") {
+        backendProcess.stop();
+    }
+    if (frontendServer && typeof frontendServer.stop === "function") {
+        frontendServer.stop();
+    }
+}
+electron_1.app.commandLine.appendSwitch("js-flags", `--max-old-space-size=${CONFIG.memory.maxOldSpace}`);
+electron_1.app.commandLine.appendSwitch("disable-background-timer-throttling");
+electron_1.app.commandLine.appendSwitch("disable-renderer-backgrounding");
+electron_1.app.whenReady().then(initializeApp);
+electron_1.app.on("window-all-closed", () => {
+    cleanup();
+    if (process.platform !== "darwin") {
+        electron_1.app.quit();
+    }
 });
-
-module.exports = { app, mainWindow };
+electron_1.app.on("activate", () => {
+    if (electron_1.BrowserWindow.getAllWindows().length === 0) {
+        createMainWindow();
+    }
+});
+electron_1.app.on("before-quit", () => {
+    cleanup();
+});
+electron_1.ipcMain.handle("get-app-info", () => ({
+    version: electron_1.app.getVersion(),
+    name: electron_1.app.getName(),
+    isDev: CONFIG.isDev,
+    platform: process.platform,
+}));

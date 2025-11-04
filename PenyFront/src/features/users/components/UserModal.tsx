@@ -9,8 +9,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
-import type { CreateUserData } from "../../../shared/types/userTypes";
-import type { User } from "../../../shared/types/userResponse";
+import type { CreateUserData, User } from "../../../shared/types/userTypes";
 import { ProfilePhotoDropzone } from "../../../shared/components/BelongingDropzone";
 
 const roleOptions = [

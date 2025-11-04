@@ -9,14 +9,16 @@
     "dev": "npm-run-all --parallel dev:back dev:front",
     "dev:back": "cd peny-back && npm run dev",
     "dev:front": "cd PenyFront && npm run dev",
+    "dev:electron-app": "npm-run-all --parallel dev:front dev:electron",
     "front:ci-check": "cd PenyFront && npm run ci-check",
     "back:ci-check": "cd peny-back && npm run ci-check",
     "ci-check": "npm run front:ci-check && npm run back:ci-check",
-    "dev:electron": "cross-env NODE_ENV=development electron --inspect=5858 electron/main.js",
+    "dev:electron": "cross-env NODE_ENV=development electron electron/main.js",
     "dev:electron:watch": "tsc -p electron/tsconfig.json --watch",
     "build:frontend": "cd PenyFront && npm run build",
-    "build:electron": "echo 'Electron ya está en JavaScript'",
-    "build": "npm run build:frontend",
+    "build:backend": "cd peny-back && npm run build",
+    "build:electron": "tsc -p electron/tsconfig.json",
+    "build": "npm run build:frontend && npm run build:backend && npm run build:electron",
     "package": "npm run build && electron-builder",
     "package:win": "npm run build && electron-builder --win",
     "package:linux": "npm run build && electron-builder --linux",
@@ -24,8 +26,8 @@
     "dist": "npm run package",
     "dist:win": "npm run package:win",
     "start": "electron .",
-    "clean": "rm -rf dist-electron PenyFront/dist release",
-    "postinstall": "electron-builder install-app-deps"
+    "clean": "rm -rf dist-electron PenyFront/dist peny-back/dist release electron/*.js",
+    "postinstall": "cd peny-back && npm install && cd ../PenyFront && npm install"
   },
   "devDependencies": {
     "@types/electron": "^1.4.38",
@@ -49,12 +51,37 @@
       "PenyFront/dist/**/*",
       "node_modules/**/*",
       "!node_modules/**/test/**/*",
-      "!node_modules/**/*.md"
+      "!node_modules/**/*.md",
+      "!node_modules/**/@types/**/*"
     ],
     "asarUnpack": [
       "PenyFront/dist/**/*"
     ],
-    "extraResources": [],
+    "extraResources": [
+      {
+        "from": "peny-back/dist",
+        "to": "backend/dist",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "peny-back/node_modules",
+        "to": "backend/node_modules",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "peny-back/prisma",
+        "to": "backend/prisma",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "peny-back/package.json",
+        "to": "backend/package.json"
+      },
+      {
+        "from": "peny-back/.env",
+        "to": "backend/.env"
+      }
+    ],
     "win": {
       "icon": "assets/icons/logoWin.ico",
       "target": [
@@ -118,6 +145,7 @@
   },
   "dependencies": {
     "@mantine/dropzone": "^8.3.4",
+    "express": "^4.18.2",
     "jspdf": "^3.0.3",
     "jspdf-autotable": "^5.0.2",
     "puppeteer": "^24.26.1",

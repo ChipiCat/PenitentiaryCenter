@@ -1,339 +1,277 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import puppeteer from 'puppeteer';
-import { writeFileSync, unlinkSync, mkdtempSync } from 'fs';
-import { tmpdir } from 'os';
+﻿import { app, BrowserWindow, ipcMain } from "electron";
+import { join } from "path";
+import { spawn, ChildProcess } from "child_process";
+import express, { Express } from "express";
+import { Server } from "http";
 
-// Para ES modules compatibility
-const __dirname = __filename ? dirname(__filename) : process.cwd();
+const CONFIG = {
+  ports: { frontend: 4321, backend: 3000 },
+  memory: { maxOldSpace: 1024 },
+  isDev: process.env.NODE_ENV === "development",
+  isPackaged: app.isPackaged,
+} as const;
 
-// Variables para los procesos
 let mainWindow: BrowserWindow | null = null;
+let backendProcess: ChildProcess | null = null;
+let frontendServer: Server | null = null;
 
-// Configuración
-const isDev = process.env.NODE_ENV === 'development';
+class BackendManager {
+  private process: ChildProcess | null = null;
+  private readonly port: number;
+  private readonly isDev: boolean;
 
-// Función para generar PDF usando Puppeteer
-async function generatePDFFromHTML(htmlContent: string): Promise<string> {
-  let browser;
-  let tempDir;
-  
-  try {
-    // Crear directorio temporal
-    tempDir = mkdtempSync(join(tmpdir(), 'farmacia-pdf-'));
-    const tempHtmlPath = join(tempDir, 'report.html');
-    const tempPdfPath = join(tempDir, 'report.pdf');
-    
-    // Escribir HTML temporal
-    writeFileSync(tempHtmlPath, htmlContent, 'utf8');
-    
-    // Lanzar Puppeteer
-    browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+  constructor(port: number, isDev: boolean) {
+    this.port = port;
+    this.isDev = isDev;
+  }
+
+  async start(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      console.log(`[Backend] Iniciando en puerto ${this.port}...`);
+      
+      const backendPath = this.isDev
+        ? join(__dirname, "..", "peny-back")
+        : join(process.resourcesPath, "backend");
+      
+      const command = this.isDev ? "npm" : "node";
+      const args = this.isDev
+        ? ["run", "start:dev"]
+        : [join(backendPath, "dist", "main.js")];
+      
+      this.process = spawn(command, args, {
+        cwd: backendPath,
+        shell: true,
+        env: {
+          ...process.env,
+          PORT: this.port.toString(),
+          NODE_ENV: this.isDev ? "development" : "production",
+        },
+      });
+      
+      this.process.stdout?.on("data", (data: Buffer) => {
+        const output = data.toString();
+        console.log(`[Backend] ${output}`);
+        if (output.includes("Application is running")) {
+          console.log("[Backend]  Iniciado correctamente");
+          resolve();
+        }
+      });
+      
+      this.process.stderr?.on("data", (data: Buffer) => {
+        console.error(`[Backend Error] ${data.toString()}`);
+      });
+      
+      this.process.on("error", (error: Error) => {
+        console.error("[Backend] Error al iniciar:", error.message);
+        reject(error);
+      });
+      
+      this.process.on("exit", (code: number | null) => {
+        console.log(`[Backend] Proceso terminado con código ${code}`);
+        this.process = null;
+      });
+      
+      setTimeout(() => {
+        if (this.process && !this.process.killed) {
+          console.log("[Backend]  Timeout alcanzado, asumiendo inicio exitoso");
+          resolve();
+        }
+      }, 30000);
     });
-    
-    const page = await browser.newPage();
-    
-    // Cargar el HTML
-    await page.goto(`file://${tempHtmlPath}`, { 
-      waitUntil: 'networkidle0',
-      timeout: 10000 
-    });
-    
-    // Generar PDF con configuración exacta
-    await page.pdf({
-      path: tempPdfPath,
-      format: 'Letter',
-      margin: {
-        top: '0mm',
-        right: '10mm', 
-        bottom: '10mm',
-        left: '10mm'
-      },
-      printBackground: true,
-      preferCSSPageSize: true
-    });
-    
-    // Limpiar HTML temporal
-    try { unlinkSync(tempHtmlPath); } catch (e) {}
-    
-    return tempPdfPath;
-    
-  } finally {
-    if (browser) {
-      await browser.close();
+  }
+
+  stop(): void {
+    if (!this.process || this.process.killed) return;
+    console.log("[Backend] Deteniendo...");
+    this.process.kill("SIGTERM");
+    setTimeout(() => {
+      if (this.process && !this.process.killed) {
+        console.log("[Backend] Forzando cierre...");
+        this.process.kill("SIGKILL");
+      }
+    }, 5000);
+  }
+}
+
+class FrontendManager {
+  private server: Server | null = null;
+  private readonly port: number;
+  private readonly isDev: boolean;
+
+  constructor(port: number, isDev: boolean) {
+    this.port = port;
+    this.isDev = isDev;
+  }
+
+  async start(): Promise<void> {
+    if (this.isDev) {
+      console.log(`[Frontend] Modo desarrollo: esperando Vite en puerto ${this.port}...`);
+      // Esperar a que Vite esté disponible
+      return this.waitForServer();
     }
+
+    return new Promise((resolve, reject) => {
+      console.log(`[Frontend] Iniciando servidor Express en puerto ${this.port}...`);
+      const app: Express = express();
+      const distPath = join(process.resourcesPath, "app", "PenyFront", "dist");
+      console.log(`[Frontend] Sirviendo desde: ${distPath}`);
+      app.use(express.static(distPath));
+      app.get("*", (_, res) => {
+        res.sendFile(join(distPath, "index.html"));
+      });
+      this.server = app.listen(this.port, "localhost", () => {
+        console.log(`[Frontend]  Servidor iniciado en http://localhost:${this.port}`);
+        resolve();
+      });
+      this.server.on("error", (error: Error) => {
+        console.error("[Frontend] Error al iniciar servidor:", error.message);
+        reject(error);
+      });
+    });
+  }
+
+  private async waitForServer(): Promise<void> {
+    const maxAttempts = 60; // 60 segundos máximo
+    const delayMs = 1000; // 1 segundo entre intentos
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const response = await fetch(`http://localhost:${this.port}`);
+        if (response.ok || response.status === 200) {
+          console.log(`[Frontend] ✓ Vite está listo en puerto ${this.port}`);
+          return;
+        }
+      } catch (error) {
+        // Servidor no está listo todavía
+        if (attempt % 5 === 0) {
+          console.log(`[Frontend] Esperando Vite... (intento ${attempt}/${maxAttempts})`);
+        }
+      }
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+
+    throw new Error(`[Frontend] Timeout: Vite no está disponible en puerto ${this.port} después de ${maxAttempts} segundos`);
+  }
+
+  stop(): void {
+    if (!this.server) return;
+    console.log("[Frontend] Deteniendo servidor...");
+    this.server.close(() => {
+      console.log("[Frontend]  Servidor detenido");
+    });
+    this.server = null;
   }
 }
 
-function getFrontendUrl(): string {
-  // En desarrollo, usar el dev server de Vite
-  if (isDev && !app.isPackaged) {
-    return 'http://localhost:4321';
-  }
-  
-  // En producción, usar archivos estáticos desde file://
-  const frontendDistPath = join(__dirname, '..', 'frontend', 'dist', 'index.html');
-  return `file://${frontendDistPath}`;
-}
-
-function createWindow(): void {
-  // Crear la ventana principal
+function createMainWindow(): void {
   mainWindow = new BrowserWindow({
-    width: 1200,
+    width: 1280,
     height: 800,
-    minWidth: 800,
-    minHeight: 600,
+    minWidth: 1024,
+    minHeight: 768,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: join(__dirname, 'preload.js'),
+      preload: join(__dirname, "preload.js"),
       webSecurity: true,
-      backgroundThrottling: false,   // Mejora el rendimiento en segundo plano
-      devTools: isDev,              // Deshabilita DevTools en producción
-      spellcheck: false            // Desactiva corrector para ahorrar recursos
     },
     show: false,
-    titleBarStyle: 'default',
+    backgroundColor: "#ffffff",
     autoHideMenuBar: true,
-    backgroundColor: '#ffffff'     // Evita parpadeos al cargar
   });
 
-  // Mostrar ventana cuando esté lista
-  mainWindow.once('ready-to-show', () => {
+  mainWindow.once("ready-to-show", () => {
     mainWindow?.show();
-    
-    // Abrir DevTools en desarrollo
-    if (isDev) {
+    if (CONFIG.isDev) {
       mainWindow?.webContents.openDevTools();
     }
   });
 
-  // Limpiar referencia cuando se cierre
-  mainWindow.on('closed', () => {
+  mainWindow.on("closed", () => {
     mainWindow = null;
   });
 
- mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-  return {
-    action: 'allow',
-    overrideBrowserWindowOptions: {
-      width: 500,
-      height: 400,
-      ...(mainWindow ? { parent: mainWindow } : {}),
-      modal: false
-    }
-  };
-});
+  const url = `http://localhost:${CONFIG.ports.frontend}`;
+  console.log(`[Window] Cargando aplicación desde: ${url}`);
 
-  // Manejar enlaces externos
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    // Abrir enlaces externos en el navegador por defecto
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      shell.openExternal(url);
-    }
-    return { action: 'deny' };
+  mainWindow.loadURL(url).catch((error) => {
+    console.error("[Window] Error al cargar URL:", error);
   });
 
-  // Prevenir navegación externa no deseada
-  mainWindow.webContents.on('will-navigate', (event, url) => {
-    if (!url.startsWith('http://localhost') && !url.startsWith('file://')) {
-      event.preventDefault();
-    }
+  mainWindow.webContents.on("did-fail-load", (_, errorCode, errorDescription) => {
+    console.error(`[Window] Error al cargar: [${errorCode}] ${errorDescription}`);
   });
 
-  // Cargar la aplicación
-  const frontendUrl = getFrontendUrl();
-  mainWindow.loadURL(frontendUrl);
+  mainWindow.webContents.on("did-finish-load", () => {
+    console.log("[Window]  Aplicación cargada correctamente");
+  });
 }
 
 async function initializeApp(): Promise<void> {
+  console.log("=".repeat(50));
+  console.log("Iniciando PenitentiaryCenter");
+  console.log(`Modo: ${CONFIG.isDev ? "Desarrollo" : "Producción"}`);
+  console.log(`Empaquetado: ${CONFIG.isPackaged ? "Sí" : "No"}`);
+  console.log("=".repeat(50));
+
+  const backend = new BackendManager(CONFIG.ports.backend, CONFIG.isDev);
+  const frontend = new FrontendManager(CONFIG.ports.frontend, CONFIG.isDev);
+
   try {
-    if (isDev && !app.isPackaged) {
-      console.log('📱 Modo desarrollo: Esperando que Vite esté disponible en http://localhost:5175');
-      console.log('💡 Asegúrate de ejecutar "npm run dev:frontend" en otra terminal');
-    } else {
-    }
-    
-    // Crear ventana principal
-    createWindow();
+    await backend.start();
+    backendProcess = backend as any;
+    await frontend.start();
+    frontendServer = frontend as any;
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    console.log("[App] Creando ventana principal...");
+    createMainWindow();
+    console.log("=".repeat(50));
+    console.log(" Aplicación iniciada correctamente");
+    console.log(`  Frontend: http://localhost:${CONFIG.ports.frontend}`);
+    console.log(`  Backend:  http://localhost:${CONFIG.ports.backend}`);
+    console.log("=".repeat(50));
   } catch (error) {
-    console.error('❌ Error al inicializar FarmaApp:', error);
+    console.error("[App] Error al inicializar:", error);
     app.quit();
   }
 }
 
-// Gestión de memoria y optimización MEJORADA
-async function cleanupResourcesSafe(): Promise<void> {
-  if (!mainWindow) return;
-  
-  console.log('🧹 Iniciando limpieza suave de recursos...');
-  
-  try {
-    // Solo limpiar cache si no hay actividad reciente
-    const memoryInfo = await process.getProcessMemoryInfo();
-    console.log('💾 Memoria actual:', {
-      resident: Math.round(memoryInfo.residentSet / 1024 / 1024) + 'MB',
-      heap: Math.round(memoryInfo.private / 1024 / 1024) + 'MB'
-    });
-    
-    // Solo hacer limpieza agresiva si se supera el límite (usando residentSet)
-    if (memoryInfo.residentSet > 500 * 1024 * 1024) { // 500MB
-      console.log('⚠️ Memoria alta detectada, iniciando limpieza...');
-      
-      // Hacer limpieza en chunks pequeños para evitar bloqueos
-      setTimeout(() => {
-        if (mainWindow) {
-          mainWindow.webContents.session.clearCache();
-        }
-      }, 100);
-      
-      setTimeout(() => {
-        if (mainWindow) {
-          mainWindow.webContents.session.clearStorageData({
-            storages: ['shadercache', 'serviceworkers']
-            // 🔥 EXCLUIR cachestorage para no afectar la app
-          });
-        }
-      }, 200);
-      
-      // GC suave después de un delay
-      setTimeout(() => {
-        if (global.gc) {
-          console.log('🗑️ Ejecutando garbage collection...');
-          global.gc();
-        }
-      }, 300);
-    }
-    
-    console.log('✅ Limpieza completada');
-  } catch (error) {
-    console.error('❌ Error en limpieza de recursos:', error);
+function cleanup(): void {
+  console.log("[App] Limpiando recursos...");
+  if (backendProcess && typeof (backendProcess as any).stop === "function") {
+    (backendProcess as any).stop();
+  }
+  if (frontendServer && typeof (frontendServer as any).stop === "function") {
+    (frontendServer as any).stop();
   }
 }
 
-// 🔥 NUEVO: Sistema de monitoreo inteligente de memoria
-let cleanupInterval: NodeJS.Timeout | null = null;
+app.commandLine.appendSwitch("js-flags", `--max-old-space-size=${CONFIG.memory.maxOldSpace}`);
+app.commandLine.appendSwitch("disable-background-timer-throttling");
+app.commandLine.appendSwitch("disable-renderer-backgrounding");
 
-function startMemoryMonitoring(): void {
-  console.log('🔍 Iniciando monitoreo inteligente de memoria...');
-  
-  // Limpiar cada 45 minutos en lugar de 30 (menos agresivo)
-  cleanupInterval = setInterval(() => {
-    void cleanupResourcesSafe();
-  }, 2700000); // 45 minutos
-}
+app.whenReady().then(initializeApp);
 
-function stopMemoryMonitoring(): void {
-  if (cleanupInterval) {
-    clearInterval(cleanupInterval);
-    cleanupInterval = null;
-    console.log('🛑 Monitoreo de memoria detenido');
-  }
-}
-
-// Limpiar recursos periódicamente (REEMPLAZADO por sistema inteligente)
-// setInterval(cleanupResources, 1800000); // ❌ ELIMINADO: Causa trabas
-
-// Optimizaciones de rendimiento
-app.commandLine.appendSwitch('disable-background-timer-throttling');
-app.commandLine.appendSwitch('disable-renderer-backgrounding');
-app.commandLine.appendSwitch('disable-backgrounding-occluded-windows'); // 🔥 CRÍTICO: Evita pausar cuando la ventana está oculta
-
-// 🔥 NUEVAS OPTIMIZACIONES PARA EVITAR TRABAS:
-app.commandLine.appendSwitch('max-old-space-size', '2048');      // Límite RAM: 2GB
-app.commandLine.appendSwitch('max-semi-space-size', '128');      // Limite heap joven
-app.commandLine.appendSwitch('disable-dev-shm-usage');          // Evita problemas de memoria compartida
-app.commandLine.appendSwitch('disable-software-rasterizer');    // Usa GPU cuando disponible
-
-// Eventos de la aplicación
-app.whenReady().then(() => {
-  initializeApp();
-  
-  // Comenzar monitoreo de memoria después de 5 minutos
-  setTimeout(() => {
-    startMemoryMonitoring();
-  }, 300000); // 5 minutos de gracia al inicio
-});
-
-app.on('window-all-closed', () => {
-  stopMemoryMonitoring(); // 🔥 NUEVO: Detener monitoreo primero
-  void cleanupResourcesSafe(); // 🔥 CAMBIO: Usar versión segura
-  
-  // En macOS es común mantener la app activa aunque no haya ventanas
-  if (process.platform !== 'darwin') {
+app.on("window-all-closed", () => {
+  cleanup();
+  if (process.platform !== "darwin") {
     app.quit();
   }
 });
 
-app.on('activate', () => {
-  // En macOS, recrear ventana cuando se hace clic en el dock
+app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
+    createMainWindow();
   }
 });
 
-// 🔥 NUEVO: Manejar minimización para evitar trabas
-app.on('browser-window-blur', () => {
-  console.log('👁️ Ventana perdió foco - modo ahorro activado');
+app.on("before-quit", () => {
+  cleanup();
 });
 
-app.on('browser-window-focus', () => {
-  console.log('👁️ Ventana recuperó foco - modo normal');
-});
-
-// Limpieza al cerrar
-app.on('before-quit', async () => {
-  console.log('🔄 Cerrando FarmaApp...');
-});
-
-// IPC handlers para comunicación con el renderer
-ipcMain.handle('get-app-version', () => {
-  return app.getVersion();
-});
-
-ipcMain.handle('get-app-info', async () => {
-  return {
-    version: app.getVersion(),
-    name: app.getName(),
-    isDev: isDev,
-    platform: process.platform
-  };
-});
-
-// Handler para generar PDF e imprimir
-ipcMain.handle('generate-and-print-pdf', async (_event, htmlContent: string) => {
-  try {
-    console.log('📄 Generando PDF desde HTML...');
-    
-    // Generar PDF usando Puppeteer
-    const pdfPath = await generatePDFFromHTML(htmlContent);
-    console.log('✅ PDF generado:', pdfPath);
-    
-    // Abrir el PDF con el visor por defecto para imprimir
-    await shell.openPath(pdfPath);
-    
-    // Limpiar PDF después de 30 segundos (tiempo para que se abra)
-    setTimeout(() => {
-      try {
-        unlinkSync(pdfPath);
-        console.log('🗑️ PDF temporal eliminado');
-      } catch (e) {
-        console.warn('⚠️ No se pudo eliminar PDF temporal:', e);
-      }
-    }, 30000);
-    
-    return { success: true };
-    
-  } catch (error) {
-    console.error('❌ Error generando PDF:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Error desconocido'
-    };
-  }
-});
-
-module.exports = { app, mainWindow };
+ipcMain.handle("get-app-info", () => ({
+  version: app.getVersion(),
+  name: app.getName(),
+  isDev: CONFIG.isDev,
+  platform: process.platform,
+}));
