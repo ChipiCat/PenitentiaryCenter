@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
-import type { User } from "../../types/userResponse";
 import { loginThunk, logoutThunk } from "../thunks/authThunk";
 import { tokenManager } from "../../services/tokenManager";
+import type { User } from "../../types";
 
 interface UserState {
   user: User | null;
