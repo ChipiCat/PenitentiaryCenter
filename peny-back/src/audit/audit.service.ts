@@ -1725,7 +1725,17 @@ export class AuditService {
       where: { userId },
       take: 10,
       orderBy: { timestamp: 'desc' },
-      include: { dataChanges: true },
+      include: {
+        dataChanges: true,
+        prisonerRelated: {
+          select: {
+            id: true,
+            identity: {
+              select: { surname: true, firstName: true }
+            }
+          }
+        }
+      }
     });
 
     // Sessions summary
@@ -1792,7 +1802,18 @@ export class AuditService {
         last_30d: activitiesLast30d,
       },
       recent_activities: recentActivities.map((activity) =>
-        this.mapActivityLogToDto(activity),
+        this.mapActivityLogToDto({
+          ...activity,
+          prisonerRelated: activity.prisonerRelated && activity.prisonerRelated.identity
+            ? {
+                id: activity.prisonerRelated.id,
+                identity: {
+                  surname: activity.prisonerRelated.identity.surname,
+                  firstName: activity.prisonerRelated.identity.firstName,
+                },
+              }
+            : undefined,
+        }),
       ),
       sessions_summary: {
         average_session_duration_minutes: Math.round(avgSessionDuration),

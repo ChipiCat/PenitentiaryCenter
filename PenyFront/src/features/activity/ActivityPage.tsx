@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Container,
   Title,
@@ -11,10 +11,8 @@ import {
   Badge,
   Code,
   Accordion,
-  ThemeIcon,
   Box,
 } from "@mantine/core";
-import { Activity, Upload, Trash2, UserPlus, FileText, Info, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSystemActivity } from "./hooks/useSystemActivity";
 import {
@@ -22,9 +20,8 @@ import {
   statusLabels,
   moduleLabels,
   entityLabels,
-  traducirDescripcion,
 } from "../../shared/utils/activityLogUtils";
-import type { ActivityLog } from "../../shared/types/activityLogTypes";
+import { getActivityIcon, translateUserAction, translateLogout } from "../../shared/utils/activityLogSpanishUtils";
 
 const PAGE_SIZE = 10;
 
@@ -40,91 +37,6 @@ const ActivityPage = () => {
     (page - 1) * PAGE_SIZE,
     page * PAGE_SIZE
   );
-
-  function traducirDescripcionCompleta(desc: string): string {
-    return traducirDescripcion(desc);
-  }
-
-  function getActivityIcon(action: string) {
-    switch (action) {
-      case "FILE_UPLOAD":
-        return <ThemeIcon color="green" variant="light" size="sm"><Upload size={16} /></ThemeIcon>;
-      case "FILE_DELETE":
-        return <ThemeIcon color="red" variant="light" size="sm"><Trash2 size={16} /></ThemeIcon>;
-      case "CREATE":
-        return <ThemeIcon color="blue" variant="light" size="sm"><FileText size={16} /></ThemeIcon>;
-      case "PRISONER_REGISTERED":
-        return <ThemeIcon color="teal" variant="light" size="sm"><UserPlus size={16} /></ThemeIcon>;
-      case "INFO":
-        return <ThemeIcon color="gray" variant="light" size="sm"><Info size={16} /></ThemeIcon>;
-      case "SUCCESS":
-        return <ThemeIcon color="indigo" variant="light" size="sm"><ShieldCheck size={16} /></ThemeIcon>;
-      default:
-        return <ThemeIcon color="gray" variant="light" size="sm"><Activity size={16} /></ThemeIcon>;
-    }
-  }
-
-  function traducirMotivoLogout(reason: string): string {
-    switch (reason) {
-      case "USER_LOGOUT": return "Cierre de sesión voluntario";
-      case "TOKEN_EXPIRED": return "Token expirado";
-      case "SESSION_TIMEOUT": return "Sesión expirada por tiempo";
-      case "FORCE_LOGOUT_BY_ADMIN": return "Cierre forzado por administrador";
-      case "SUSPICIOUS_ACTIVITY": return "Actividad sospechosa";
-      case "PASSWORD_CHANGED": return "Contraseña cambiada";
-      case "ACCOUNT_DISABLED": return "Cuenta deshabilitada";
-      case "DEVICE_LIMIT_REACHED": return "Límite de dispositivos alcanzado";
-      default: return reason || "";
-    }
-  }
-
-  function traducirAccionUsuario(activity: ActivityLog): string {
-    if (activity.action === "LOGIN" && activity.user?.name)
-      return `El usuario ${activity.user.name} inició sesión correctamente`;
-    if (activity.action === "LOGOUT" && activity.user?.name)
-      return `El usuario ${activity.user.name} cerró sesión`;
-    if (activity.action === "USER_CREATED" && activity.user?.name)
-      return `El usuario ${activity.user.name} fue creado`;
-    if (activity.action === "USER_DELETED" && activity.user?.name)
-      return `El usuario ${activity.user.name} fue eliminado`;
-    if (activity.action === "LOGIN_FAILED")
-      return `Intento fallido de inicio de sesión para ${activity.description.split(':')[0].replace('Failed login attempt for ', '').trim()}`;
-    if (activity.action === "TOKEN_REFRESHED" && activity.user?.name)
-      return `El usuario ${activity.user.name} actualizó el token de autenticación`;
-    if (activity.action === "FILE_UPLOAD" || activity.action === "FILE_DELETE")
-      return traducirDetalleArchivo(activity);
-    return traducirDescripcionCompleta(activity.description);
-  }
-
-  function traducirDetalleArchivo(activity: ActivityLog): string {
-    // Ejemplo: "Archivo subido: VS-Lab1-Development-310725-140502-2.pdf (mandate_document) para prisoner_mandate"
-    if (activity.action === "FILE_UPLOAD" && activity.description) {
-      // Extraer nombre de archivo y tipo
-      const match = activity.description.match(/Archivo subido: (.+) \((.+)\) para (.+)/);
-      if (match) {
-        const nombreArchivo = match[1];
-        const tipo = match[2];
-        let tipoTraducido = "archivo";
-        if (tipo === "mandate_document") tipoTraducido = "mandato";
-        else if (tipo === "medical_file") tipoTraducido = "archivo médico";
-        // No mostrar el identificador técnico (match[3])
-        return `Archivo subido: ${nombreArchivo} (${tipoTraducido})`;
-      }
-    }
-    if (activity.action === "FILE_DELETE" && activity.description) {
-      // Ejemplo: "Archivo eliminado: VS-Lab1-Development-310725-140502-2.pdf (medical_file)"
-      const match = activity.description.match(/Archivo eliminado: (.+) \((.+)\)/);
-      if (match) {
-        const nombreArchivo = match[1];
-        const tipo = match[2];
-        let tipoTraducido = "archivo";
-        if (tipo === "mandate_document") tipoTraducido = "mandato";
-        else if (tipo === "medical_file") tipoTraducido = "archivo médico";
-        return `Archivo eliminado: ${nombreArchivo} (${tipoTraducido})`;
-      }
-    }
-    return traducirDescripcionCompleta(activity.description);
-  }
 
   return (
     <Container size="xl" py="md">
@@ -160,7 +72,7 @@ const ActivityPage = () => {
                     <Group gap={12} align="center">
                       {getActivityIcon(activity.action)}
                       <Box>
-                        <Text size="md">{traducirAccionUsuario(activity)}</Text>
+                        <Text size="md">{translateUserAction(activity)}</Text>
                         <Group gap={16}>
                           <Text size="xs" c="dimmed">
                             {new Date(activity.timestamp).toLocaleDateString("es-ES")}
@@ -189,23 +101,7 @@ const ActivityPage = () => {
                         </Stack>
                         <Stack gap={4} style={{ flex: 1 }}>
                           <Text size="sm" c="dimmed">Detalle:</Text>
-                          <Text size="sm">
-                            {activity.action === "LOGIN" && activity.user?.name
-                              ? `El usuario ${activity.user.name} inició sesión correctamente`
-                              : activity.action === "LOGOUT" && activity.user?.name
-                              ? `El usuario ${activity.user.name} cerró sesión`
-                              : activity.action === "USER_CREATED" && activity.user?.name
-                              ? `El usuario ${activity.user.name} fue creado`
-                              : activity.action === "USER_DELETED" && activity.user?.name
-                              ? `El usuario ${activity.user.name} fue eliminado`
-                              : activity.action === "LOGIN_FAILED"
-                              ? `Intento fallido de inicio de sesión para ${activity.description.split(':')[0].replace('Failed login attempt for ', '').trim()}`
-                              : activity.action === "TOKEN_REFRESHED" && activity.user?.name
-                              ? `El usuario ${activity.user.name} actualizó el token de autenticación`
-                              : activity.action === "FILE_UPLOAD" || activity.action === "FILE_DELETE"
-                              ? traducirDetalleArchivo(activity)
-                              : traducirDescripcionCompleta(activity.description)}
-                          </Text>
+                          <Text size="sm">{translateUserAction(activity)}</Text>
                           <Text size="sm" c="dimmed">Rol:</Text>
                           <Text size="sm">{activity.user?.role === "ADMIN" ? "Administrador" : activity.user?.role}</Text>
                           <Text size="sm" c="dimmed">Resultado:</Text>
@@ -264,7 +160,7 @@ const ActivityPage = () => {
                       {activity.metadata && activity.metadata.logout_reason && (
                         <Stack gap={2} mt={4}>
                           <Text size="sm" c="dimmed">Motivo de cierre de sesión:</Text>
-                          <Text size="sm">{traducirMotivoLogout(String(activity.metadata.logout_reason))}</Text>
+                          <Text size="sm">{translateLogout(String(activity.metadata.logout_reason))}</Text>
                         </Stack>
                       )}
                     </Stack>

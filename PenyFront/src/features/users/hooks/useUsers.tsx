@@ -4,7 +4,8 @@ import type { User, UserStats } from "../../../shared/types";
 import type { PaginationResponse } from "../../../shared/types/axiosTypes";
 import type { GetUsersParams, CreateUserData, UpdateUserData } from "../../../shared/types/userTypes";
 
-export function useUsers(params?: GetUsersParams) {
+export function useUsers(initialFilters: GetUsersParams = {}) {
+  const [filters, setFilters] = useState<GetUsersParams>(initialFilters);
   const [data, setData] = useState<PaginationResponse<User> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -12,7 +13,7 @@ export function useUsers(params?: GetUsersParams) {
 
   const fetchUsers = useCallback(() => {
     setLoading(true);
-    usersService.getUsers(params)
+    usersService.getUsers(filters)
       .then((res) => {
         setData(res);
         const usuarios = res.data ?? [];
@@ -24,7 +25,7 @@ export function useUsers(params?: GetUsersParams) {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [params]);
+  }, [filters]);
 
   useEffect(() => {
     fetchUsers();
@@ -58,5 +59,6 @@ export function useUsers(params?: GetUsersParams) {
     loading,
     error,
     stats,
+    setFilters, // <-- expón esta función para actualizar los filtros (incluyendo search)
   };
 }
