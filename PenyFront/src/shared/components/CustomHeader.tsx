@@ -127,7 +127,7 @@ export function CustomHeader() {
                   <UnstyledButton >
                     <Group gap="sm" wrap="nowrap">
                       <Avatar
-                        src={user?.photoUrl}
+                        src={user?.photoFile?.url}
                         alt={user?.name}
                         radius="md"
                         size={32}
@@ -165,7 +165,7 @@ export function CustomHeader() {
                 <Menu.Dropdown>
                   <Menu.Label>
                     <Group gap="xs" wrap="nowrap">
-                      <Avatar src={user?.photoUrl} size={24} />
+                      <Avatar src={user?.photoFile?.url} size={24} />
                       <Box style={{ flex: 1, minWidth: 0 }}>
                         <Text fw={500} size="sm" lineClamp={1}>
                           {user?.name}

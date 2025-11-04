@@ -1,12 +1,12 @@
 import type { PaginationParams } from "./axiosTypes";
-import type { Entity } from "./commonTypes";
+import type { Entity, FileInfo } from "./commonTypes";
 
 export interface User extends Entity {
   email: string;
   name: string;
   role: "SECRETARY" | "DIRECTOR" | "ADMIN";
   photoFileId?: string;
-  photoFile?: string;
+  photoFile?: FileInfo;
   isFirstLogin: boolean;
 }
 
