@@ -8,6 +8,10 @@ export interface User extends Entity {
   photoFileId?: string;
   photoFile?: FileInfo;
   isFirstLogin: boolean;
+  cellphone?: string;
+  ci?: string;
+  department?: string;
+  departmentalDirectorateUnit?: string;
 }
 
 export interface UserStat {
