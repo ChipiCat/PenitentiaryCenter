@@ -3,7 +3,7 @@ export interface ActivityUser {
   email: string;
   name: string;
   role: string;
-  avatar: string;
+  photoUrl: string;
 }
 
 export interface DataChange {
