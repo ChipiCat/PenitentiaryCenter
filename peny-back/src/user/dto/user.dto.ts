@@ -58,7 +58,10 @@ export class CreateUserDto {
   @IsOptional()
   role?: UserRole;
 
-  @ApiPropertyOptional({ example: 'clxxxxxxxx', description: 'ID del archivo de foto del perfil' })
+  @ApiPropertyOptional({
+    example: 'clxxxxxxxx',
+    description: 'ID del archivo de foto del perfil',
+  })
   @IsString()
   @IsOptional()
   photoFileId?: string;
@@ -81,12 +84,18 @@ export class UpdateUserDto {
   @IsOptional()
   role?: UserRole;
 
-  @ApiPropertyOptional({ example: 'clxxxxxxxx', description: 'ID del archivo de foto del perfil' })
+  @ApiPropertyOptional({
+    example: 'clxxxxxxxx',
+    description: 'ID del archivo de foto del perfil',
+  })
   @IsString()
   @IsOptional()
   photoFileId?: string;
 
-  @ApiPropertyOptional({ example: false, description: 'Indicador de primer inicio de sesión' })
+  @ApiPropertyOptional({
+    example: false,
+    description: 'Indicador de primer inicio de sesión',
+  })
   @IsBoolean()
   @IsOptional()
   isFirstLogin?: boolean;

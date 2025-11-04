@@ -8,11 +8,11 @@ import {
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
-import { 
-  ApiTags, 
-  ApiOperation, 
-  ApiBody, 
-  ApiResponse, 
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBody,
+  ApiResponse,
   ApiBearerAuth,
   ApiConsumes,
 } from '@nestjs/swagger';
@@ -56,9 +56,13 @@ export class AuthController {
         name: { type: 'string', example: 'John Doe' },
         email: { type: 'string', example: 'john@example.com' },
         password: { type: 'string', example: 'password123' },
-        role: { type: 'string', enum: ['ADMIN', 'DIRECTOR', 'SECRETARY'], example: 'SECRETARY' },
-        photo: { 
-          type: 'string', 
+        role: {
+          type: 'string',
+          enum: ['ADMIN', 'DIRECTOR', 'SECRETARY'],
+          example: 'SECRETARY',
+        },
+        photo: {
+          type: 'string',
           format: 'binary',
           description: 'Profile photo file (optional, max 5MB, jpg/png)',
         },
@@ -129,7 +133,10 @@ export class AuthController {
   @ApiBody({ type: ChangePasswordDto })
   @ApiResponse({ status: 200, description: 'Password changed successfully.' })
   @ApiResponse({ status: 401, description: 'Current password is incorrect.' })
-  @ApiResponse({ status: 400, description: 'New password must be different from current password.' })
+  @ApiResponse({
+    status: 400,
+    description: 'New password must be different from current password.',
+  })
   async changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
     @Request() req: AuthenticatedRequest,
