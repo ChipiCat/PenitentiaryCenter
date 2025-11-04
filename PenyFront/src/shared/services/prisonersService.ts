@@ -1,13 +1,5 @@
-type GetAllPrisonersParams = {
-  page: number;
-  limit: number;
-  includeDeleted: boolean;
-  query?: string;
-  orderBy?: string;
-  orderDirection?: 'asc' | 'desc';
-} & Partial<UserFilters>;
 import api from './api';
-import type { AxiosError, PaginationResponse } from '../types/axiosTypes';  // ✅ USAR EXISTENTE
+import type { AxiosError, PaginationResponse } from '../types/axiosTypes';
 import type {
   PrisonerBase,
   CreatePrisonerData,
@@ -15,7 +7,11 @@ import type {
   GetPrisonersParams,
   PrisionerListItem
 } from '../types/prisonerTypes';
-import type { UserFilters } from '../types';
+import type { 
+  PrisonerSearchQuery, 
+  PrisonerSearchFilters,
+  PrisonerSearchResponse 
+} from '../types/prisonerSearchTypes';
 
 export const prisonersService = {
   // POST /prisoners
@@ -72,46 +68,89 @@ export const prisonersService = {
     }
   },
 
+  /**
+   * GET /prisoners/search
+   * Advanced prisoner search with filters
+   * Matches backend SearchPrisonerQueryDto
+   */
+  async searchPrisoners(
+    searchQuery: PrisonerSearchQuery
+  ): Promise<PrisonerSearchResponse> {
+    try {
+      // Build query parameters - NestJS requires flat structure for nested DTOs
+      const params: Record<string, any> = {
+        page: searchQuery.page || 1,
+        limit: searchQuery.limit || 10,
+        includeDeleted: searchQuery.includeDeleted || false,
+        orderBy: searchQuery.orderBy || 'createdAt',
+        orderDirection: searchQuery.orderDirection || 'desc',
+      };
+
+      // Add search query if provided
+      if (searchQuery.query && searchQuery.query.trim() !== '') {
+        params.query = searchQuery.query.trim();
+      }
+
+      // Add filters as flat parameters
+      // NestJS with @Type() decorator will reconstruct the nested object
+      if (searchQuery.filters && Object.keys(searchQuery.filters).length > 0) {
+        Object.entries(searchQuery.filters).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== '') {
+            // Send as flat parameters: status, gender, etc.
+            params[key] = value;
+          }
+        });
+      }
+
+      const response = await api.get<PrisonerSearchResponse>('/prisoners/search', {
+        params,
+      });
+
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      throw new Error(
+        axiosError.response?.data?.message || 'Error al buscar prisioneros'
+      );
+    }
+  },
+
+  /**
+   * @deprecated Use searchPrisoners instead
+   * Legacy method for backward compatibility
+   */
   async getAllPrisoners(
     page: number,
     limit: number,
     query: string,
-    filters?: UserFilters,
+    filters?: PrisonerSearchFilters,
     includeDeleted: boolean = false,
     orderBy?: string,
     orderDirection: 'asc' | 'desc' = 'desc'
   ): Promise<PaginationResponse<PrisionerListItem>> {
     try {
-
-      const params: GetAllPrisonersParams = {
+      const searchQuery: PrisonerSearchQuery = {
         page,
         limit,
+        query: query.trim() || undefined,
+        filters,
         includeDeleted,
+        orderBy: orderBy as any,
+        orderDirection,
       };
 
-      if (filters && typeof filters === 'object') {
-        Object.assign(params, filters);
-      }
+      const response = await this.searchPrisoners(searchQuery);
 
-      if (query && query.trim() !== "") {
-        params.query = query;
-      }
-
-      if (orderBy) {
-        params.orderBy = orderBy;
-      }
-
-      if (orderDirection) {
-        params.orderDirection = orderDirection;
-      }
-
-      const response = await api.get<PaginationResponse<PrisionerListItem>>('/prisoners/search', {
-        params
-      });
-      return response.data;
+      // Map response - structure already matches
+      return {
+        data: response.data as any as PrisionerListItem[],
+        pagination: response.pagination,
+      } as PaginationResponse<PrisionerListItem>;
     } catch (error) {
       const axiosError = error as AxiosError;
-      throw new Error(axiosError.response?.data?.message || 'Error al obtener todos los prisioneros');
+      throw new Error(
+        axiosError.response?.data?.message || 'Error al obtener todos los prisioneros'
+      );
     }
-  }
+  },
 };

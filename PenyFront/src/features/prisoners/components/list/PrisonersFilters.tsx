@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { Card, Group, Select, TextInput, Button, Collapse, Badge } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import { Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
-import type { UserFilters } from '../../../../shared/types';
+import type { PrisonerSearchFilters } from '../../../../shared/types/prisonerSearchTypes';
 
 interface PrisonersFiltersProps {
-  filters: UserFilters;
-  onFiltersChange: (filters: UserFilters) => void;
+  filters: PrisonerSearchFilters;
+  onFiltersChange: (filters: PrisonerSearchFilters) => void;
   onClearFilters: () => void;
 }
 
@@ -17,14 +17,14 @@ export const PrisonersFilters: React.FC<PrisonersFiltersProps> = ({
 }) => {
   const [opened, setOpened] = useState(false);
 
-  const handleFilterChange = (key: keyof UserFilters, value: string | null) => {
+  const handleFilterChange = (key: keyof PrisonerSearchFilters, value: string | null) => {
     onFiltersChange({
       ...filters,
       [key]: value || undefined,
     });
   };
 
-  const handleDateChange = (key: keyof UserFilters, value: Date | string | null) => {
+  const handleDateChange = (key: keyof PrisonerSearchFilters, value: Date | string | null) => {
     if (value instanceof Date) {
       onFiltersChange({
         ...filters,
@@ -124,7 +124,6 @@ export const PrisonersFilters: React.FC<PrisonersFiltersProps> = ({
                 { value: 'Casado', label: 'Casado' },
                 { value: 'Viudo', label: 'Viudo' },
                 { value: 'Divorciado', label: 'Divorciado' },
-                { value: 'Unión Libre', label: 'Unión Libre' },
               ]}
               clearable
               size="sm"

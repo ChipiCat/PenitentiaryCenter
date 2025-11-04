@@ -532,7 +532,18 @@ export class PrisionersService {
     // Generar clave de cache única basada en la query
     const cacheKey = `search:${JSON.stringify({
       query: searchQuery.query,
-      filters: searchQuery.filters,
+      // Include all filter fields for cache key
+      status: searchQuery.status,
+      gender: searchQuery.gender,
+      maritalStatus: searchQuery.maritalStatus,
+      category: searchQuery.category,
+      citizenshipType: searchQuery.citizenshipType,
+      admissionDateFrom: searchQuery.admissionDateFrom,
+      admissionDateTo: searchQuery.admissionDateTo,
+      buildingNumber: searchQuery.buildingNumber,
+      cellNumber: searchQuery.cellNumber,
+      countryOfOrigin: searchQuery.countryOfOrigin,
+      nationality: searchQuery.nationality,
       orderBy: searchQuery.orderBy,
       orderDirection: searchQuery.orderDirection,
       limit: searchQuery.limit,
@@ -695,80 +706,83 @@ export class PrisionersService {
       whereConditions.OR = searchConditions;
     }
 
-    // Aplicar filtros específicos
-    const filters = searchQuery.filters;
-    if (filters) {
-      // Filtro por estado
-      if (filters.status) {
-        whereConditions.status = filters.status as PrisonerStatus;
-      }
+    // Aplicar filtros específicos (ahora vienen directamente en searchQuery)
+    // Filtro por estado
+    if (searchQuery.status) {
+      whereConditions.status = searchQuery.status as PrisonerStatus;
+    }
 
-      // Filtro por rango de fechas de admisión
-      if (filters.admissionDateFrom || filters.admissionDateTo) {
-        whereConditions.admissionDate = {};
-        if (filters.admissionDateFrom) {
-          whereConditions.admissionDate.gte = new Date(
-            filters.admissionDateFrom,
-          );
-        }
-        if (filters.admissionDateTo) {
-          whereConditions.admissionDate.lte = new Date(filters.admissionDateTo);
-        }
+    // Filtro por rango de fechas de admisión
+    if (searchQuery.admissionDateFrom || searchQuery.admissionDateTo) {
+      whereConditions.admissionDate = {};
+      if (searchQuery.admissionDateFrom) {
+        whereConditions.admissionDate.gte = new Date(
+          searchQuery.admissionDateFrom,
+        );
       }
-
-      // Filtros de identidad
-      if (
-        filters.citizenshipType ||
-        filters.countryOfOrigin ||
-        filters.nationality
-      ) {
-        whereConditions.identity = whereConditions.identity || {};
-        if (filters.citizenshipType) {
-          whereConditions.identity.citizenshipType = filters.citizenshipType;
-        }
-        if (filters.countryOfOrigin) {
-          whereConditions.identity.countryOfOrigin = {
-            contains: filters.countryOfOrigin,
-            mode: 'insensitive',
-          };
-        }
-        if (filters.nationality) {
-          whereConditions.identity.nationality = {
-            contains: filters.nationality,
-            mode: 'insensitive',
-          };
-        }
+      if (searchQuery.admissionDateTo) {
+        whereConditions.admissionDate.lte = new Date(
+          searchQuery.admissionDateTo,
+        );
       }
+    }
 
-      // Filtros de información personal
-      if (filters.gender || filters.maritalStatus) {
-        whereConditions.personal = whereConditions.personal || {};
-        if (filters.gender) {
-          whereConditions.personal.gender = filters.gender;
-        }
-        if (filters.maritalStatus) {
-          whereConditions.personal.maritalStatus = filters.maritalStatus;
-        }
+    // Filtros de identidad
+    if (
+      searchQuery.citizenshipType ||
+      searchQuery.countryOfOrigin ||
+      searchQuery.nationality
+    ) {
+      whereConditions.identity = whereConditions.identity || {};
+      if (searchQuery.citizenshipType) {
+        whereConditions.identity.citizenshipType = searchQuery.citizenshipType;
       }
+      if (searchQuery.countryOfOrigin) {
+        whereConditions.identity.countryOfOrigin = {
+          contains: searchQuery.countryOfOrigin,
+          mode: 'insensitive',
+        };
+      }
+      if (searchQuery.nationality) {
+        whereConditions.identity.nationality = {
+          contains: searchQuery.nationality,
+          mode: 'insensitive',
+        };
+      }
+    }
 
-      // Filtros de información penitenciaria
-      if (filters.category || filters.buildingNumber || filters.cellNumber) {
-        whereConditions.penitentiary = whereConditions.penitentiary || {};
-        if (filters.category) {
-          whereConditions.penitentiary.category = filters.category;
-        }
-        if (filters.buildingNumber) {
-          whereConditions.penitentiary.buildingNumber = {
-            contains: filters.buildingNumber,
-            mode: 'insensitive',
-          };
-        }
-        if (filters.cellNumber) {
-          whereConditions.penitentiary.cellNumber = {
-            contains: filters.cellNumber,
-            mode: 'insensitive',
-          };
-        }
+    // Filtros de información personal
+    if (searchQuery.gender || searchQuery.maritalStatus) {
+      whereConditions.personal = whereConditions.personal || {};
+      if (searchQuery.gender) {
+        whereConditions.personal.gender = searchQuery.gender;
+      }
+      if (searchQuery.maritalStatus) {
+        whereConditions.personal.maritalStatus = searchQuery.maritalStatus;
+      }
+    }
+
+    // Filtros de información penitenciaria
+    if (
+      searchQuery.category ||
+      searchQuery.buildingNumber ||
+      searchQuery.cellNumber
+    ) {
+      whereConditions.penitentiary = whereConditions.penitentiary || {};
+      if (searchQuery.category) {
+        whereConditions.penitentiary.category = searchQuery.category;
+      }
+      if (searchQuery.buildingNumber) {
+        whereConditions.penitentiary.buildingNumber = {
+          contains: searchQuery.buildingNumber,
+          mode: 'insensitive',
+        };
+      }
+      if (searchQuery.cellNumber) {
+        whereConditions.penitentiary.cellNumber = {
+          contains: searchQuery.cellNumber,
+          mode: 'insensitive',
+        };
       }
     }
 
@@ -991,13 +1005,26 @@ export class PrisionersService {
 
     // Construir información de búsqueda
     const filtersApplied: string[] = [];
-    if (filters) {
-      Object.keys(filters).forEach((key) => {
-        if (filters[key as keyof typeof filters] !== undefined) {
-          filtersApplied.push(key);
-        }
-      });
-    }
+    // Check which filters were applied
+    const filterFields = [
+      'status',
+      'gender',
+      'maritalStatus',
+      'category',
+      'citizenshipType',
+      'admissionDateFrom',
+      'admissionDateTo',
+      'buildingNumber',
+      'cellNumber',
+      'countryOfOrigin',
+      'nationality',
+    ];
+
+    filterFields.forEach((field) => {
+      if (searchQuery[field as keyof SearchPrisonerQueryDto] !== undefined) {
+        filtersApplied.push(field);
+      }
+    });
 
     const searchInfo = {
       searchQuery: searchQuery.query,
