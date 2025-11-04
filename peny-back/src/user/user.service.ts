@@ -72,7 +72,7 @@ export class UserService {
     createdBy?: string,
   ): Promise<User> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
-    const { email, password, name, role, photoFileId } = createUserDto;
+    const { email, password, name, role, photoFileId, cellphone, ci, department, departmentalDirectorateUnit } = createUserDto;
 
     // Check if user already exists
     const existingUser = await this.prisma.user.findFirst({
@@ -94,6 +94,10 @@ export class UserService {
           email,
           role: role || UserRole.SECRETARY,
           photoFileId,
+          cellphone,
+          ci,
+          department,
+          departmentalDirectorateUnit,
           createdBy,
         },
         include: {
@@ -208,7 +212,7 @@ export class UserService {
     updatedBy?: string,
   ): Promise<User> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
-    const { email, name, role, photoFileId, isFirstLogin } = updateUserDto;
+    const { email, name, role, photoFileId, isFirstLogin, cellphone, ci, department, departmentalDirectorateUnit } = updateUserDto;
 
     // Check if user exists
     const existingUser = await this.findOne(id);
@@ -232,6 +236,10 @@ export class UserService {
         ...(role && { role }),
         ...(photoFileId !== undefined && { photoFileId }),
         ...(isFirstLogin !== undefined && { isFirstLogin }),
+        ...(cellphone !== undefined && { cellphone }),
+        ...(ci !== undefined && { ci }),
+        ...(department !== undefined && { department }),
+        ...(departmentalDirectorateUnit !== undefined && { departmentalDirectorateUnit }),
         updatedBy,
       },
       include: {
