@@ -24,6 +24,7 @@ import {
   entityLabels,
   traducirDescripcion,
 } from "../../shared/utils/activityLogUtils";
+import type { ActivityLog } from "../../shared/types/activityLogTypes";
 
 const PAGE_SIZE = 10;
 
@@ -63,6 +64,68 @@ const ActivityPage = () => {
     }
   }
 
+  function traducirMotivoLogout(reason: string): string {
+    switch (reason) {
+      case "USER_LOGOUT": return "Cierre de sesión voluntario";
+      case "TOKEN_EXPIRED": return "Token expirado";
+      case "SESSION_TIMEOUT": return "Sesión expirada por tiempo";
+      case "FORCE_LOGOUT_BY_ADMIN": return "Cierre forzado por administrador";
+      case "SUSPICIOUS_ACTIVITY": return "Actividad sospechosa";
+      case "PASSWORD_CHANGED": return "Contraseña cambiada";
+      case "ACCOUNT_DISABLED": return "Cuenta deshabilitada";
+      case "DEVICE_LIMIT_REACHED": return "Límite de dispositivos alcanzado";
+      default: return reason || "";
+    }
+  }
+
+  function traducirAccionUsuario(activity: ActivityLog): string {
+    if (activity.action === "LOGIN" && activity.user?.name)
+      return `El usuario ${activity.user.name} inició sesión correctamente`;
+    if (activity.action === "LOGOUT" && activity.user?.name)
+      return `El usuario ${activity.user.name} cerró sesión`;
+    if (activity.action === "USER_CREATED" && activity.user?.name)
+      return `El usuario ${activity.user.name} fue creado`;
+    if (activity.action === "USER_DELETED" && activity.user?.name)
+      return `El usuario ${activity.user.name} fue eliminado`;
+    if (activity.action === "LOGIN_FAILED")
+      return `Intento fallido de inicio de sesión para ${activity.description.split(':')[0].replace('Failed login attempt for ', '').trim()}`;
+    if (activity.action === "TOKEN_REFRESHED" && activity.user?.name)
+      return `El usuario ${activity.user.name} actualizó el token de autenticación`;
+    if (activity.action === "FILE_UPLOAD" || activity.action === "FILE_DELETE")
+      return traducirDetalleArchivo(activity);
+    return traducirDescripcionCompleta(activity.description);
+  }
+
+  function traducirDetalleArchivo(activity: ActivityLog): string {
+    // Ejemplo: "Archivo subido: VS-Lab1-Development-310725-140502-2.pdf (mandate_document) para prisoner_mandate"
+    if (activity.action === "FILE_UPLOAD" && activity.description) {
+      // Extraer nombre de archivo y tipo
+      const match = activity.description.match(/Archivo subido: (.+) \((.+)\) para (.+)/);
+      if (match) {
+        const nombreArchivo = match[1];
+        const tipo = match[2];
+        let tipoTraducido = "archivo";
+        if (tipo === "mandate_document") tipoTraducido = "mandato";
+        else if (tipo === "medical_file") tipoTraducido = "archivo médico";
+        // No mostrar el identificador técnico (match[3])
+        return `Archivo subido: ${nombreArchivo} (${tipoTraducido})`;
+      }
+    }
+    if (activity.action === "FILE_DELETE" && activity.description) {
+      // Ejemplo: "Archivo eliminado: VS-Lab1-Development-310725-140502-2.pdf (medical_file)"
+      const match = activity.description.match(/Archivo eliminado: (.+) \((.+)\)/);
+      if (match) {
+        const nombreArchivo = match[1];
+        const tipo = match[2];
+        let tipoTraducido = "archivo";
+        if (tipo === "mandate_document") tipoTraducido = "mandato";
+        else if (tipo === "medical_file") tipoTraducido = "archivo médico";
+        return `Archivo eliminado: ${nombreArchivo} (${tipoTraducido})`;
+      }
+    }
+    return traducirDescripcionCompleta(activity.description);
+  }
+
   return (
     <Container size="xl" py="md">
       <Stack gap="lg">
@@ -97,12 +160,7 @@ const ActivityPage = () => {
                     <Group gap={12} align="center">
                       {getActivityIcon(activity.action)}
                       <Box>
-                        <Text size="md">
-                          {/* Si es login, mostrar solo nombre */}
-                          {activity.action === "LOGIN" && activity.user?.name
-                            ? `El usuario ${activity.user.name} inició sesión correctamente`
-                            : traducirDescripcionCompleta(activity.description)}
-                        </Text>
+                        <Text size="md">{traducirAccionUsuario(activity)}</Text>
                         <Group gap={16}>
                           <Text size="xs" c="dimmed">
                             {new Date(activity.timestamp).toLocaleDateString("es-ES")}
@@ -131,14 +189,29 @@ const ActivityPage = () => {
                         </Stack>
                         <Stack gap={4} style={{ flex: 1 }}>
                           <Text size="sm" c="dimmed">Detalle:</Text>
-                          <Text size="sm">{traducirDescripcionCompleta(activity.description)}</Text>
+                          <Text size="sm">
+                            {activity.action === "LOGIN" && activity.user?.name
+                              ? `El usuario ${activity.user.name} inició sesión correctamente`
+                              : activity.action === "LOGOUT" && activity.user?.name
+                              ? `El usuario ${activity.user.name} cerró sesión`
+                              : activity.action === "USER_CREATED" && activity.user?.name
+                              ? `El usuario ${activity.user.name} fue creado`
+                              : activity.action === "USER_DELETED" && activity.user?.name
+                              ? `El usuario ${activity.user.name} fue eliminado`
+                              : activity.action === "LOGIN_FAILED"
+                              ? `Intento fallido de inicio de sesión para ${activity.description.split(':')[0].replace('Failed login attempt for ', '').trim()}`
+                              : activity.action === "TOKEN_REFRESHED" && activity.user?.name
+                              ? `El usuario ${activity.user.name} actualizó el token de autenticación`
+                              : activity.action === "FILE_UPLOAD" || activity.action === "FILE_DELETE"
+                              ? traducirDetalleArchivo(activity)
+                              : traducirDescripcionCompleta(activity.description)}
+                          </Text>
                           <Text size="sm" c="dimmed">Rol:</Text>
                           <Text size="sm">{activity.user?.role === "ADMIN" ? "Administrador" : activity.user?.role}</Text>
                           <Text size="sm" c="dimmed">Resultado:</Text>
                           <Text size="sm">{statusLabels[activity.status] || activity.status}</Text>
                         </Stack>
                       </Group>
-                      {/* Cambios */}
                       {activity.changes && activity.changes.length > 0 && (
                         <Stack gap={4} mt={6} p={4} style={{ background: "#f3f6fa", borderRadius: 6 }}>
                           {activity.changes.map((chg, idx) => (
@@ -160,9 +233,11 @@ const ActivityPage = () => {
                       {activity.prisoner_related_id && (
                         <Stack gap={4} mt={6}>
                           <Text size="sm" c="dimmed">Prisionero relacionado:</Text>
-                          <Link to={`/prisoners/${activity.prisoner_related_id}`} style={{ textDecoration: "none" }}>
-                            <Badge color="teal" variant="light" size="md">
-                              {activity.prisoner_related_id.includes.name || activity.prisoner_related_id}
+                          <Link to={`/reclusos/${activity.prisoner_related_id}`} style={{ textDecoration: "none" }}>
+                            <Badge color="teal" variant="light" size="md" leftSection={<ThemeIcon color="gray" size="xs" radius="xl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></ThemeIcon>}>
+                              {activity.prisoner_related_id.includes?.name
+                                ? activity.prisoner_related_id.includes.name
+                                : "Ver perfil"}
                             </Badge>
                           </Link>
                         </Stack>
@@ -184,12 +259,12 @@ const ActivityPage = () => {
                             </Text>
                           </Stack>
                         </Card>
-                      ) : (
-                        activity.metadata && (
-                          <Code block>
-                            {JSON.stringify(activity.metadata, null, 2)}
-                          </Code>
-                        )
+                      ) : null}
+                      {activity.metadata && activity.metadata.logout_reason && (
+                        <Stack gap={2} mt={4}>
+                          <Text size="sm" c="dimmed">Motivo de cierre de sesión:</Text>
+                          <Text size="sm">{traducirMotivoLogout(String(activity.metadata.logout_reason))}</Text>
+                        </Stack>
                       )}
                     </Stack>
                   </Accordion.Panel>
