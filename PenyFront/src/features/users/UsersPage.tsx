@@ -1,19 +1,17 @@
-import { Container, Stack } from '@mantine/core';
-import { UsersHeader } from './components/UsersHeader';
-import { UsersTable } from './components/UsersTable';
-import { UserModal } from './components/UserModal';
-import { useUsers } from './hooks/useUsers';
-import type { User } from '../../shared/types/userResponse';
-import type { CreateUserData, UpdateUserData } from '../../shared/types/userTypes';
-import { useState } from 'react';
+import { Container, Stack } from "@mantine/core";
+import { UsersHeader } from "./components/UsersHeader";
+import { UsersTable } from "./components/UsersTable";
+import { UserModal } from "./components/UserModal";
+import { useUsers } from "./hooks/useUsers";
+import type {
+  CreateUserData,
+  UpdateUserData,
+  User,
+} from "../../shared/types/userTypes";
+import { useState } from "react";
 
 const UsersPage = () => {
-  const {
-    users,
-    handleNewUser,
-    handleEditUser,
-    handleDeleteUser,
-  } = useUsers();
+  const { users, handleNewUser, handleEditUser, handleDeleteUser } = useUsers();
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -25,8 +23,8 @@ const UsersPage = () => {
 
   // Editar usuario
   const handleEditUserTable = (userId: string) => {
-    const user = users.find(u => u.id === userId) || null;
-    setSelectedUser(user ? { ...user, photoUrl: user.photoUrl ?? "" } : null);
+    const user = users.find((u) => u.id === userId) || null;
+    setSelectedUser(user);
     setEditModalOpen(true);
   };
 
@@ -55,7 +53,10 @@ const UsersPage = () => {
         <UsersTable users={users} actions={userActions} />
         <UserModal
           opened={editModalOpen}
-          onClose={() => { setEditModalOpen(false); setSelectedUser(null); }}
+          onClose={() => {
+            setEditModalOpen(false);
+            setSelectedUser(null);
+          }}
           onSubmit={handleEditUserSubmit}
           user={selectedUser}
         />

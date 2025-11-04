@@ -887,7 +887,13 @@ export class AuditService {
         orderBy: { timestamp: 'desc' },
         include: {
           dataChanges: true,
-          prisonerRelated: true,
+          prisonerRelated: {
+            select: { id: true, 
+              identity: {
+                select: { surname: true, firstName: true}
+            }
+            },
+          },
         },
       }),
       this.prisma.activityLog.count({ where }),
@@ -896,7 +902,18 @@ export class AuditService {
     const totalPages = Math.ceil(total / limit);
 
     return {
-      data: activities.map((activity) => this.mapActivityLogToDto(activity)),
+          data: activities.map((activity) => this.mapActivityLogToDto(activity as ActivityLog & {
+            prisonerRelated?: {
+              id: string;
+              identity: {
+                surname: string;
+                firstName: string;
+              };
+            };
+            dataChanges?: DataChangeLog[];
+          }
+        )
+      ),
       pagination: {
         page,
         limit,
@@ -1298,8 +1315,17 @@ export class AuditService {
   // ============================================================
 
   private mapActivityLogToDto(
-    activity: ActivityLog & { dataChanges?: DataChangeLog[] },
-  ): ActivityLogResponseDto {
+    activity: ActivityLog & {
+    prisonerRelated?: {
+      id: string;
+      identity: {
+        surname: string;
+        firstName: string;
+      };
+    };
+    dataChanges?: DataChangeLog[];
+  }
+): ActivityLogResponseDto {
     return {
       id: activity.id,
       user: activity.userId
@@ -1325,6 +1351,15 @@ export class AuditService {
       module: activity.module || undefined,
       severity: activity.severity,
       prisoner_related_id: activity.prisonerRelatedId || undefined,
+      prisoner_related: activity.prisonerRelated
+        ? {
+            id: activity.prisonerRelated.id,
+            identity: {
+              surname: activity.prisonerRelated.identity.surname,
+              firstName: activity.prisonerRelated.identity.firstName,
+            },
+          }
+        : undefined,
       session_log_id: activity.sessionLogId || undefined,
       data_changes: activity.dataChanges
         ? activity.dataChanges.map((change) => ({
