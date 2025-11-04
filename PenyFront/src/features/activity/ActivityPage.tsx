@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Container,
   Title,
@@ -230,18 +230,19 @@ const ActivityPage = () => {
                           ))}
                         </Stack>
                       )}
-                      {activity.prisoner_related_id && (
-                        <Stack gap={4} mt={6}>
-                          <Text size="sm" c="dimmed">Prisionero relacionado:</Text>
-                          <Link to={`/reclusos/${activity.prisoner_related_id}`} style={{ textDecoration: "none" }}>
-                            <Badge color="teal" variant="light" size="md" leftSection={<ThemeIcon color="gray" size="xs" radius="xl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></ThemeIcon>}>
-                              {activity.prisoner_related_id.includes?.name
-                                ? activity.prisoner_related_id.includes.name
-                                : "Ver perfil"}
-                            </Badge>
-                          </Link>
-                        </Stack>
-                      )}
+
+                      {activity.prisoner_related && (
+                      <Stack gap={4} mt={6}>
+                        <Text size="sm" c="dimmed">Prisionero relacionado:</Text>
+                        <Link to={`/reclusos/${activity.prisoner_related.id}`} style={{ textDecoration: "none" }}>
+                          <Badge>
+                            {activity.prisoner_related.identity
+                              ? `${activity.prisoner_related.identity.firstName} ${activity.prisoner_related.identity.surname}`
+                              : "Ver perfil"}
+                          </Badge>
+                        </Link>
+                      </Stack>
+                    )}
                       {activity.metadata && activity.metadata.deleted_user_id ? (
                         <Card shadow="xs" radius="sm" withBorder mt={4}>
                           <Stack gap={2}>

@@ -1,5 +1,6 @@
 import type { PaginationParams } from "./axiosTypes";
-import type { Entity, FileInfo } from "./commonTypes";
+import type { Entity } from "./commonTypes";
+import type { FileInfo } from "./filesTypes";
 
 export interface User extends Entity {
   email: string;

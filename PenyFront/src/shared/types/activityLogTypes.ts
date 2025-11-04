@@ -15,6 +15,16 @@ export interface DataChange {
   newValue?: string;
 }
 
+export interface InfoPrisoner {
+  surname: string;
+  firstName: string;
+}
+
+export interface PrisonerRelated {
+  id: string;
+  identity: InfoPrisoner;
+}
+
 export interface ActivityLog {
   id: string;
   timestamp: string;
@@ -31,6 +41,7 @@ export interface ActivityLog {
   user_agent: string;
   session_log_id?: string;
   prisoner_related_id?: string;
+  prisoner_related?: PrisonerRelated;
   metadata?: Record<string, string | number | boolean>;
 }
 
@@ -48,7 +59,14 @@ export interface ActivityLogsResponse {
   pagination: ActivityLogsPagination;
 }
 
-export type ActionType = 'login' | 'create' | 'update' | 'export' | 'delete' | 'view' | 'print';
+export type ActionType =
+  | "login"
+  | "create"
+  | "update"
+  | "export"
+  | "delete"
+  | "view"
+  | "print";
 
 export interface Statistics {
   total: number;
