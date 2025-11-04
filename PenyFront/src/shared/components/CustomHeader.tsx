@@ -101,7 +101,7 @@ export function CustomHeader() {
                 <Group gap={0} style={{ position: "relative" }}>
                   <TextInput
                     ref={searchInputRef}
-                    placeholder="Search"
+                    placeholder="Buscador Global..."
                     size="sm"
                     leftSection={
                       <Search
