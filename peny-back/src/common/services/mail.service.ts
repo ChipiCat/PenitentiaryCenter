@@ -22,7 +22,7 @@ export class MailService {
       service: 'gmail',
       auth: {
         user: 'echosoft.developers@gmail.com',
-        pass: process.env.GMAIL_APP_PASSWORD!,
+        pass: process.env.GMAIL_APP_PASSWORD ?? '',
       },
     });
 
@@ -43,7 +43,15 @@ export class MailService {
       process.cwd(),
       'src/common/services/notification_access.html',
     );
-    const html = fs.readFileSync(htmlPath, 'utf8');
+    let html: string;
+    try {
+      html = fs.readFileSync(htmlPath, 'utf8');
+    } catch (err) {
+      throw new Error(
+        'No se pudo leer la plantilla HTML: ' +
+          (err instanceof Error ? err.message : String(err)),
+      );
+    }
     const htmlStr = html
       .replace('[Nombre del Usuario]', name)
       .replace('[email.del.usuario@dominio.com]', to)
@@ -56,11 +64,18 @@ export class MailService {
       )
       .replace('[URL_DE_CONTACTO_SOPORTE]', 'mailto:soporte@tusistema.com');
 
-    await this.transporter.sendMail({
-      from: 'echosoft.developers@gmail.com',
-      to,
-      subject: 'Bienvenido a SIGEPEN',
-      html: htmlStr,
-    });
+    try {
+      await this.transporter.sendMail({
+        from: 'echosoft.developers@gmail.com',
+        to,
+        subject: 'Bienvenido a SIGEPEN',
+        html: htmlStr,
+      });
+    } catch (err) {
+      throw new Error(
+        'No se pudo enviar el correo: ' +
+          (err instanceof Error ? err.message : String(err)),
+      );
+    }
   }
 }
