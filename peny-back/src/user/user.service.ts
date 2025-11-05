@@ -18,6 +18,7 @@ import { IPaginatedResponse } from '../common/interfaces/entity.interface';
 import { User, UserRole, Prisma } from '../../generated/prisma';
 import * as bcrypt from 'bcryptjs';
 import { AuditService } from '../audit/audit.service';
+import { MailService } from '../common/services/mail.service';
 
 /**
  * Interfaz para los metadatos de auditoría extraídos del request
@@ -51,6 +52,7 @@ export class UserService {
   constructor(
     private prisma: PrismaService,
     private auditService: AuditService,
+    private mailService: MailService,
     @Inject(REQUEST) private readonly request: Request,
   ) {}
 
@@ -144,6 +146,8 @@ export class UserService {
       ipAddress,
       userAgent,
     );
+
+    await this.mailService.sendUserCredentials(result.email, password, name);
 
     return result;
   }
