@@ -33,7 +33,7 @@ export interface CreateUserData {
   password: string;
   name: string;
   role: string;
-  photoUrl?: string;
+  photoFileId?: string;
   cellphone?: string;
   ci?: string;
   department?: string;
@@ -44,14 +44,21 @@ export interface UpdateUserData {
   name?: string;
   role?: string;
   isActive?: boolean;
+  photoFileId?: string;
+  cellphone?: string;
+  ci?: string;
+  department?: string;
+  departmentalDirectorateUnit?: string;
 }
 
 export interface GetUsersParams extends PaginationParams {
   role?: string;
   search?: string;
   isActive?: boolean;
+  page?: number;
+  limit?: number;
+  size?: number; // <-- corrige esta línea
 }
-
 export interface UserFilters {
   status?: string;
   gender?: string;

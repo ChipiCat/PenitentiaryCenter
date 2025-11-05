@@ -27,26 +27,63 @@ export function useUsers(initialFilters: GetUsersParams = {}) {
       .finally(() => setLoading(false));
   }, [filters]);
 
+  // Nueva función para paginación controlada desde el componente
+  const fetchUsersWithParams = useCallback((params: Partial<GetUsersParams> = {}) => {
+    setLoading(true);
+    // Solo usa page y size, como espera el backend
+    const mergedFilters = { ...filters, ...params };
+    usersService.getUsers(mergedFilters)
+      .then((res) => {
+        setData(res);
+        const usuarios = res.data ?? [];
+        setStats({
+          total: usuarios.length,
+          activos: usuarios.filter((u: User) => !u.isDeleted).length,
+          inactivos: usuarios.filter((u: User) => u.isDeleted).length,
+        });
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [filters]);
+
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
   // Crear usuario
-  const handleNewUser = async (data: CreateUserData) => {
-    await usersService.createUser(data);
-    fetchUsers();
+  const handleNewUser = async (data: CreateUserData | FormData) => {
+    try {
+      await usersService.createUser(data);
+      // Refrescar la tabla después de crear usuario
+      await fetchUsersWithParams({ page: 1, size: 10 });
+    } catch (error) {
+      console.error("Error creating user:", error);
+      throw error;
+    }
   };
 
   // Editar usuario
   const handleEditUser = async (id: string, data: UpdateUserData) => {
-    await usersService.updateUser(id, data);
-    fetchUsers();
+    try {
+      await usersService.updateUser(id, data);
+      // Refrescar la tabla después de editar usuario
+      await fetchUsersWithParams({ page: 1, size: 10 });
+    } catch (error) {
+      console.error("Error updating user:", error);
+      throw error;
+    }
   };
 
   // Eliminar usuario
   const handleDeleteUser = async (id: string) => {
-    await usersService.deleteUser(id);
-    fetchUsers();
+    try {
+      await usersService.deleteUser(id);
+      // Refrescar la tabla después de eliminar usuario
+      await fetchUsersWithParams({ page: 1, size: 10 });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      throw error;
+    }
   };
 
   const users = data?.data ?? [];
@@ -59,6 +96,8 @@ export function useUsers(initialFilters: GetUsersParams = {}) {
     loading,
     error,
     stats,
-    setFilters, // <-- expón esta función para actualizar los filtros (incluyendo search)
+    setFilters,
+    fetchUsers: fetchUsersWithParams, // <-- expón la función para paginación
+    total: data?.total ?? 0,
   };
 }

@@ -1,26 +1,13 @@
-import { useState } from 'react';
 import { Group, Title, Text, Button, TextInput, Stack } from '@mantine/core';
 import { UserPlus, Search } from 'lucide-react';
-import type { CreateUserData } from '../../../shared/types/userTypes';
-import { UserModal } from './UserModal';
 
 interface UsersHeaderProps {
-  onNewUser: (data: CreateUserData) => void;
+  onOpenModal: () => void;
   search: string;
   onSearchChange: (value: string) => void;
 }
 
-export const UsersHeader = ({ onNewUser, search, onSearchChange }: UsersHeaderProps) => {
-  const [opened, setOpened] = useState(false);
-
-  const handleOpen = () => setOpened(true);
-  const handleClose = () => setOpened(false);
-
-  const handleSubmit = (data: CreateUserData) => {
-    onNewUser(data);
-    setOpened(false);
-  };
-
+export const UsersHeader = ({ onOpenModal, search, onSearchChange }: UsersHeaderProps) => {
   return (
     <Group justify="space-between" align="end">
       <Stack gap={0}>
@@ -39,13 +26,12 @@ export const UsersHeader = ({ onNewUser, search, onSearchChange }: UsersHeaderPr
         />
         <Button
           leftSection={<UserPlus size={16} />}
-          onClick={handleOpen}
+          onClick={onOpenModal}
           color="dark"
         >
           Nuevo Usuario
         </Button>
       </Group>
-      <UserModal opened={opened} onClose={handleClose} onSubmit={handleSubmit} />
     </Group>
   );
 };

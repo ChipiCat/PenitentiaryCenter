@@ -9,6 +9,7 @@ import {
   Divider,
   Text,
   Box,
+  Loader,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
@@ -17,6 +18,7 @@ import type { User } from "../../../shared/types/userTypes";
 import { ProfilePhotoDropzone } from "../../../shared/components/BelongingDropzone";
 
 const roleOptions = [
+  { value: "DIRECTOR", label: "Director" },
   { value: "ADMIN", label: "Administrador" },
   { value: "SECRETARY", label: "Secretario" },
 ];
@@ -24,7 +26,7 @@ const roleOptions = [
 interface UserModalProps {
   opened: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateUserData) => void;
+  onSubmit: (data: CreateUserData | FormData) => void;
   isLoading?: boolean;
   user?: User | null;
 }
@@ -43,7 +45,7 @@ export const UserModal = ({
       name: "",
       email: "",
       password: "",
-      role: "USER",
+      role: "ADMIN",
       cellphone: "",
       ci: "",
       department: "",
@@ -73,7 +75,7 @@ export const UserModal = ({
         form.setValues({
           name: user.name ?? "",
           email: user.email ?? "",
-          role: user.role ?? "USER",
+          role: user.role ?? "ADMIN",
           password: "",
           cellphone: user.cellphone ?? "",
           ci: user.ci ?? "",
@@ -85,27 +87,24 @@ export const UserModal = ({
       }
       setPhotoFile(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [opened, user]);
 
-  const handleSubmit = (values: CreateUserData) => {
-    const data: CreateUserData = {
-      email: values.email,
-      password: values.password,
-      name: values.name,
-      role: values.role,
-      photoUrl: photoFile ? URL.createObjectURL(photoFile) : undefined,
-      cellphone: values.cellphone,
-      ci: values.ci,
-      department: values.department,
-      departmentalDirectorateUnit: values.departmentalDirectorateUnit,
-    };
-    onSubmit(data);
-    if (!isLoading) {
-      form.reset();
-      setPhotoFile(null);
-      onClose();
-    }
+  const handleSubmit = async (values: CreateUserData) => {
+    // Construir FormData para ambos casos (crear y editar)
+    const formData = new FormData();
+    formData.append("name", values.name);
+    formData.append("email", values.email);
+    formData.append("password", values.password);
+    formData.append("role", values.role);
+    if (values.cellphone) formData.append("cellphone", values.cellphone);
+    if (values.ci) formData.append("ci", values.ci);
+    if (values.department) formData.append("department", values.department);
+    if (values.departmentalDirectorateUnit) formData.append("departmentalDirectorateUnit", values.departmentalDirectorateUnit);
+    if (photoFile) formData.append("photo", photoFile);
+    
+    // Llamar a onSubmit desde la página, que maneja todo
+    onSubmit(formData as any);
   };
 
   const handleClose = () => {
@@ -185,13 +184,13 @@ export const UserModal = ({
           <Group grow>
             <TextInput
               label="Celular"
-              placeholder="No disponible"
+              placeholder="Ej: +591 12345678"
               disabled={isLoading}
               {...form.getInputProps("cellphone")}
             />
             <TextInput
               label="CI"
-              placeholder="No disponible"
+              placeholder="Ej: 1234567"
               disabled={isLoading}
               {...form.getInputProps("ci")}
             />
@@ -199,13 +198,13 @@ export const UserModal = ({
           <Group grow>
             <TextInput
               label="Departamento"
-              placeholder="No disponible"
+              placeholder="Ej: Santa Cruz"
               disabled={isLoading}
               {...form.getInputProps("department")}
             />
             <TextInput
               label="Unidad/Dirección Departamental"
-              placeholder="No disponible"
+              placeholder="Ej: Dirección Regional Norte"
               disabled={isLoading}
               {...form.getInputProps("departmentalDirectorateUnit")}
             />
@@ -214,7 +213,7 @@ export const UserModal = ({
             <Button variant="subtle" onClick={handleClose} disabled={isLoading}>
               Cancelar
             </Button>
-            <Button type="submit" loading={isLoading} disabled={isLoading}>
+            <Button type="submit" loading={isLoading} disabled={isLoading} leftSection={isLoading ? <Loader size={16} color="gray" /> : undefined}>
               {user ? "Actualizar Usuario" : "Crear Usuario"}
             </Button>
           </Group>
