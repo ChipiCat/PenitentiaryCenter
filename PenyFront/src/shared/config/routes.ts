@@ -7,7 +7,8 @@ export const ROUTES = {
   USERS: "/usuarios",
   ACTIVITY: "/actividad-global",
   PROFILE: "/perfil",
-  SETTINGS: '/configuracion', 
+  SETTINGS: '/configuracion',
+  WELCOME: '/bienvenida', 
 } as const;
 
 // Solo dos tipos de usuario (basado en tu userUtils)
