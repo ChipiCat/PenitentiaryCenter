@@ -79,8 +79,9 @@ const CONFIG = {
     isPackaged: electron_1.app.isPackaged,
 };
 let mainWindow = null;
-let backendProcess = null;
-let frontendServer = null;
+let backendManager = null;
+let frontendManager = null;
+let isCleaningUp = false;
 class BackendManager {
     process = null;
     port;
@@ -139,16 +140,41 @@ class BackendManager {
         });
     }
     stop() {
-        if (!this.process || this.process.killed)
+        if (!this.process || this.process.killed) {
+            console.log("[Backend] No hay proceso para detener");
             return;
-        console.log("[Backend] Deteniendo...");
-        this.process.kill("SIGTERM");
-        setTimeout(() => {
-            if (this.process && !this.process.killed) {
-                console.log("[Backend] Forzando cierre...");
-                this.process.kill("SIGKILL");
+        }
+        const pid = this.process.pid;
+        console.log(`[Backend] Deteniendo proceso (PID: ${pid})...`);
+        try {
+            if (process.platform === "win32" && pid) {
+                // En Windows, usar taskkill para matar el árbol completo de procesos
+                const killProcess = (0, child_process_1.spawn)("taskkill", ["/pid", pid.toString(), "/T", "/F"], {
+                    shell: true,
+                    detached: true,
+                    stdio: "ignore"
+                });
+                killProcess.on("exit", (code) => {
+                    if (code === 0) {
+                        console.log("[Backend] ✓ Proceso detenido correctamente");
+                    }
+                    else {
+                        console.log(`[Backend] Proceso terminado con código ${code}`);
+                    }
+                });
+                killProcess.unref();
             }
-        }, 5000);
+            else {
+                // En Unix/Mac
+                this.process.kill("SIGTERM");
+                console.log("[Backend] ✓ Señal SIGTERM enviada");
+            }
+            this.process = null;
+        }
+        catch (error) {
+            console.error("[Backend] Error al detener proceso:", error);
+            this.process = null;
+        }
     }
 }
 class FrontendManager {
@@ -232,13 +258,28 @@ class FrontendManager {
         throw new Error(`[Frontend] Timeout: Vite no está disponible en puerto ${this.port} después de ${maxAttempts} segundos`);
     }
     stop() {
-        if (!this.server)
+        if (!this.server) {
+            console.log("[Frontend] No hay servidor para detener");
             return;
-        console.log("[Frontend] Deteniendo servidor...");
-        this.server.close(() => {
-            console.log("[Frontend]  Servidor detenido");
-        });
-        this.server = null;
+        }
+        console.log("[Frontend] Deteniendo servidor Express...");
+        try {
+            this.server.close((err) => {
+                if (err) {
+                    console.error("[Frontend] Error al cerrar servidor:", err);
+                }
+                else {
+                    console.log("[Frontend] ✓ Servidor detenido correctamente");
+                }
+            });
+            // Forzar cierre de todas las conexiones
+            this.server.closeAllConnections?.();
+            this.server = null;
+        }
+        catch (error) {
+            console.error("[Frontend] Error al detener servidor:", error);
+            this.server = null;
+        }
     }
 }
 function createMainWindow() {
@@ -264,6 +305,7 @@ function createMainWindow() {
         }
     });
     mainWindow.on("closed", () => {
+        console.log("[Window] Ventana cerrada");
         mainWindow = null;
     });
     const url = `http://localhost:${CONFIG.ports.frontend}`;
@@ -291,11 +333,11 @@ async function initializeApp() {
     try {
         console.log("[App] Paso 1: Iniciando backend...");
         await backend.start();
-        backendProcess = backend;
+        backendManager = backend;
         console.log("[App] ✓ Backend iniciado");
         console.log("[App] Paso 2: Iniciando frontend...");
         await frontend.start();
-        frontendServer = frontend;
+        frontendManager = frontend;
         console.log("[App] ✓ Frontend iniciado");
         console.log("[App] Paso 3: Esperando 2 segundos...");
         await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -311,17 +353,28 @@ async function initializeApp() {
     catch (error) {
         console.error("[App] ✗ Error al inicializar:", error);
         console.error("[App] Stack trace:", error instanceof Error ? error.stack : "N/A");
+        cleanup();
         electron_1.app.quit();
     }
 }
 function cleanup() {
+    if (isCleaningUp) {
+        console.log("[App] Limpieza ya en progreso, saltando...");
+        return;
+    }
+    isCleaningUp = true;
     console.log("[App] Limpiando recursos...");
-    if (backendProcess && typeof backendProcess.stop === "function") {
-        backendProcess.stop();
+    if (backendManager) {
+        console.log("[App] Deteniendo backend...");
+        backendManager.stop();
+        backendManager = null;
     }
-    if (frontendServer && typeof frontendServer.stop === "function") {
-        frontendServer.stop();
+    if (frontendManager) {
+        console.log("[App] Deteniendo frontend...");
+        frontendManager.stop();
+        frontendManager = null;
     }
+    console.log("[App] ✓ Limpieza completada");
 }
 electron_1.app.commandLine.appendSwitch("js-flags", `--max-old-space-size=${CONFIG.memory.maxOldSpace}`);
 electron_1.app.commandLine.appendSwitch("disable-background-timer-throttling");
@@ -337,10 +390,15 @@ electron_1.app.whenReady().then(() => {
     initializeApp();
 });
 electron_1.app.on("window-all-closed", () => {
+    console.log("[App] Todas las ventanas cerradas");
     cleanup();
-    if (process.platform !== "darwin") {
-        electron_1.app.quit();
-    }
+    // Dar tiempo para que los procesos se cierren antes de quit
+    setTimeout(() => {
+        if (process.platform !== "darwin") {
+            console.log("[App] Saliendo de la aplicación...");
+            electron_1.app.quit();
+        }
+    }, 1500);
 });
 electron_1.app.on("activate", () => {
     if (electron_1.BrowserWindow.getAllWindows().length === 0) {

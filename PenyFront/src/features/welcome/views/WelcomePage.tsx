@@ -13,6 +13,8 @@ import { updatePassword } from "../../../shared/services";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../../shared/config";
 import { useGlobalContext } from "../../../shared/hooks/useGlobalContext";
+import { useAppDispatch } from "../../../shared/store/hooks";
+import { logoutThunk } from "../../../shared/store/thunks/authThunk";
 
 
 const WelcomePage = () => {
@@ -73,6 +75,15 @@ const WelcomePage = () => {
         }
     };
 
+    const dispatch = useAppDispatch();
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const { user } = useGlobalContext();
+     const handleLogout = async () => {
+        setIsLoggingOut(true);
+        await dispatch(logoutThunk());
+        setIsLoggingOut(false);
+      };
+
     return (
         <Box
             style={{
@@ -93,6 +104,9 @@ const WelcomePage = () => {
                 </p>
                 <p className="text-center text-sm mb-4 font-extralight text-gray-600 mt-1">
                     Actualiza tu contraseña
+                </p>
+                <p className="text-center text-sm mb-4 font-extralight text-gray-600 mt-1">
+                    Usuario: {user?.name}
                 </p>
                 <form onSubmit={handleSubmit}>
                     <PasswordInput
@@ -149,7 +163,19 @@ const WelcomePage = () => {
                     >
                         Actualizar contraseña
                     </Button>
+                   
                 </form>
+                  <Button
+                        fullWidth
+                        mt="xl"
+                        radius="md"
+                        leftSection={<KeyRound size={16} />}
+                        variant="outline"
+                        loading={isLoggingOut}
+                        onClick={handleLogout}
+                    >
+                        Cerrar sesión
+                    </Button>
             </Paper>
         </Box>
     );

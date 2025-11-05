@@ -50,8 +50,9 @@ const CONFIG = {
 } as const;
 
 let mainWindow: BrowserWindow | null = null;
-let backendProcess: ChildProcess | null = null;
-let frontendServer: Server | null = null;
+let backendManager: BackendManager | null = null;
+let frontendManager: FrontendManager | null = null;
+let isCleaningUp = false;
 
 class BackendManager {
   private process: ChildProcess | null = null;
@@ -124,15 +125,44 @@ class BackendManager {
   }
 
   stop(): void {
-    if (!this.process || this.process.killed) return;
-    console.log("[Backend] Deteniendo...");
-    this.process.kill("SIGTERM");
-    setTimeout(() => {
-      if (this.process && !this.process.killed) {
-        console.log("[Backend] Forzando cierre...");
-        this.process.kill("SIGKILL");
+    if (!this.process || this.process.killed) {
+      console.log("[Backend] No hay proceso para detener");
+      return;
+    }
+    
+    const pid = this.process.pid;
+    console.log(`[Backend] Deteniendo proceso (PID: ${pid})...`);
+    
+    try {
+      if (process.platform === "win32" && pid) {
+        // En Windows, usar taskkill para matar el árbol completo de procesos
+        const killProcess = spawn("taskkill", ["/pid", pid.toString(), "/T", "/F"], {
+          shell: true,
+          detached: true,
+          stdio: "ignore"
+        });
+        
+        killProcess.on("exit", (code) => {
+          if (code === 0) {
+            console.log("[Backend] ✓ Proceso detenido correctamente");
+          } else {
+            console.log(`[Backend] Proceso terminado con código ${code}`);
+          }
+        });
+        
+        killProcess.unref();
+      } else {
+        // En Unix/Mac
+        this.process.kill("SIGTERM");
+        console.log("[Backend] ✓ Señal SIGTERM enviada");
       }
-    }, 5000);
+      
+      this.process = null;
+      
+    } catch (error) {
+      console.error("[Backend] Error al detener proceso:", error);
+      this.process = null;
+    }
   }
 }
 
@@ -230,12 +260,30 @@ class FrontendManager {
   }
 
   stop(): void {
-    if (!this.server) return;
-    console.log("[Frontend] Deteniendo servidor...");
-    this.server.close(() => {
-      console.log("[Frontend]  Servidor detenido");
-    });
-    this.server = null;
+    if (!this.server) {
+      console.log("[Frontend] No hay servidor para detener");
+      return;
+    }
+    
+    console.log("[Frontend] Deteniendo servidor Express...");
+    
+    try {
+      this.server.close((err) => {
+        if (err) {
+          console.error("[Frontend] Error al cerrar servidor:", err);
+        } else {
+          console.log("[Frontend] ✓ Servidor detenido correctamente");
+        }
+      });
+      
+      // Forzar cierre de todas las conexiones
+      this.server.closeAllConnections?.();
+      
+      this.server = null;
+    } catch (error) {
+      console.error("[Frontend] Error al detener servidor:", error);
+      this.server = null;
+    }
   }
 }
 
@@ -264,6 +312,7 @@ function createMainWindow(): void {
   });
 
   mainWindow.on("closed", () => {
+    console.log("[Window] Ventana cerrada");
     mainWindow = null;
   });
 
@@ -298,12 +347,12 @@ async function initializeApp(): Promise<void> {
   try {
     console.log("[App] Paso 1: Iniciando backend...");
     await backend.start();
-    backendProcess = backend as any;
+    backendManager = backend;
     console.log("[App] ✓ Backend iniciado");
     
     console.log("[App] Paso 2: Iniciando frontend...");
     await frontend.start();
-    frontendServer = frontend as any;
+    frontendManager = frontend;
     console.log("[App] ✓ Frontend iniciado");
     
     console.log("[App] Paso 3: Esperando 2 segundos...");
@@ -321,18 +370,33 @@ async function initializeApp(): Promise<void> {
   } catch (error) {
     console.error("[App] ✗ Error al inicializar:", error);
     console.error("[App] Stack trace:", error instanceof Error ? error.stack : "N/A");
+    cleanup();
     app.quit();
   }
 }
 
 function cleanup(): void {
+  if (isCleaningUp) {
+    console.log("[App] Limpieza ya en progreso, saltando...");
+    return;
+  }
+  
+  isCleaningUp = true;
   console.log("[App] Limpiando recursos...");
-  if (backendProcess && typeof (backendProcess as any).stop === "function") {
-    (backendProcess as any).stop();
+  
+  if (backendManager) {
+    console.log("[App] Deteniendo backend...");
+    backendManager.stop();
+    backendManager = null;
   }
-  if (frontendServer && typeof (frontendServer as any).stop === "function") {
-    (frontendServer as any).stop();
+  
+  if (frontendManager) {
+    console.log("[App] Deteniendo frontend...");
+    frontendManager.stop();
+    frontendManager = null;
   }
+  
+  console.log("[App] ✓ Limpieza completada");
 }
 
 app.commandLine.appendSwitch("js-flags", `--max-old-space-size=${CONFIG.memory.maxOldSpace}`);
@@ -352,10 +416,16 @@ app.whenReady().then(() => {
 });
 
 app.on("window-all-closed", () => {
+  console.log("[App] Todas las ventanas cerradas");
   cleanup();
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
+  
+  // Dar tiempo para que los procesos se cierren antes de quit
+  setTimeout(() => {
+    if (process.platform !== "darwin") {
+      console.log("[App] Saliendo de la aplicación...");
+      app.quit();
+    }
+  }, 1500);
 });
 
 app.on("activate", () => {
