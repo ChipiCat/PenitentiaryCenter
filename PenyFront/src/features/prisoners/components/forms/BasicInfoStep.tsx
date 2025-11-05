@@ -28,15 +28,14 @@ interface BasicInfoStepProps {
   data: Partial<CreatePrisonerData>;
   onUpdate: (updates: Partial<CreatePrisonerData>) => void;
   onFileUpdate?: (
-    fileType: "photo" | "fingerprintLeft" | "fingerprintRight",
+    fileType: "photo" | "fingerprintLeft" | "fingerprintRight" ,
     file: File
   ) => void;
   errors?: Record<string, string>;
-  mode?: 'edit' | 'create';
 }
 
 export const BasicInfoStep: React.FC<BasicInfoStepProps> = React.memo(
-  ({ data, onUpdate, onFileUpdate, errors = {}, mode  }) => {
+  ({ data, onUpdate, onFileUpdate, errors = {} }) => {
     // Memoizar identity para evitar re-crear el objeto
     const identity = useMemo(() => data.identity || {}, [data.identity]);
 
@@ -95,7 +94,6 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = React.memo(
                   handleMainDataChange("admission_date", date ?? undefined)
                 }
                 error={errors.admission_date}
-                disabled={mode === 'edit'}
                 required
                 maxDate={new Date()}
               />

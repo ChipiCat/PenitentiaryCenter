@@ -23,16 +23,16 @@ import { usePrisonerFormHandlers } from "./usePrisonerFormHandler";
 import { Loading } from "../../../../shared/components/Loading";
 
 interface PrisonerFormWizardProps {
-  mode?: "create" | "edit";
-  prisonerId?: string; // ID del prisionero cuando es modo edición
   initialData?: Partial<CreatePrisonerData>;
   onSuccess?: (result: { prisoner: PrisonerBase; id: string }) => void;
   onCancel?: () => void;
 }
 
+/**
+ * Wizard para creación de prisioneros
+ * Modo único: CREATE
+ */
 export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
-  mode = "create",
-  prisonerId,
   initialData = {},
   onSuccess,
   onCancel,
@@ -50,7 +50,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
     handleCancel,
     handleSubmit,
     steps,
-  } = usePrisonerFormHandlers({ mode, prisonerId, initialData, onSuccess, onCancel });
+  } = usePrisonerFormHandlers({ initialData, onSuccess, onCancel });
 
   const renderCurrentStep = useCallback(() => {
     switch (activeStep) {
@@ -61,7 +61,6 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
             onUpdate={handleDataUpdate}
             onFileUpdate={handleFileUpdate}
             errors={errors}
-            mode={mode}
           />
         );
       case 1:
@@ -73,6 +72,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
               child: formData.child,
             }}
             onUpdate={handleDataUpdate}
+            onFileUpdate={handleFileUpdate}
             errors={errors}
           />
         );
@@ -119,13 +119,14 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
           <LegalCaseStep
             data={{ cases: formData.cases || [] }}
             onUpdate={(updates) => handleDataUpdate({ cases: updates.cases })}
+            onFileUpdate={handleFileUpdate}
             errors={errors}
           />
         );
       default:
         return null;
     }
-  }, [activeStep, formData, errors, handleDataUpdate, handleFileUpdate, mode]);
+  }, [activeStep, formData, errors, handleDataUpdate, handleFileUpdate]);
 
   return (
     <Container size="lg" className="!p-0">
@@ -163,9 +164,7 @@ export const PrisonerFormWizard: React.FC<PrisonerFormWizardProps> = ({
           onNext={handleNext}
           onCancel={handleCancel}
           onFinish={handleSubmit}
-          finishButtonText={
-            mode === "create" ? "Registrar Prisionero" : "Actualizar Prisionero"
-          }
+          finishButtonText="Registrar Prisionero"
         />
       </Card>
     </Container>
