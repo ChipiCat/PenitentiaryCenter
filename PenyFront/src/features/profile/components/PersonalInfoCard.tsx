@@ -74,7 +74,7 @@ const PersonalInfoCard = () => {
 
       <Group gap="lg" align="flex-start" mb="xl">
         <Avatar
-          src={user?.photoUrl}
+          src={user?.photoFileId || undefined}
           size={80}
           radius="md"
           color="blue"
