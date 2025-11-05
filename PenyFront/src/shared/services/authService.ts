@@ -8,9 +8,15 @@ import type { AuthResponse } from "../types/authResponse";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
-export const register = async (registerData: RegisterRequest): Promise<AuthResponse | null> => {
+export const register = async (registerData: RegisterRequest | FormData): Promise<AuthResponse | null> => {
     try {
-        const response = await api.post<AuthResponse>(`/auth/register`, registerData);
+        // Detecta si es FormData para enviar correctamente
+        const isFormData = registerData instanceof FormData;
+        const response = await api.post<AuthResponse>(
+            `/auth/register`,
+            registerData,
+            isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined
+        );
         return response.data;
     } catch (error) {
         handleApiError(error, "register");
@@ -99,5 +105,20 @@ export const refreshAuthToken = async (refreshToken: string): Promise<AuthRespon
         console.error("[AuthService] Refresh token error:", error);
         handleApiError(error, "refreshAuthToken");
         return null;
+    }
+};
+
+export const updatePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    try {
+        const response = await api.post(`/auth/change-password`, {
+            currentPassword,
+            newPassword
+        });
+
+        return response.status === 200 || response.status === 204;
+    } catch (error) {
+        console.error("error: ", error)
+        handleApiError(error, "updatePassword");
+        return false;
     }
 };

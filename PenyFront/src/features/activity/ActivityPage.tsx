@@ -9,20 +9,19 @@ import {
   Pagination,
   Divider,
   Badge,
-  Tooltip,
   Code,
+  Accordion,
+  Box,
 } from "@mantine/core";
+import { Link } from "react-router-dom";
 import { useSystemActivity } from "./hooks/useSystemActivity";
 import {
-  severityColors,
-  severityIcons,
   severityLabels,
   statusLabels,
   moduleLabels,
-  actionLabels,
   entityLabels,
-  traducirDescripcion,
 } from "../../shared/utils/activityLogUtils";
+import { getActivityIcon, translateUserAction, translateLogout } from "../../shared/utils/activityLogSpanishUtils";
 
 const PAGE_SIZE = 10;
 
@@ -39,9 +38,6 @@ const ActivityPage = () => {
     page * PAGE_SIZE
   );
 
-  function traducirDescripcionCompleta(desc: string): string {
-    return traducirDescripcion(desc);
-  }
   return (
     <Container size="xl" py="md">
       <Stack gap="lg">
@@ -69,134 +65,110 @@ const ActivityPage = () => {
               No hay actividades para mostrar.
             </Text>
           ) : (
-            paginatedActivities.map((activity) => (
-              <Card key={activity.id} shadow="sm" radius="md" withBorder>
-                <Stack gap="xs">
-                  <Group justify="space-between">
-                    <Group>
-                      <div
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: "50%",
-                          background: "#eee",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontWeight: "bold",
-                          fontSize: 18,
-                          color: "#888",
-                        }}
-                      >
-                        {activity.user?.name
-                          ?.split(" ")
-                          .map((n) => n[0])
-                          .join("") || "U"}
-                      </div>
-                      <Stack gap={0}>
-                        <Text fw={500}>
-                          {activity.user?.name || "Usuario"}
-                          <Text span c="dimmed" size="xs">
-                            {" "}
-                            ({activity.user?.role || "-"})
+            <Accordion variant="contained" radius="md">
+              {paginatedActivities.map((activity) => (
+                <Accordion.Item key={activity.id} value={activity.id}>
+                  <Accordion.Control>
+                    <Group gap={12} align="center">
+                      {getActivityIcon(activity.action)}
+                      <Box>
+                        <Text size="md">{translateUserAction(activity)}</Text>
+                        <Group gap={16}>
+                          <Text size="xs" c="dimmed">
+                            {new Date(activity.timestamp).toLocaleDateString("es-ES")}
                           </Text>
-                        </Text>
-                        <Text size="xs" c="dimmed">
-                          {activity.user?.email}
-                        </Text>
-                      </Stack>
+                          <Text size="xs" c="gray">
+                            Por: <b>{activity.user?.name}</b>
+                          </Text>
+                        </Group>
+                      </Box>
                     </Group>
-                    <Group gap={8}>
-                      <Badge
-                        color={
-                          severityColors[
-                            activity.severity as keyof typeof severityColors
-                          ] || "gray"
-                        }
-                        leftSection={
-                          severityIcons[
-                            activity.severity as keyof typeof severityIcons
-                          ] || null
-                        }
-                        variant="light"
-                      >
-                        {severityLabels[activity.severity] || activity.severity}
-                      </Badge>
-                      <Badge color="gray" variant="light">
-                        {statusLabels[activity.status] || activity.status}
-                      </Badge>
-                      <Badge color="indigo" variant="light">
-                        {moduleLabels[activity.module] || activity.module}
-                      </Badge>
-                    </Group>
-                  </Group>
-                  <Group gap={8}>
-                    <Badge color="blue" variant="light" size="sm">
-                      {actionLabels[activity.action] || activity.action}
-                    </Badge>
-                    <Badge color="gray" variant="light" size="sm">
-                      {entityLabels[activity.entity_type] ||
-                        activity.entity_type}
-                    </Badge>
-                    {activity.prisoner_related_id && (
-                      <Badge color="teal" variant="light" size="sm">
-                        PRISIONERO: {activity.prisoner_related_id}
-                      </Badge>
-                    )}
-                  </Group>
-                  <Text size="sm">
-                    {traducirDescripcionCompleta(activity.description)}
-                  </Text>
-                  <Group gap={8}>
-                    <Text size="xs" c="gray">
-                      {new Date(activity.timestamp).toLocaleString()}
-                    </Text>
-                    <Tooltip label={activity.ip_address}>
-                      <Badge color="gray" variant="light" size="xs">
-                        IP
-                      </Badge>
-                    </Tooltip>
-                    <Tooltip label={activity.user_agent}>
-                      <Badge color="gray" variant="light" size="xs">
-                        AGENTE
-                      </Badge>
-                    </Tooltip>
-                  </Group>
-                  {activity.metadata && activity.metadata.deleted_user_id ? (
-                    <Card shadow="xs" radius="sm" withBorder mt={4}>
-                      <Stack gap={2}>
-                        <Text size="sm" fw={500} c="red">
-                          Usuario eliminado
-                        </Text>
-                        <Text size="sm">
-                          Nombre: <b>{activity.metadata.deleted_user_name}</b>
-                        </Text>
-                        <Text size="sm">
-                          Email: <b>{activity.metadata.deleted_user_email}</b>
-                        </Text>
-                        <Text size="sm">
-                          ID: <Code>{activity.metadata.deleted_user_id}</Code>
-                        </Text>
+                  </Accordion.Control>
+                  <Accordion.Panel>
+                    <Stack gap={10}>
+                      <Group align="flex-start" grow>
+                        <Stack gap={4} style={{ flex: 1 }}>
+                          <Text size="sm" c="dimmed">Fecha completa:</Text>
+                          <Text size="sm">{new Date(activity.timestamp).toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}</Text>
+                          <Text size="sm" c="dimmed">Realizado por:</Text>
+                          <Text size="sm">{activity.user?.name}</Text>
+                          <Text size="sm" c="dimmed">Área:</Text>
+                          <Text size="sm">{moduleLabels[activity.module] || activity.module}</Text>
+                          <Text size="sm" c="dimmed">Tipo de registro:</Text>
+                          <Text size="sm">{entityLabels[activity.entity_type] || activity.entity_type}</Text>
+                          <Text size="sm" c="dimmed">Importancia:</Text>
+                          <Text size="sm">{severityLabels[activity.severity] || activity.severity}</Text>
+                        </Stack>
+                        <Stack gap={4} style={{ flex: 1 }}>
+                          <Text size="sm" c="dimmed">Detalle:</Text>
+                          <Text size="sm">{translateUserAction(activity)}</Text>
+                          <Text size="sm" c="dimmed">Rol:</Text>
+                          <Text size="sm">{activity.user?.role === "ADMIN" ? "Administrador" : activity.user?.role}</Text>
+                          <Text size="sm" c="dimmed">Resultado:</Text>
+                          <Text size="sm">{statusLabels[activity.status] || activity.status}</Text>
+                        </Stack>
+                      </Group>
+                      {activity.changes && activity.changes.length > 0 && (
+                        <Stack gap={4} mt={6} p={4} style={{ background: "#f3f6fa", borderRadius: 6 }}>
+                          {activity.changes.map((chg, idx) => (
+                            <Box key={idx} mt={8} p={10} style={{ background: "#f8f9fa", borderRadius: 8, border: "1px solid #e0e0e0" }}>
+                              <Group grow>
+                                <Stack gap={2}>
+                                  <Text size="xs" fw={600} c="dimmed">Cambios realizados: {chg.field || chg.key || ""}</Text>
+                                  <Text size="xs"><b>Antes:</b> {chg.old_value ?? chg.oldValue ?? ""}</Text>
+                                  <Text size="xs"><b>Ahora:</b> {chg.new_value ?? chg.newValue ?? ""}</Text>
+                                </Stack>
+                                <Stack gap={2}>
+                                  <Text size="xs"><b>Hora exacta:</b> {new Date(activity.timestamp).toLocaleTimeString("es-ES")}</Text>
+                                </Stack>
+                              </Group>
+                            </Box>
+                          ))}
+                        </Stack>
+                      )}
+
+                      {activity.prisoner_related && (
+                      <Stack gap={4} mt={6}>
+                        <Text size="sm" c="dimmed">Prisionero relacionado:</Text>
+                        <Link to={`/reclusos/${activity.prisoner_related.id}`} style={{ textDecoration: "none" }}>
+                          <Badge>
+                            {activity.prisoner_related.identity
+                              ? `${activity.prisoner_related.identity.firstName} ${activity.prisoner_related.identity.surname}`
+                              : "Ver perfil"}
+                          </Badge>
+                        </Link>
                       </Stack>
-                    </Card>
-                  ) : (
-                    activity.metadata && (
-                      <Code block>
-                        {JSON.stringify(activity.metadata, null, 2)}
-                      </Code>
-                    )
-                  )}
-                  {activity.changes &&
-                    activity.changes.length > 0 && (
-                      <Code block>
-                        {JSON.stringify(activity.changes, null, 2)}
-                      </Code>
                     )}
-                </Stack>
-              </Card>
-            ))
+                      {activity.metadata && activity.metadata.deleted_user_id ? (
+                        <Card shadow="xs" radius="sm" withBorder mt={4}>
+                          <Stack gap={2}>
+                            <Text size="sm" fw={500} c="red">
+                              Usuario eliminado
+                            </Text>
+                            <Text size="sm">
+                              Nombre: <b>{activity.metadata.deleted_user_name}</b>
+                            </Text>
+                            <Text size="sm">
+                              Email: <b>{activity.metadata.deleted_user_email}</b>
+                            </Text>
+                            <Text size="sm">
+                              ID: <Code>{activity.metadata.deleted_user_id}</Code>
+                            </Text>
+                          </Stack>
+                        </Card>
+                      ) : null}
+                      {activity.metadata && activity.metadata.logout_reason && (
+                        <Stack gap={2} mt={4}>
+                          <Text size="sm" c="dimmed">Motivo de cierre de sesión:</Text>
+                          <Text size="sm">{translateLogout(String(activity.metadata.logout_reason))}</Text>
+                        </Stack>
+                      )}
+                    </Stack>
+                  </Accordion.Panel>
+                </Accordion.Item>
+              ))}
+            </Accordion>
           )}
-        </Stack>
 
         {totalPages > 1 && (
           <Group justify="center" mt="md">
@@ -209,6 +181,7 @@ const ActivityPage = () => {
             />
           </Group>
         )}
+      </Stack>
       </Stack>
     </Container>
   );

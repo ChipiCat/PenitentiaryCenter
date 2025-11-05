@@ -54,8 +54,7 @@ model User {
   updatedUsers  User[]    @relation("UserUpdatedBy")
   createdByUser User?     @relation("UserCreatedBy", fields: [createdBy], references: [id])
   updatedByUser User?     @relation("UserUpdatedBy", fields: [updatedBy], references: [id])
-  photoFile        File?    @relation("IdentityPhoto", fields: [photoFileId], references: [id], onDelete: SetNull)
-
+  photoFile     File?     @relation("IdentityPhoto", fields: [photoFileId], references: [id], onDelete: SetNull)
 
   @@map("users")
 }
@@ -145,7 +144,9 @@ model Prisoner {
   contacts       PrisonerContact[]
   children       PrisonerChild[]
 
-  cases          PrisonerCase[]
+  cases PrisonerCase[]
+
+  activityLogs ActivityLog[] @relation("PrisonerRelated")
 
   // Índices para optimizar búsquedas
   @@index([status, isDeleted])
@@ -247,7 +248,7 @@ model MedicalRecord {
   doctorName      String?
   examinationDate DateTime?
   referenceNumber String?
-  fileId        String?
+  fileId          String?
   notes           String?
 
   isDeleted Boolean  @default(false)
@@ -263,13 +264,13 @@ model MedicalRecord {
 }
 
 model PrisonerBelonging {
-  id          String  @id @default(cuid())
-  prisonerId  String
-  description String
-  quantity    Int     @default(1)
-  condition   String?
-  returned    Boolean @default(false)
-  inventoryFileId    String?
+  id              String  @id @default(cuid())
+  prisonerId      String
+  description     String
+  quantity        Int     @default(1)
+  condition       String?
+  returned        Boolean @default(false)
+  inventoryFileId String?
 
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -277,7 +278,7 @@ model PrisonerBelonging {
   createdBy String?
   updatedBy String?
 
-  prisoner Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+  prisoner      Prisoner @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
   inventoryFile File?    @relation("BelongingInventory", fields: [inventoryFileId], references: [id], onDelete: SetNull)
 
   @@map("prisoner_belongings")
@@ -354,7 +355,7 @@ model File {
   medicalRecords      MedicalRecord[]     @relation("MedicalFile")
   belongings          PrisonerBelonging[] @relation("BelongingInventory")
 
-  mandates            PrisonerMandate[] @relation("MandateDocument")
+  mandates PrisonerMandate[] @relation("MandateDocument")
 
 
   @@index([entityType, entityId])
@@ -390,47 +391,47 @@ enum MandateStatus {
 }
 
 model PrisonerCase {
-  id             String            @id @default(cuid())
-  prisonerId     String
-  caseNumber     String
-  crime          String
-  status         CaseStatus
-  startDate      DateTime
-  endDate        DateTime?
-  courtName      String?
-  judgeName      String?
-  sentenceYears  Int?
-  remarks        String?
+  id            String     @id @default(cuid())
+  prisonerId    String
+  caseNumber    String
+  crime         String
+  status        CaseStatus
+  startDate     DateTime
+  endDate       DateTime?
+  courtName     String?
+  judgeName     String?
+  sentenceYears Int?
+  remarks       String?
 
-  isDeleted      Boolean           @default(false)
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  createdBy      String?
-  updatedBy      String?
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
 
-  prisoner       Prisoner          @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
-  mandates       PrisonerMandate[]
+  prisoner Prisoner          @relation(fields: [prisonerId], references: [id], onDelete: Cascade)
+  mandates PrisonerMandate[]
 
   @@map("prisoner_cases")
 }
 
 model PrisonerMandate {
-  id          String         @id @default(cuid())
+  id          String        @id @default(cuid())
   caseId      String
   type        MandateType
   issueDate   DateTime
   fileId      String?
-  file        File?          @relation("MandateDocument", fields: [fileId], references: [id], onDelete: SetNull)
+  file        File?         @relation("MandateDocument", fields: [fileId], references: [id], onDelete: SetNull)
   description String?
   status      MandateStatus
 
-  isDeleted   Boolean        @default(false)
-  createdBy   String?
-  updatedBy   String?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  isDeleted Boolean  @default(false)
+  createdBy String?
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  case        PrisonerCase   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  case PrisonerCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
 
   @@map("prisoner_mandates")
 }
@@ -449,76 +450,76 @@ enum AuditAction {
   PASSWORD_CHANGED
   PASSWORD_RESET_REQUESTED
   TOKEN_REFRESHED
-  
+
   // CRUD genérico
   CREATE
   READ
   UPDATE
   DELETE
-  
+
   // Archivos
   FILE_UPLOAD
   FILE_DOWNLOAD
   FILE_DELETE
   FILE_VIEW
-  
+
   // Prisioneros
   PRISONER_REGISTERED
   PRISONER_TRANSFERRED
   PRISONER_RELEASED
   PRISONER_STATUS_CHANGED
-  
+
   // Identidad
   IDENTITY_CREATED
   IDENTITY_UPDATED
   IDENTITY_PHOTO_UPLOADED
   FINGERPRINT_UPLOADED
-  
+
   // Personal
   PERSONAL_INFO_CREATED
   PERSONAL_INFO_UPDATED
-  
+
   // Penitenciaria
   PENITENTIARY_INFO_CREATED
   PENITENTIARY_INFO_UPDATED
   CELL_CHANGED
-  
+
   // Médico
   MEDICAL_RECORD_CREATED
   MEDICAL_RECORD_UPDATED
   MEDICAL_RECORD_DELETED
   MEDICAL_FILE_UPLOADED
-  
+
   // Pertenencias
   BELONGING_REGISTERED
   BELONGING_UPDATED
   BELONGING_RETURNED
   BELONGING_INVENTORY_UPLOADED
-  
+
   // Contactos
   CONTACT_ADDED
   CONTACT_UPDATED
   CONTACT_DELETED
-  
+
   // Hijos
   CHILD_REGISTERED
   CHILD_UPDATED
   CHILD_DELETED
-  
+
   // Casos judiciales (futuro)
   CASE_CREATED
   CASE_UPDATED
   CASE_CLOSED
-  
+
   // Mandamientos (futuro)
   MANDATE_ISSUED
   MANDATE_EXECUTED
   MANDATE_ANNULLED
-  
+
   // Reportes
   REPORT_GENERATED
   REPORT_DOWNLOADED
-  
+
   // Administración
   USER_CREATED
   USER_UPDATED
@@ -593,45 +594,46 @@ enum LogoutReason {
 // ============================================================
 
 model ActivityLog {
-  id              String         @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // ¿Quién?
-  userId          String?
-  userEmail       String?
-  userName        String?
-  userRole        String?
-  
+  userId    String?
+  userEmail String?
+  userName  String?
+  userRole  String?
+
   // ¿Qué?
-  action          AuditAction    // ✅ ENUM
-  entityType      EntityType     // ✅ ENUM
-  entityId        String?
-  
+  action     AuditAction // ✅ ENUM
+  entityType EntityType // ✅ ENUM
+  entityId   String?
+
   // ¿Cuándo?
-  timestamp       DateTime       @default(now())
+  timestamp DateTime @default(now())
 
   // ¿Dónde?
-  ipAddress       String?
-  userAgent       String?
+  ipAddress String?
+  userAgent String?
 
   // ¿Cómo?
-  description     String
-  metadata        Json?
+  description String
+  metadata    Json?
 
   // Estado
-  status          AuditStatus    @default(SUCCESS) // ✅ ENUM
-  errorMessage    String?
+  status       AuditStatus @default(SUCCESS) // ✅ ENUM
+  errorMessage String?
 
   // Contexto
-  module          AuditModule?   // ✅ ENUM
-  severity        AuditSeverity  @default(INFO)    // ✅ ENUM
+  module   AuditModule? // ✅ ENUM
+  severity AuditSeverity @default(INFO) // ✅ ENUM
 
   // Relación directa con prisionero (opcional, para trazabilidad)
   prisonerRelatedId String?
+  prisonerRelated   Prisoner? @relation("PrisonerRelated", fields: [prisonerRelatedId], references: [id])
 
   // Relaciones
-  dataChanges     DataChangeLog[]
-  sessionLogId    String?
-  sessionLog      SessionLog?    @relation(fields: [sessionLogId], references: [id])
+  dataChanges  DataChangeLog[]
+  sessionLogId String?
+  sessionLog   SessionLog?     @relation(fields: [sessionLogId], references: [id])
 
   @@index([userId, timestamp])
   @@index([entityType, entityId])
@@ -644,27 +646,27 @@ model ActivityLog {
 }
 
 model SessionLog {
-  id              String        @id @default(cuid())
-  userId          String
-  
-  loginAt         DateTime      @default(now())
-  logoutAt        DateTime?
-  
-  ipAddress       String
-  userAgent       String
-  deviceInfo      String?
-  
+  id     String @id @default(cuid())
+  userId String
+
+  loginAt  DateTime  @default(now())
+  logoutAt DateTime?
+
+  ipAddress  String
+  userAgent  String
+  deviceInfo String?
+
   // Ubicación (opcional)
-  country         String?
-  city            String?
-  
+  country String?
+  city    String?
+
   // Estado
-  isActive        Boolean       @default(true)
-  logoutReason    LogoutReason? // ✅ ENUM
-  
+  isActive     Boolean       @default(true)
+  logoutReason LogoutReason? // ✅ ENUM
+
   // Relaciones
-  activities      ActivityLog[]
-  
+  activities ActivityLog[]
+
   @@index([userId, loginAt])
   @@index([isActive])
   @@index([logoutReason])
@@ -672,23 +674,23 @@ model SessionLog {
 }
 
 model DataChangeLog {
-  id              String       @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // Relación con activity log
-  activityLogId   String?
-  activityLog     ActivityLog? @relation(fields: [activityLogId], references: [id])
-  
-  entityType      EntityType   // ✅ ENUM
-  entityId        String
-  fieldName       String
+  activityLogId String?
+  activityLog   ActivityLog? @relation(fields: [activityLogId], references: [id])
 
-  oldValue        String?
-  newValue        String?
+  entityType EntityType // ✅ ENUM
+  entityId   String
+  fieldName  String
 
-  changedBy       String
-  changedAt       DateTime     @default(now())
+  oldValue String?
+  newValue String?
 
-  reason          String?
+  changedBy String
+  changedAt DateTime @default(now())
+
+  reason String?
 
   // Relación directa con prisionero (opcional, para trazabilidad)
   prisonerRelatedId String?

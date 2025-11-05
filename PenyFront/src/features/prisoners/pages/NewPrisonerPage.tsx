@@ -32,7 +32,6 @@ export const NewPrisonerPage: React.FC = () => {
       />
 
       <PrisonerFormWizard
-        mode="create"
         onSuccess={handleSuccess}
         onCancel={handleCancel}
       />

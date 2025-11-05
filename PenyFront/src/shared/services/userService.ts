@@ -1,6 +1,6 @@
-import api from './api';
-import type { AxiosError, PaginationResponse } from '../types/axiosTypes';  // ✅ USAR EXISTENTE
-import type { 
+import api from "./api";
+import type { AxiosError, PaginationResponse } from "../types/axiosTypes"; // ✅ USAR EXISTENTE
+import type {
   CreateUserData,
   UpdateUserData,
   GetUsersParams,
@@ -10,33 +10,46 @@ import { handleApiError } from "../utils/handleApiError";
 
 
 export const getUserById = async (id: string): Promise<User | null> => {
-    try {
-        const response = await api.get<User>(`/users/${id}`);
-        return response.data;
-    } catch (error) {
-        handleApiError(error, "getUserById");
-        return null;
-    }
-}
+  try {
+    const response = await api.get<User>(`/users/${id}`);
+    return response.data;
+  } catch (error) {
+    handleApiError(error, "getUserById");
+    return null;
+  }
+};
 
 export const usersService = {
-  async createUser(data: CreateUserData): Promise<User> {
+  async createUser(data: CreateUserData | FormData): Promise<User> {
     try {
-      const response = await api.post<User>('/users', data);
+      let response;
+      if (data instanceof FormData) {
+        response = await api.post<User>("/users", data); // El navegador pone el Content-Type
+      } else {
+        response = await api.post<User>("/users", data, {
+          headers: { "Content-Type": "application/json" },
+        });
+      }
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError;
-      throw new Error(axiosError.response?.data?.message || 'Error al crear usuario');
+      throw new Error(
+        axiosError.response?.data?.message || "Error al crear usuario"
+      );
     }
   },
 
   async getUsers(params?: GetUsersParams): Promise<PaginationResponse<User>> {
     try {
-      const response = await api.get<PaginationResponse<User>>('/users', { params });
+      const response = await api.get<PaginationResponse<User>>("/users", {
+        params,
+      });
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError;
-      throw new Error(axiosError.response?.data?.message || 'Error al obtener usuarios');
+      throw new Error(
+        axiosError.response?.data?.message || "Error al obtener usuarios"
+      );
     }
   },
 
@@ -47,7 +60,9 @@ export const usersService = {
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError;
-      throw new Error(axiosError.response?.data?.message || 'Error al obtener usuario');
+      throw new Error(
+        axiosError.response?.data?.message || "Error al obtener usuario"
+      );
     }
   },
 
@@ -58,7 +73,9 @@ export const usersService = {
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError;
-      throw new Error(axiosError.response?.data?.message || 'Error al actualizar usuario');
+      throw new Error(
+        axiosError.response?.data?.message || "Error al actualizar usuario"
+      );
     }
   },
 
@@ -68,7 +85,9 @@ export const usersService = {
       await api.delete(`/users/${id}`);
     } catch (error) {
       const axiosError = error as AxiosError;
-      throw new Error(axiosError.response?.data?.message || 'Error al eliminar usuario');
+      throw new Error(
+        axiosError.response?.data?.message || "Error al eliminar usuario"
+      );
     }
   },
 };

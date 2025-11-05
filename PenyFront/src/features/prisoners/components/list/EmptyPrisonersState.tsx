@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { Card, Center, Stack, Title } from '@mantine/core';
-import {  Users } from 'lucide-react';
+import { Card, Center, Stack, Title, Button } from '@mantine/core';
+import { Users, Plus } from 'lucide-react';
 
 interface EmptyPrisonersStateProps {
   onCreateNew?: () => void;
@@ -34,8 +34,14 @@ export const EmptyPrisonersState: React.FC<EmptyPrisonersStateProps> = ({ onCrea
             <Title order={3} size="h4" mb="xs">
               Ningún prisionero encontrado
             </Title>
-            
+            <p style={{ color: "var(--mantine-color-gray-6)", marginBottom: "1rem" }}>
+              Crea tu primer prisionero para comenzar
+            </p>
           </div>
+
+          <Button leftSection={<Plus size={16} />} onClick={onCreateNew}>
+            Crear Prisionero
+          </Button>
 
         </Stack>
       </Center>

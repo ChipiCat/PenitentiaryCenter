@@ -14,6 +14,7 @@ import { ROUTES } from "./shared/config/routes";
 import { PrisonersPage } from "./features/prisoners/pages/PrisonersPage";
 import { NewPrisonerPage } from "./features/prisoners/pages/NewPrisonerPage";
 import { PrisonerProfilePage } from "./features/prisoners/pages/PrisonerProfilePage";
+import WelcomePage from "./features/welcome/views/WelcomePage";
 
 function App() {
   const theme = createTheme({
@@ -44,7 +45,7 @@ function App() {
               <LoginPage />
             </PublicRoute>
           } />
-          
+
           <Route path={ROUTES.HOME} element={
             <ProtectedRoute>
               <MainLayout>
@@ -52,8 +53,16 @@ function App() {
               </MainLayout>
             </ProtectedRoute>
           } />
-          
-        
+
+          <Route path={ROUTES.WELCOME} element={
+            <ProtectedRoute>
+              <WelcomePage />
+            </ProtectedRoute>
+          } />
+
+
+
+
           <Route path={ROUTES.PRISONERS} element={
             <ProtectedRoute>
               <MainLayout>
@@ -61,7 +70,7 @@ function App() {
               </MainLayout>
             </ProtectedRoute>
           } />
-          
+
           <Route path={ROUTES.PRISONERS_NEW} element={
             <ProtectedRoute>
               <MainLayout>
@@ -69,7 +78,7 @@ function App() {
               </MainLayout>
             </ProtectedRoute>
           } />
-          
+
           <Route path={`${ROUTES.PRISONERS}/:id`} element={
             <ProtectedRoute>
               <MainLayout>
@@ -77,7 +86,7 @@ function App() {
               </MainLayout>
             </ProtectedRoute>
           } />
-          
+
           <Route path={ROUTES.PROFILE} element={
             <ProtectedRoute>
               <MainLayout>
@@ -85,7 +94,7 @@ function App() {
               </MainLayout>
             </ProtectedRoute>
           } />
-          
+
           <Route path={ROUTES.USERS} element={
             <ProtectedRoute>
               <MainLayout>
@@ -93,7 +102,7 @@ function App() {
               </MainLayout>
             </ProtectedRoute>
           } />
-          
+
           <Route path={ROUTES.ACTIVITY} element={
             <ProtectedRoute>
               <MainLayout>

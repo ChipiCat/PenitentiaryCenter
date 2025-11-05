@@ -1,9 +1,8 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { login, logout } from "../../services/authService";
 import { getUserById } from "../../services/userService";
-
+import type { User } from "../../types/userTypes";
 import type { LoginRequest } from "../../types/authRequest";
-import type { User } from "../../types";
 
 
 /**
@@ -22,6 +21,7 @@ export const loginThunk = createAsyncThunk<User, LoginRequest, { rejectValue: st
       return userData;
     } catch (error: unknown) {
       if (error instanceof Error) {
+        return rejectWithValue(error.message ?? "Error al iniciar sesión");
       }
       return rejectWithValue("Error al iniciar sesión");
     }

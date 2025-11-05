@@ -552,7 +552,8 @@ export class PrisionersService {
     })}`;
 
     // Intentar obtener del cache
-    const cachedResult = this.cacheService.get<SearchPrisonerResponseDto>(cacheKey);
+    const cachedResult =
+      this.cacheService.get<SearchPrisonerResponseDto>(cacheKey);
     if (cachedResult) {
       return cachedResult;
     }
@@ -986,7 +987,9 @@ export class PrisionersService {
           ? this.mapPersonalToDto(prisoner.personal as PrisonerPersonal)
           : undefined,
         penitentiary: prisoner.penitentiary
-          ? this.mapPenitentiaryToDto(prisoner.penitentiary as PrisonerPenitentiary)
+          ? this.mapPenitentiaryToDto(
+              prisoner.penitentiary as PrisonerPenitentiary,
+            )
           : undefined,
         cases: prisoner.cases.map((prisonerCase) =>
           this.mapCaseToDto(prisonerCase as PrisonerCase),
@@ -1233,7 +1236,9 @@ export class PrisionersService {
       entityId: file.entityId ?? undefined,
       fieldName: file.fieldName ?? undefined,
       createdBy: file.createdBy ?? undefined,
-      createdAt: file.createdAt ? file.createdAt.toISOString() : new Date().toISOString(),
+      createdAt: file.createdAt
+        ? file.createdAt.toISOString()
+        : new Date().toISOString(),
     };
   }
 

@@ -78,30 +78,3 @@ export const iconMap: Record<string, JSX.Element> = {
   PERSONAL: <IconUser size={16} />,
   FILE_UPLOAD: <IconBox size={16} />,
 };
-
-export function traducirDescripcion(desc: string): string {
-  if (!desc) return '';
-  return desc
-    .replace(
-      /User ([^ ]+) logged in successfully/,
-      'El usuario $1 inició sesión correctamente'
-    )
-    .replace(
-      /User ([^ ]+) logged out \(USER_LOGOUT\)/,
-      'El usuario $1 cerró sesión (USER_LOGOUT)'
-    )
-    .replace(
-      /User ([^ ]+) refreshed authentication token/,
-      'El usuario $1 actualizó el token de autenticación'
-    )
-    .replace(/Prisoner ([^ ]+) registered/, 'Prisionero $1 registrado')
-    .replace(
-      /Archivo subido: (.+) \((.+)\) para prisoner_identity/,
-      'Archivo subido: $1 ($2) para identidad de prisionero'
-    )
-    .replace(/Identidad creada: (.+)/, 'Identidad creada: $1')
-    .replace(
-      /User ([^ ]+) \((.+)\) was deleted/,
-      'El usuario $1 ($2) fue eliminado'
-    );
-}

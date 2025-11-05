@@ -1,5 +1,6 @@
 import type { PaginationParams } from "./axiosTypes";
-import type { Entity, FileInfo } from "./commonTypes";
+import type { Entity } from "./commonTypes";
+import type { FileInfo } from "./filesTypes";
 
 export interface User extends Entity {
   email: string;
@@ -32,22 +33,32 @@ export interface CreateUserData {
   password: string;
   name: string;
   role: string;
-  photoUrl?: string;
+  photoFileId?: string;
+  cellphone?: string;
+  ci?: string;
+  department?: string;
+  departmentalDirectorateUnit?: string;
 }
-
 export interface UpdateUserData {
   email?: string;
   name?: string;
   role?: string;
   isActive?: boolean;
+  photoFileId?: string;
+  cellphone?: string;
+  ci?: string;
+  department?: string;
+  departmentalDirectorateUnit?: string;
 }
 
 export interface GetUsersParams extends PaginationParams {
   role?: string;
   search?: string;
   isActive?: boolean;
+  page?: number;
+  limit?: number;
+  size?: number; // <-- corrige esta línea
 }
-
 export interface UserFilters {
   status?: string;
   gender?: string;
