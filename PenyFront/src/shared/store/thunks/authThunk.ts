@@ -5,6 +5,7 @@ import type { User } from "../../types/userTypes";
 import type { LoginRequest } from "../../types/authRequest";
 
 
+
 /**
  * Manage  user login and fetch user data
  */

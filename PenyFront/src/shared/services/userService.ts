@@ -4,9 +4,10 @@ import type {
   CreateUserData,
   UpdateUserData,
   GetUsersParams,
-} from "../types/userTypes";
+  User
+} from '../types/userTypes'; 
 import { handleApiError } from "../utils/handleApiError";
-import type { User } from "../types/userTypes";
+
 
 export const getUserById = async (id: string): Promise<User | null> => {
   try {

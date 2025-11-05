@@ -17,7 +17,7 @@ import { useGlobalContext } from '../hooks/useGlobalContext';
 const navigationData = [
   { link: ROUTES.HOME, label: 'Panel Principal', icon: Home, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY'] },
   { link: ROUTES.PRISONERS, label: 'Reclusos', icon: Users, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY'] },
-  { link: ROUTES.ACTIVITY, label: 'Actividades', icon: Activity, roles: ['ADMIN', 'DIRECTOR'] },
+  { link: ROUTES.ACTIVITY, label: 'Actividades', icon: Activity, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY'] },
   { link: ROUTES.USERS, label: 'Usuarios', icon: UserCog, roles: ['ADMIN'] },
 ];
 
@@ -95,14 +95,14 @@ export function NavbarSimple() {
       <div className={classes.header}>
         <div className={classes.logoSection}>
           <img
-            src="/assets/LogoPenitenciaria.png"
+            src="/assets/Isotipo.png"
             alt="Logo Penitenciaria"
-            className={classes.logo}
+            className="h-10 w-10 rounded-full"
           />
           {!collapsed && (
             <div className={classes.logoText}>
               <Text className="!text-white" fw={700} size="sm" c="blue">Centro Penitenciario</Text>
-              <Text className="!text-gray-300" size="xs" c="dimmed">Chonchocoro</Text>
+              <Text className="!text-gray-300" size="xs" c="dimmed">San Sebastian Varones</Text>
             </div>
           )}
         </div>
