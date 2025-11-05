@@ -18,6 +18,7 @@ import { IPaginatedResponse } from '../common/interfaces/entity.interface';
 import { User, UserRole, Prisma } from '../../generated/prisma';
 import * as bcrypt from 'bcryptjs';
 import { AuditService } from '../audit/audit.service';
+import { MailService } from '../common/services/mail.service';
 
 /**
  * Interfaz para los metadatos de auditoría extraídos del request
@@ -51,6 +52,7 @@ export class UserService {
   constructor(
     private prisma: PrismaService,
     private auditService: AuditService,
+    private mailService: MailService,
     @Inject(REQUEST) private readonly request: Request,
   ) {}
 
@@ -72,7 +74,17 @@ export class UserService {
     createdBy?: string,
   ): Promise<User> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
-    const { email, password, name, role, photoFileId, cellphone, ci, department, departmentalDirectorateUnit } = createUserDto;
+    const {
+      email,
+      password,
+      name,
+      role,
+      photoFileId,
+      cellphone,
+      ci,
+      department,
+      departmentalDirectorateUnit,
+    } = createUserDto;
 
     // Check if user already exists
     const existingUser = await this.prisma.user.findFirst({
@@ -145,6 +157,8 @@ export class UserService {
       userAgent,
     );
 
+    await this.mailService.sendUserCredentials(result.email, password, name);
+
     return result;
   }
 
@@ -212,7 +226,17 @@ export class UserService {
     updatedBy?: string,
   ): Promise<User> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
-    const { email, name, role, photoFileId, isFirstLogin, cellphone, ci, department, departmentalDirectorateUnit } = updateUserDto;
+    const {
+      email,
+      name,
+      role,
+      photoFileId,
+      isFirstLogin,
+      cellphone,
+      ci,
+      department,
+      departmentalDirectorateUnit,
+    } = updateUserDto;
 
     // Check if user exists
     const existingUser = await this.findOne(id);
@@ -239,7 +263,9 @@ export class UserService {
         ...(cellphone !== undefined && { cellphone }),
         ...(ci !== undefined && { ci }),
         ...(department !== undefined && { department }),
-        ...(departmentalDirectorateUnit !== undefined && { departmentalDirectorateUnit }),
+        ...(departmentalDirectorateUnit !== undefined && {
+          departmentalDirectorateUnit,
+        }),
         updatedBy,
       },
       include: {

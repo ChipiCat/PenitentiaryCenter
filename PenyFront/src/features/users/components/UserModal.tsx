@@ -6,14 +6,19 @@ import {
   Group,
   Stack,
   PasswordInput,
+  Divider,
+  Text,
+  Box,
+  Loader,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
 import type { CreateUserData } from "../../../shared/types/userTypes";
-import type { User } from "../../../shared/types/userResponse";
+import type { User } from "../../../shared/types/userTypes";
 import { ProfilePhotoDropzone } from "../../../shared/components/BelongingDropzone";
 
 const roleOptions = [
+  { value: "DIRECTOR", label: "Director" },
   { value: "ADMIN", label: "Administrador" },
   { value: "SECRETARY", label: "Secretario" },
 ];
@@ -21,7 +26,7 @@ const roleOptions = [
 interface UserModalProps {
   opened: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateUserData) => void;
+  onSubmit: (data: CreateUserData | FormData) => void;
   isLoading?: boolean;
   user?: User | null;
 }
@@ -40,7 +45,11 @@ export const UserModal = ({
       name: "",
       email: "",
       password: "",
-      role: "USER",
+      role: "ADMIN",
+      cellphone: "",
+      ci: "",
+      department: "",
+      departmentalDirectorateUnit: "",
     },
     validate: {
       name: (value: string) =>
@@ -54,7 +63,7 @@ export const UserModal = ({
       },
       role: (value: string) => (!value ? "Selecciona un rol" : null),
       password: (value: string) =>
-        !value || value.length < 6
+        !user && (!value || value.length < 6)
           ? "La contraseña debe tener al menos 6 caracteres"
           : null,
     },
@@ -66,28 +75,36 @@ export const UserModal = ({
         form.setValues({
           name: user.name ?? "",
           email: user.email ?? "",
-          role: user.role ?? "USER",
-          password: "", // No se muestra la contraseña actual
+          role: user.role ?? "ADMIN",
+          password: "",
+          cellphone: user.cellphone ?? "",
+          ci: user.ci ?? "",
+          department: user.department ?? "",
+          departmentalDirectorateUnit: user.departmentalDirectorateUnit ?? "",
         });
       } else {
         form.reset();
       }
       setPhotoFile(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [opened, user]);
 
-  const handleSubmit = (values: CreateUserData) => {
-    const data: CreateUserData = {
-      ...values,
-      photoUrl: photoFile ? URL.createObjectURL(photoFile) : undefined,
-    };
-    onSubmit(data);
-    if (!isLoading) {
-      form.reset();
-      setPhotoFile(null);
-      onClose();
-    }
+  }, [opened, user, form]);
+
+  const handleSubmit = async (values: CreateUserData) => {
+    // Construir FormData para ambos casos (crear y editar)
+    const formData = new FormData();
+    formData.append("name", values.name);
+    formData.append("email", values.email);
+    formData.append("password", values.password);
+    formData.append("role", values.role);
+    if (values.cellphone) formData.append("cellphone", values.cellphone);
+    if (values.ci) formData.append("ci", values.ci);
+    if (values.department) formData.append("department", values.department);
+    if (values.departmentalDirectorateUnit) formData.append("departmentalDirectorateUnit", values.departmentalDirectorateUnit);
+    if (photoFile) formData.append("photo", photoFile);
+    
+    // Llamar a onSubmit desde la página, que maneja todo
+    onSubmit(formData);
   };
 
   const handleClose = () => {
@@ -100,51 +117,103 @@ export const UserModal = ({
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={user ? "Editar Usuario" : "Nuevo Usuario"}
-      size="md"
+      title={user ? "Editar información del usuario" : "Registrar nuevo usuario"}
+      size="lg"
       closeOnClickOutside={!isLoading}
       closeOnEscape={!isLoading}
+      radius="md"
+      padding="lg"
+      centered
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md">
-          <Group justify="center">
+          <Group justify="center" mb="xs">
             <ProfilePhotoDropzone onFile={setPhotoFile} />
           </Group>
-          <TextInput
-            label="Nombre completo"
-            placeholder="Nombre y apellido"
-            required
-            disabled={isLoading}
-            {...form.getInputProps("name")}
-          />
-          <TextInput
-            label="Correo electrónico"
-            placeholder="usuario@penitenciario.gov"
-            type="email"
-            required
-            disabled={isLoading}
-            {...form.getInputProps("email")}
-          />
-          <Select
-            label="Rol"
-            placeholder="Selecciona un rol"
-            required
-            disabled={isLoading}
-            data={roleOptions}
-            {...form.getInputProps("role")}
-          />
-          <PasswordInput
-            label="Contraseña"
-            placeholder="Contraseña (mín. 6 caracteres)"
-            required={!user}
-            disabled={isLoading}
-            {...form.getInputProps("password")}
-          />
+          {user && (
+            <Box mb="xs">
+              <Divider
+                my="xs"
+                label="Datos del usuario"
+                labelPosition="center"
+              />
+              <Group gap="xs" grow>
+                <Text size="sm">
+                  <b>Actualización:</b>{" "}
+                  {user.updatedAt
+                    ? new Date(user.updatedAt).toLocaleString()
+                    : "-"}
+                </Text>
+              </Group>
+            </Box>
+          )}
+          <Group grow>
+            <TextInput
+              label="Nombre completo"
+              placeholder="Nombre y apellido"
+              required
+              disabled={isLoading}
+              {...form.getInputProps("name")}
+            />
+            <TextInput
+              label="Correo electrónico"
+              placeholder="usuario@penitenciario.gov"
+              type="email"
+              required
+              disabled={isLoading}
+              {...form.getInputProps("email")}
+            />
+          </Group>
+          <Group grow>
+            <Select
+              label="Rol del Usuario"
+              placeholder="Selecciona un rol"
+              required
+              disabled={isLoading}
+              data={roleOptions}
+              {...form.getInputProps("role")}
+            />
+            <PasswordInput
+              label="Contraseña"
+              placeholder="Contraseña (mín. 6 caracteres)"
+              required={!user}
+              disabled={isLoading}
+              {...form.getInputProps("password")}
+            />
+          </Group>
+          <Group grow>
+            <TextInput
+              label="Celular"
+              placeholder="Ej: +591 12345678"
+              disabled={isLoading}
+              {...form.getInputProps("cellphone")}
+            />
+            <TextInput
+              label="CI"
+              placeholder="Ej: 1234567"
+              disabled={isLoading}
+              {...form.getInputProps("ci")}
+            />
+          </Group>
+          <Group grow>
+            <TextInput
+              label="Departamento"
+              placeholder="Ej: Santa Cruz"
+              disabled={isLoading}
+              {...form.getInputProps("department")}
+            />
+            <TextInput
+              label="Unidad/Dirección Departamental"
+              placeholder="Ej: Dirección Regional Norte"
+              disabled={isLoading}
+              {...form.getInputProps("departmentalDirectorateUnit")}
+            />
+          </Group>
           <Group justify="flex-end" mt="md">
             <Button variant="subtle" onClick={handleClose} disabled={isLoading}>
               Cancelar
             </Button>
-            <Button type="submit" loading={isLoading} disabled={isLoading}>
+            <Button type="submit" loading={isLoading} disabled={isLoading} leftSection={isLoading ? <Loader size={16} color="gray" /> : undefined}>
               {user ? "Actualizar Usuario" : "Crear Usuario"}
             </Button>
           </Group>

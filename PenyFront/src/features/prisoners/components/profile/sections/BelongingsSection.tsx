@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Card, Stack, Title, Group, Button, Text, ActionIcon, Badge, Modal, Tooltip } from '@mantine/core';
-import { FileDown, Plus, Pencil, Trash2, CheckCircle2, XCircle, Eye } from 'lucide-react';
+import { Card, Stack, Title, Group, Button, Text, ActionIcon, Badge, Modal } from '@mantine/core';
+import { FileDown, Plus, Pencil, Trash2, CheckCircle2, XCircle } from 'lucide-react';
 import type { Belonging } from '../../../../../shared/types/belongingTypes';
 import { BelongingFormModal } from '../modals/BelongingFormModal';
 import { useBelongingsManager } from '../hooks/useBelongingsManager';
@@ -56,15 +56,9 @@ export const BelongingsSection: React.FC<BelongingsSectionProps> = ({
     }
   };
 
-
-
   const handleModalClose = () => {
     setIsModalOpen(false);
     setEditingBelonging(null);
-  };
-
-  const handleViewFile = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const { user } = useGlobalContext();

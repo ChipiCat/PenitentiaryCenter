@@ -8,9 +8,15 @@ import type { AuthResponse } from "../types/authResponse";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
-export const register = async (registerData: RegisterRequest): Promise<AuthResponse | null> => {
+export const register = async (registerData: RegisterRequest | FormData): Promise<AuthResponse | null> => {
     try {
-        const response = await api.post<AuthResponse>(`/auth/register`, registerData);
+        // Detecta si es FormData para enviar correctamente
+        const isFormData = registerData instanceof FormData;
+        const response = await api.post<AuthResponse>(
+            `/auth/register`,
+            registerData,
+            isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined
+        );
         return response.data;
     } catch (error) {
         handleApiError(error, "register");

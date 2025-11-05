@@ -887,6 +887,14 @@ export class AuditService {
         orderBy: { timestamp: 'desc' },
         include: {
           dataChanges: true,
+          prisonerRelated: {
+            select: {
+              id: true,
+              identity: {
+                select: { surname: true, firstName: true },
+              },
+            },
+          },
         },
       }),
       this.prisma.activityLog.count({ where }),
@@ -895,7 +903,20 @@ export class AuditService {
     const totalPages = Math.ceil(total / limit);
 
     return {
-      data: activities.map((activity) => this.mapActivityLogToDto(activity)),
+      data: activities.map((activity) =>
+        this.mapActivityLogToDto(
+          activity as ActivityLog & {
+            prisonerRelated?: {
+              id: string;
+              identity: {
+                surname: string;
+                firstName: string;
+              };
+            };
+            dataChanges?: DataChangeLog[];
+          },
+        ),
+      ),
       pagination: {
         page,
         limit,
@@ -1297,7 +1318,16 @@ export class AuditService {
   // ============================================================
 
   private mapActivityLogToDto(
-    activity: ActivityLog & { dataChanges?: DataChangeLog[] },
+    activity: ActivityLog & {
+      prisonerRelated?: {
+        id: string;
+        identity: {
+          surname: string;
+          firstName: string;
+        };
+      };
+      dataChanges?: DataChangeLog[];
+    },
   ): ActivityLogResponseDto {
     return {
       id: activity.id,
@@ -1324,6 +1354,15 @@ export class AuditService {
       module: activity.module || undefined,
       severity: activity.severity,
       prisoner_related_id: activity.prisonerRelatedId || undefined,
+      prisoner_related: activity.prisonerRelated
+        ? {
+            id: activity.prisonerRelated.id,
+            identity: {
+              surname: activity.prisonerRelated.identity.surname,
+              firstName: activity.prisonerRelated.identity.firstName,
+            },
+          }
+        : undefined,
       session_log_id: activity.sessionLogId || undefined,
       data_changes: activity.dataChanges
         ? activity.dataChanges.map((change) => ({
@@ -1689,7 +1728,17 @@ export class AuditService {
       where: { userId },
       take: 10,
       orderBy: { timestamp: 'desc' },
-      include: { dataChanges: true },
+      include: {
+        dataChanges: true,
+        prisonerRelated: {
+          select: {
+            id: true,
+            identity: {
+              select: { surname: true, firstName: true },
+            },
+          },
+        },
+      },
     });
 
     // Sessions summary
@@ -1756,7 +1805,19 @@ export class AuditService {
         last_30d: activitiesLast30d,
       },
       recent_activities: recentActivities.map((activity) =>
-        this.mapActivityLogToDto(activity),
+        this.mapActivityLogToDto({
+          ...activity,
+          prisonerRelated:
+            activity.prisonerRelated && activity.prisonerRelated.identity
+              ? {
+                  id: activity.prisonerRelated.id,
+                  identity: {
+                    surname: activity.prisonerRelated.identity.surname,
+                    firstName: activity.prisonerRelated.identity.firstName,
+                  },
+                }
+              : undefined,
+        }),
       ),
       sessions_summary: {
         average_session_duration_minutes: Math.round(avgSessionDuration),

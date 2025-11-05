@@ -119,10 +119,10 @@ export class AuthResponseDto {
       cellphone: { type: 'string', nullable: true, example: '+591 12345678' },
       ci: { type: 'string', nullable: true, example: '1234567' },
       department: { type: 'string', nullable: true, example: 'Santa Cruz' },
-      departmentalDirectorateUnit: { 
-        type: 'string', 
-        nullable: true, 
-        example: 'Dirección Regional Norte' 
+      departmentalDirectorateUnit: {
+        type: 'string',
+        nullable: true,
+        example: 'Dirección Regional Norte',
       },
     },
   })

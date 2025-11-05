@@ -4,11 +4,15 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-    name: string;
-    email: string;
-    password: string;
-    role: string;
-    photoUrl: string;
+  email: string;
+  password: string;
+  name: string;
+  role: string;
+  photoFileId?: string;
+  cellphone?: string;
+  ci?: string;
+  department?: string;
+  departmentalDirectorateUnit?: string;
 }
 
 export interface RefreshTokenRequest {
