@@ -88,7 +88,7 @@ export const UserModal = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opened, user]);
 
-  const handleSubmit = (values: Record<string, any>) => {
+  const handleSubmit = (values: CreateUserData) => {
     const data: CreateUserData = {
       email: values.email,
       password: values.password,
