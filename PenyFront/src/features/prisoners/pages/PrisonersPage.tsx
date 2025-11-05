@@ -2,30 +2,26 @@ import React, { useState, useCallback, useEffect } from "react";
 import { Container, Stack } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useNavigate } from "react-router-dom";
-import { PrisonerFormWizard } from "../components/forms/PrisonerFormWizard";
-import { ROUTES } from "../../../shared/config/routes";
 import { PrisonersHeader } from "../components/list/PrisonersHeader";
 import { PrisonersStats } from "../components/list/PrisonersStats";
 import { PrisonersList } from "../components/list/PrisonersList";
 import { EmptyPrisonersState } from "../components/list/EmptyPrisonersState";
-import { PrisonersSearchBar } from "../components/list/PrisonersSearchBar";
 import { PrisonersFilters } from "../components/list/PrisonersFilters";
 import { PrisonersPagination } from "../components/list/PrisonersPagination";
+import { ROUTES } from "../../../shared/config/routes";
 import type {
   PrisionerListItem,
   PrisonerBase,
 } from "../../../shared/types/prisonerTypes";
-import type { UserFilters, Statistics, Pagination } from "../../../shared/types";
+import type { Statistics, Pagination } from "../../../shared/types";
+import type { PrisonerSearchFilters } from "../../../shared/types/prisonerSearchTypes";
 import { prisonersService } from "../../../shared/services/prisonersService";
-
-type ViewMode = "list" | "create" | "edit";
+import PrisonersSearchBar from "../components/list/PrisonersSearchBar";
 
 export const PrisonersPage: React.FC = () => {
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
-  const [selectedPrisoner, setSelectedPrisoner] = useState<PrisonerBase | null>(
-    null
-  );
+  
+  // State management
   const [prisoners, setPrisoners] = useState<PrisionerListItem[]>([]);
   const [statistics, setStatistics] = useState<Statistics>({
     total: 0,
@@ -36,41 +32,21 @@ export const PrisonersPage: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [filters, setFilters] = useState<UserFilters>({});
+  const [filters, setFilters] = useState<PrisonerSearchFilters>({});
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
-    limit: 10,
+    limit: 12,
     total: 0,
     totalPages: 0,
   });
   const [viewType, setViewType] = useState<'table' | 'cards'>('cards');
 
-  const handleCreateNew = () => {
-    setSelectedPrisoner(null);
-    setViewMode("create");
-  };
-
-  const handleEdit = (prisoner: PrisonerBase) => {
-    setSelectedPrisoner(prisoner);
-    setViewMode("edit");
-  };
-
-  const handleViewProfile = (prisoner: PrisonerBase) => {
-    console.log("🔍 Navegando al perfil de:", prisoner.id);
+  // Memoized callback for viewing profile
+  const handleViewProfile = useCallback((prisoner: PrisonerBase) => {
     navigate(ROUTES.PRISONER_PROFILE.replace(":id", prisoner.id));
-  };
+  }, [navigate]);
 
-  const handleSuccess = (result: { prisoner: PrisonerBase; id: string }) => {
-    console.log("Prisionero guardado:", result.prisoner);
-    setViewMode("list");
-    loadData();
-    loadStats();
-  };
-
-  const handleCancel = () => {
-    setViewMode("list");
-  };
-
+  // Load prisoners data
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
@@ -83,7 +59,7 @@ export const PrisonersPage: React.FC = () => {
         "admissionDate",
         "desc"
       );
-      console.log("Datos de prisioneros cargados:", response);
+      
       setPrisoners(response.data);
       setPagination((prev) => ({
         ...prev,
@@ -102,6 +78,7 @@ export const PrisonersPage: React.FC = () => {
     }
   }, [pagination.page, pagination.limit, searchQuery, filters]);
 
+  // Load statistics
   const loadStats = useCallback(async () => {
     try {
       const allPrisoners = await prisonersService.getPrisoners({ limit: 1000 });
@@ -128,18 +105,20 @@ export const PrisonersPage: React.FC = () => {
     }
   }, []);
 
+  // Initial data load
   useEffect(() => {
     loadData();
     loadStats();
   }, [loadData, loadStats]);
 
-  // Handlers para búsqueda y filtros
+  // Search handler - only updates state, debounce happens at page level
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
     setPagination((prev) => ({ ...prev, page: 1 }));
   }, []);
 
-  const handleFiltersChange = useCallback((newFilters: UserFilters) => {
+  // Filters handlers
+  const handleFiltersChange = useCallback((newFilters: PrisonerSearchFilters) => {
     setFilters(newFilters);
     setPagination((prev) => ({ ...prev, page: 1 }));
   }, []);
@@ -149,6 +128,7 @@ export const PrisonersPage: React.FC = () => {
     setPagination((prev) => ({ ...prev, page: 1 }));
   }, []);
 
+  // Pagination handlers
   const handlePageChange = useCallback((page: number) => {
     setPagination((prev) => ({ ...prev, page }));
   }, []);
@@ -157,17 +137,16 @@ export const PrisonersPage: React.FC = () => {
     setPagination((prev) => ({ ...prev, limit, page: 1 }));
   }, []);
 
-  if (viewMode === "create" || viewMode === "edit") {
-    return (
-      
-      <PrisonerFormWizard
-        mode={viewMode}
-        initialData={selectedPrisoner || undefined}
-        onSuccess={handleSuccess}
-        onCancel={handleCancel}
-      />
-    );
-  }
+  // Create new prisoner handler
+  const handleCreateNew = useCallback(() => {
+    // Navigate to create page or open modal
+    console.log("Create new prisoner");
+  }, []);
+
+  // Edit prisoner handler (stub for now)
+  const handleEdit = useCallback(() => {
+    console.log("Edit prisoner");
+  }, []);
 
   return (
     <Container size="xl" className="!mt-1">
@@ -182,7 +161,15 @@ export const PrisonersPage: React.FC = () => {
           onClearFilters={handleClearFilters}
         />
 
-        {prisoners?.length === 0 && !loading ? (
+        {loading ? (
+          <PrisonersList
+            prisoners={[]}
+            onViewProfile={handleViewProfile}
+            onEdit={handleEdit}
+            loading={true}
+            viewType={viewType === 'cards' ? 'card' : 'table'}
+          />
+        ) : prisoners?.length === 0 ? (
           <EmptyPrisonersState onCreateNew={handleCreateNew} />
         ) : (
           <>
@@ -190,7 +177,7 @@ export const PrisonersPage: React.FC = () => {
               prisoners={prisoners}
               onViewProfile={handleViewProfile}
               onEdit={handleEdit}
-              loading={loading}
+              loading={false}
               viewType={viewType === 'cards' ? 'card' : 'table'}
             />
             <PrisonersPagination

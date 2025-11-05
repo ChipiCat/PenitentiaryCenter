@@ -5,6 +5,7 @@ export * from './axiosTypes';
 // ==================== TIPOS DE MÓDULOS COMPLETOS ====================
 export * from './userTypes';
 export * from './prisonerTypes';
+export * from './prisonerSearchTypes';
 export * from './belongingTypes';
 export * from './contactTypes';
 export * from './childTypes';

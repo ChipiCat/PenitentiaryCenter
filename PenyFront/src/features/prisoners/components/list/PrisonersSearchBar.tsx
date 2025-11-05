@@ -1,35 +1,57 @@
-import React, { useState, useCallback } from 'react';
-import { TextInput } from '@mantine/core';
+import React, { useState, useCallback, useEffect, memo } from 'react';
+import { TextInput, ActionIcon } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 
 interface PrisonersSearchBarProps {
   onSearch: (query: string) => void;
   placeholder?: string;
 }
 
-export const PrisonersSearchBar: React.FC<PrisonersSearchBarProps> = ({
+const PrisonersSearchBar: React.FC<PrisonersSearchBarProps> = memo(({
   onSearch,
   placeholder = 'Buscar por nombre, registro, expediente...',
 }) => {
+  // Local state for immediate UI updates (keeps input responsive)
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedQuery] = useDebouncedValue(searchQuery, 300);
+  
+  // Debounced value to reduce parent notifications
+  const [debouncedQuery] = useDebouncedValue(searchQuery, 400);
 
-  // Effect to trigger search when debounced query changes
-  React.useEffect(() => {
+  // Only notify parent when debounced value changes
+  useEffect(() => {
     onSearch(debouncedQuery);
   }, [debouncedQuery, onSearch]);
 
+  // Immediate local state update - no parent notification
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.currentTarget.value);
+  }, []);
+
+  // Clear handler
+  const handleClear = useCallback(() => {
+    setSearchQuery('');
   }, []);
 
   return (
     <TextInput
       placeholder={placeholder}
       value={searchQuery}
-      onChange={handleChange}
+      onChange={(event) => handleChange(event)}
       leftSection={<Search size={16} />}
+      rightSection={
+        searchQuery ? (
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            onClick={handleClear}
+            size="sm"
+            aria-label="Limpiar búsqueda"
+          >
+            <X size={14} />
+          </ActionIcon>
+        ) : null
+      }
       size="sm"
       styles={{
         input: {
@@ -40,4 +62,9 @@ export const PrisonersSearchBar: React.FC<PrisonersSearchBarProps> = ({
       }}
     />
   );
-};
+});
+
+// Display name for debugging
+PrisonersSearchBar.displayName = 'PrisonersSearchBar';
+
+export default PrisonersSearchBar;

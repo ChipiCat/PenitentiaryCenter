@@ -8,11 +8,9 @@ import {
   Param,
   Query,
   UseGuards,
-  UseInterceptors,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { CacheInterceptor } from '@nestjs/cache-manager';
 import {
   ApiTags,
   ApiOperation,
@@ -35,7 +33,6 @@ import { PaginationMetaDto } from '../../common/interfaces/entity.interface';
 @ApiTags('Prisoner Cases')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@UseInterceptors(CacheInterceptor)
 @Controller()
 export class PrisonerCaseController {
   constructor(private readonly caseService: PrisonerCaseService) {}

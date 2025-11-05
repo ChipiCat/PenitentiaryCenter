@@ -1,4 +1,4 @@
-import type { Entity } from "./commonTypes";
+import type { Entity} from "./commonTypes";
 import type { FileInfo } from "./filesTypes";
 
 export interface Belonging extends Entity {
@@ -6,7 +6,9 @@ export interface Belonging extends Entity {
   quantity: number;
   condition?: string;
   is_returned: boolean;
-  file: FileInfo | null;
+  file: FileInfo| null;
+  prisoner_id: string;
+  tempId?: string; // ID temporal para tracking en formularios
 }
 
 export interface CreateBelongingData {

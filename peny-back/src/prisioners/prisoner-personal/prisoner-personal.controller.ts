@@ -8,9 +8,7 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
-import { CacheInterceptor } from '@nestjs/cache-manager';
 import {
   ApiTags,
   ApiOperation,
@@ -25,7 +23,6 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 @ApiTags('Prisoners - Personal')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@UseInterceptors(CacheInterceptor)
 @Controller('prisoners/:prisonerId/personal')
 export class PrisonerPersonalController {
   constructor(private readonly personalService: PrisonerPersonalService) {}

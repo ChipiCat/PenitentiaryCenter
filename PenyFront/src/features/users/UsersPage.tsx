@@ -37,7 +37,7 @@ const UsersPage = () => {
 
   useEffect(() => {
     fetchUsers({ page, size: pageSize });
-  }, [page, search]);
+  }, [page, search, fetchUsers]);
 
   // Editar usuario
   const handleEditUserTable = (userId: string) => {

@@ -1,8 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { usersService } from "../../../shared/services/userService";
+import { register } from "../../../shared/services/authService";
 import type { User, UserStats } from "../../../shared/types";
 import type { PaginationResponse } from "../../../shared/types/axiosTypes";
-import type { GetUsersParams, CreateUserData, UpdateUserData } from "../../../shared/types/userTypes";
+import type { GetUsersParams, UpdateUserData } from "../../../shared/types/userTypes";
+import type { RegisterRequest } from "../../../shared/types/authRequest";
 
 export function useUsers(initialFilters: GetUsersParams = {}) {
   const [filters, setFilters] = useState<GetUsersParams>(initialFilters);
@@ -51,9 +53,9 @@ export function useUsers(initialFilters: GetUsersParams = {}) {
   }, [fetchUsers]);
 
   // Crear usuario
-  const handleNewUser = async (data: CreateUserData | FormData) => {
+  const handleNewUser = async (data: RegisterRequest | FormData) => {
     try {
-      await usersService.createUser(data);
+      await register(data);
       // Refrescar la tabla después de crear usuario
       await fetchUsersWithParams({ page: 1, size: 10 });
     } catch (error) {

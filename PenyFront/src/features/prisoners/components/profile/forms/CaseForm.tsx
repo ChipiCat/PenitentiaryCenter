@@ -149,7 +149,7 @@ export const CaseForm: React.FC<CaseFormProps> = ({
           />
 
           <TextInput
-            label="Fecha de Fin (Opcional)"
+            label="Fecha de Fin"
             type="date"
             value={formData.end_date}
             onChange={(e) => handleChange('end_date', e.currentTarget.value)}

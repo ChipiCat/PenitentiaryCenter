@@ -13,7 +13,6 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { CacheInterceptor } from '@nestjs/cache-manager';
 import {
   ApiTags,
   ApiOperation,
@@ -38,7 +37,6 @@ import type { UploadedFile as UploadedFileType } from '../../files/interfaces/up
 @ApiTags('Prisoner Mandates')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@UseInterceptors(CacheInterceptor)
 @Controller()
 export class PrisonerMandateController {
   constructor(private readonly mandateService: PrisonerMandateService) {}

@@ -11,19 +11,21 @@ import {
 } from 'lucide-react';
 import { ROUTES } from '../config/routes';
 import classes from '../styles/NavbarSimple.module.css';
+import { useGlobalContext } from '../hooks/useGlobalContext';
 
-// Datos de navegación
+// Datos de navegación con roles permitidos
 const navigationData = [
-  { link: ROUTES.HOME, label: 'Panel Principal', icon: Home },
-  { link: ROUTES.PRISONERS, label: 'Reclusos', icon: Users },
-  { link: ROUTES.ACTIVITY, label: 'Actividades', icon: Activity },
-  { link: ROUTES.USERS, label: 'Usuarios', icon: UserCog },
+  { link: ROUTES.HOME, label: 'Panel Principal', icon: Home, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY'] },
+  { link: ROUTES.PRISONERS, label: 'Reclusos', icon: Users, roles: ['ADMIN', 'DIRECTOR', 'SECRETARY'] },
+  { link: ROUTES.ACTIVITY, label: 'Actividades', icon: Activity, roles: ['ADMIN', 'DIRECTOR'] },
+  { link: ROUTES.USERS, label: 'Usuarios', icon: UserCog, roles: ['ADMIN'] },
 ];
 
 export function NavbarSimple() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const {user} = useGlobalContext();
 
   const handleNavigation = (link: string) => {
     navigate(link);
@@ -39,8 +41,13 @@ export function NavbarSimple() {
     document.documentElement.style.setProperty('--navbar-width', `${width}px`);
   }, [collapsed]);
 
+  // Filtrar navegación por role del usuario
+  const filteredNavigation = navigationData.filter(item =>
+    !item.roles || item.roles.includes(user?.role?? "")
+  );
+
   // Crear los enlaces de navegación
-  const links = navigationData.map((item) => {
+  const links = filteredNavigation.map((item) => {
     const isActive = location.pathname.includes(item.link);
 
     return collapsed ? (

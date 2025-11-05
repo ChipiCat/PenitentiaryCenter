@@ -24,17 +24,18 @@ export interface AuditInfo {
   deleted_by?: string;
 }
 
+
+
 export type CitizenshipType =
   | "Local"
-  | "Ciudadano Nacional"
-  | "Ciudadano Extranjero";
+  | "CiudadanoNacional"
+  | "CiudadanoExtranjero";
 
 export type MaritalStatus =
   | "Soltero"
   | "Casado"
   | "Divorciado"
-  | "Viudo"
-  | "Unión Libre";
+  | "Viudo";
   
 export type EducationLevel =
   | "Sin Educación"
