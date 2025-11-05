@@ -70,7 +70,16 @@ export class AuthService {
     photoFile?: UploadedFile,
   ): Promise<AuthResponseDto> {
     const { ipAddress, userAgent } = this.getAuditMetadata();
-    const { email, password, name, role, cellphone, ci, department, departmentalDirectorateUnit } = registerDto;
+    const {
+      email,
+      password,
+      name,
+      role,
+      cellphone,
+      ci,
+      department,
+      departmentalDirectorateUnit,
+    } = registerDto;
 
     const existingUser = await this.prisma.user.findFirst({
       where: { email },

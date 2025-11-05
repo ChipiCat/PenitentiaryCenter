@@ -888,10 +888,11 @@ export class AuditService {
         include: {
           dataChanges: true,
           prisonerRelated: {
-            select: { id: true, 
+            select: {
+              id: true,
               identity: {
-                select: { surname: true, firstName: true}
-            }
+                select: { surname: true, firstName: true },
+              },
             },
           },
         },
@@ -902,7 +903,9 @@ export class AuditService {
     const totalPages = Math.ceil(total / limit);
 
     return {
-          data: activities.map((activity) => this.mapActivityLogToDto(activity as ActivityLog & {
+      data: activities.map((activity) =>
+        this.mapActivityLogToDto(
+          activity as ActivityLog & {
             prisonerRelated?: {
               id: string;
               identity: {
@@ -911,8 +914,8 @@ export class AuditService {
               };
             };
             dataChanges?: DataChangeLog[];
-          }
-        )
+          },
+        ),
       ),
       pagination: {
         page,
@@ -1316,16 +1319,16 @@ export class AuditService {
 
   private mapActivityLogToDto(
     activity: ActivityLog & {
-    prisonerRelated?: {
-      id: string;
-      identity: {
-        surname: string;
-        firstName: string;
+      prisonerRelated?: {
+        id: string;
+        identity: {
+          surname: string;
+          firstName: string;
+        };
       };
-    };
-    dataChanges?: DataChangeLog[];
-  }
-): ActivityLogResponseDto {
+      dataChanges?: DataChangeLog[];
+    },
+  ): ActivityLogResponseDto {
     return {
       id: activity.id,
       user: activity.userId
@@ -1731,11 +1734,11 @@ export class AuditService {
           select: {
             id: true,
             identity: {
-              select: { surname: true, firstName: true }
-            }
-          }
-        }
-      }
+              select: { surname: true, firstName: true },
+            },
+          },
+        },
+      },
     });
 
     // Sessions summary
@@ -1804,15 +1807,16 @@ export class AuditService {
       recent_activities: recentActivities.map((activity) =>
         this.mapActivityLogToDto({
           ...activity,
-          prisonerRelated: activity.prisonerRelated && activity.prisonerRelated.identity
-            ? {
-                id: activity.prisonerRelated.id,
-                identity: {
-                  surname: activity.prisonerRelated.identity.surname,
-                  firstName: activity.prisonerRelated.identity.firstName,
-                },
-              }
-            : undefined,
+          prisonerRelated:
+            activity.prisonerRelated && activity.prisonerRelated.identity
+              ? {
+                  id: activity.prisonerRelated.id,
+                  identity: {
+                    surname: activity.prisonerRelated.identity.surname,
+                    firstName: activity.prisonerRelated.identity.firstName,
+                  },
+                }
+              : undefined,
         }),
       ),
       sessions_summary: {

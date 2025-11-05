@@ -5,7 +5,12 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 function isTransporter(x: unknown): x is Transporter {
-  return typeof (x as any)?.sendMail === 'function';
+  return (
+    typeof x === 'object' &&
+    x !== null &&
+    'sendMail' in x &&
+    typeof (x as Transporter).sendMail === 'function'
+  );
 }
 
 @Injectable()
@@ -29,7 +34,11 @@ export class MailService {
     this.transporter = tMaybe;
   }
 
-  async sendUserCredentials(to: string, password: string, name: string) {
+  async sendUserCredentials(
+    to: string,
+    password: string,
+    name: string,
+  ): Promise<void> {
     const htmlPath = path.resolve(
       process.cwd(),
       'src/common/services/notification_access.html',
