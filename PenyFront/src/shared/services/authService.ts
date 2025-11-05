@@ -101,3 +101,18 @@ export const refreshAuthToken = async (refreshToken: string): Promise<AuthRespon
         return null;
     }
 };
+
+export const updatePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    try {
+        const response = await api.post(`/auth/change-password`, {
+            currentPassword,
+            newPassword
+        });
+
+        return response.status === 200 || response.status === 204;
+    } catch (error) {
+        console.error("error: ", error)
+        handleApiError(error, "updatePassword");
+        return false;
+    }
+};

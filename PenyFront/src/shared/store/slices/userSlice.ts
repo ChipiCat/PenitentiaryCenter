@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { loginThunk, logoutThunk } from "../thunks/authThunk";
 import { tokenManager } from "../../services/tokenManager";
+import { refetchUserThunk } from "../thunks/refetchUserThunk";
 import type { User } from "../../types";
 
 interface UserState {
@@ -82,6 +83,13 @@ const userSlice = createSlice({
       })
       .addCase(logoutThunk.rejected, (state, action) => {
         state.status = "failed";
+        state.error = (action.payload as string) || action.error.message || null;
+      })
+      .addCase(refetchUserThunk.fulfilled, (state, action) => {
+        state.user = action.payload;
+        localStorage.setItem("user", JSON.stringify(action.payload));
+      })
+      .addCase(refetchUserThunk.rejected, (state, action) => {
         state.error = (action.payload as string) || action.error.message || null;
       });
   },
