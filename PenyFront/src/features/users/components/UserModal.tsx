@@ -6,6 +6,9 @@ import {
   Group,
   Stack,
   PasswordInput,
+  Divider,
+  Text,
+  Box,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
@@ -85,26 +88,25 @@ export const UserModal = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opened, user]);
 
-const handleSubmit = (values: Record<string, any>) => {
-  const data: CreateUserData = {
-    email: values.email,
-    password: values.password,
-    name: values.name,
-    role: values.role,
-    photoUrl: photoFile ? URL.createObjectURL(photoFile) : undefined,
-    // Si quieres enviar los campos extra, agrégalos aquí
-    cellphone: values.cellphone,
-    ci: values.ci,
-    department: values.department,
-    departmentalDirectorateUnit: values.departmentalDirectorateUnit,
+  const handleSubmit = (values: Record<string, any>) => {
+    const data: CreateUserData = {
+      email: values.email,
+      password: values.password,
+      name: values.name,
+      role: values.role,
+      photoUrl: photoFile ? URL.createObjectURL(photoFile) : undefined,
+      cellphone: values.cellphone,
+      ci: values.ci,
+      department: values.department,
+      departmentalDirectorateUnit: values.departmentalDirectorateUnit,
+    };
+    onSubmit(data);
+    if (!isLoading) {
+      form.reset();
+      setPhotoFile(null);
+      onClose();
+    }
   };
-  onSubmit(data);
-  if (!isLoading) {
-    form.reset();
-    setPhotoFile(null);
-    onClose();
-  }
-};
 
   const handleClose = () => {
     form.reset();
@@ -116,70 +118,98 @@ const handleSubmit = (values: Record<string, any>) => {
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={user ? "Editar Usuario" : "Nuevo Usuario"}
-      size="md"
+      title={user ? "Editar información del usuario" : "Registrar nuevo usuario"}
+      size="lg"
       closeOnClickOutside={!isLoading}
       closeOnEscape={!isLoading}
+      radius="md"
+      padding="lg"
+      centered
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md">
-          <Group justify="center">
+          <Group justify="center" mb="xs">
             <ProfilePhotoDropzone onFile={setPhotoFile} />
           </Group>
-          <TextInput
-            label="Nombre completo"
-            placeholder="Nombre y apellido"
-            required
-            disabled={isLoading}
-            {...form.getInputProps("name")}
-          />
-          <TextInput
-            label="Correo electrónico"
-            placeholder="usuario@penitenciario.gov"
-            type="email"
-            required
-            disabled={isLoading}
-            {...form.getInputProps("email")}
-          />
-          <Select
-            label="Rol del Usuario"
-            placeholder="Selecciona un rol"
-            required
-            disabled={isLoading}
-            data={roleOptions}
-            {...form.getInputProps("role")}
-          />
-          <PasswordInput
-            label="Contraseña"
-            placeholder="Contraseña (mín. 6 caracteres)"
-            required={!user}
-            disabled={isLoading}
-            {...form.getInputProps("password")}
-          />
-          <TextInput
-            label="Celular"
-            placeholder="No disponible"
-            disabled={isLoading}
-            {...form.getInputProps("cellphone")}
-          />
-          <TextInput
-            label="CI"
-            placeholder="No disponible"
-            disabled={isLoading}
-            {...form.getInputProps("ci")}
-          />
-          <TextInput
-            label="Departamento"
-            placeholder="No disponible"
-            disabled={isLoading}
-            {...form.getInputProps("department")}
-          />
-          <TextInput
-            label="Unidad/Dirección Departamental"
-            placeholder="No disponible"
-            disabled={isLoading}
-            {...form.getInputProps("departmentalDirectorateUnit")}
-          />
+          {user && (
+            <Box mb="xs">
+              <Divider
+                my="xs"
+                label="Datos del usuario"
+                labelPosition="center"
+              />
+              <Group gap="xs" grow>
+                <Text size="sm">
+                  <b>Actualización:</b>{" "}
+                  {user.updatedAt
+                    ? new Date(user.updatedAt).toLocaleString()
+                    : "-"}
+                </Text>
+              </Group>
+            </Box>
+          )}
+          <Group grow>
+            <TextInput
+              label="Nombre completo"
+              placeholder="Nombre y apellido"
+              required
+              disabled={isLoading}
+              {...form.getInputProps("name")}
+            />
+            <TextInput
+              label="Correo electrónico"
+              placeholder="usuario@penitenciario.gov"
+              type="email"
+              required
+              disabled={isLoading}
+              {...form.getInputProps("email")}
+            />
+          </Group>
+          <Group grow>
+            <Select
+              label="Rol del Usuario"
+              placeholder="Selecciona un rol"
+              required
+              disabled={isLoading}
+              data={roleOptions}
+              {...form.getInputProps("role")}
+            />
+            <PasswordInput
+              label="Contraseña"
+              placeholder="Contraseña (mín. 6 caracteres)"
+              required={!user}
+              disabled={isLoading}
+              {...form.getInputProps("password")}
+            />
+          </Group>
+          <Group grow>
+            <TextInput
+              label="Celular"
+              placeholder="No disponible"
+              disabled={isLoading}
+              {...form.getInputProps("cellphone")}
+            />
+            <TextInput
+              label="CI"
+              placeholder="No disponible"
+              disabled={isLoading}
+              {...form.getInputProps("ci")}
+            />
+          </Group>
+          <Group grow>
+            <TextInput
+              label="Departamento"
+              placeholder="No disponible"
+              disabled={isLoading}
+              {...form.getInputProps("department")}
+            />
+            <TextInput
+              label="Unidad/Dirección Departamental"
+              placeholder="No disponible"
+              disabled={isLoading}
+              {...form.getInputProps("departmentalDirectorateUnit")}
+            />
+          </Group>
           <Group justify="flex-end" mt="md">
             <Button variant="subtle" onClick={handleClose} disabled={isLoading}>
               Cancelar
