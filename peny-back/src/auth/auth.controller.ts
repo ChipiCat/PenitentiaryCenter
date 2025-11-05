@@ -64,9 +64,9 @@ export class AuthController {
         cellphone: { type: 'string', example: '+591 12345678' },
         ci: { type: 'string', example: '1234567' },
         department: { type: 'string', example: 'Santa Cruz' },
-        departmentalDirectorateUnit: { 
-          type: 'string', 
-          example: 'Dirección Regional Norte' 
+        departmentalDirectorateUnit: {
+          type: 'string',
+          example: 'Dirección Regional Norte',
         },
         photo: {
           type: 'string',

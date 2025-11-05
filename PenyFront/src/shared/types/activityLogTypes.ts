@@ -3,6 +3,7 @@ export interface ActivityUser {
   email: string;
   name: string;
   role: string;
+  photoUrl: string;
 }
 
 export interface DataChange {
@@ -12,6 +13,16 @@ export interface DataChange {
   oldValue?: string;
   new_value?: string;
   newValue?: string;
+}
+
+export interface InfoPrisoner {
+  surname: string;
+  firstName: string;
+}
+
+export interface PrisonerRelated {
+  id: string;
+  identity: InfoPrisoner;
 }
 
 export interface ActivityLog {
@@ -30,6 +41,7 @@ export interface ActivityLog {
   user_agent: string;
   session_log_id?: string;
   prisoner_related_id?: string;
+  prisoner_related?: PrisonerRelated;
   metadata?: Record<string, string | number | boolean>;
 }
 
@@ -47,7 +59,14 @@ export interface ActivityLogsResponse {
   pagination: ActivityLogsPagination;
 }
 
-export type ActionType = 'login' | 'create' | 'update' | 'export' | 'delete' | 'view' | 'print';
+export type ActionType =
+  | "login"
+  | "create"
+  | "update"
+  | "export"
+  | "delete"
+  | "view"
+  | "print";
 
 export interface Statistics {
   total: number;

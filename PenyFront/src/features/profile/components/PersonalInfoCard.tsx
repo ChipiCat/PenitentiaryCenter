@@ -74,7 +74,7 @@ const PersonalInfoCard = () => {
 
       <Group gap="lg" align="flex-start" mb="xl">
         <Avatar
-          src={user?.photoUrl}
+          src={user?.photoFile?.url}
           size={80}
           radius="md"
           color="blue"
@@ -106,13 +106,6 @@ const PersonalInfoCard = () => {
         </Grid.Col>
 
         <Grid.Col span={6}>
-          <Text size="sm" fw={500} c="dimmed" mb={4}>ID de Usuario</Text>
-          <Text size="sm" style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
-            {user?.id ? user.id.slice(0, 8) + '...' : 'No disponible'}
-          </Text>
-        </Grid.Col>
-
-        <Grid.Col span={6}>
           <Text size="sm" fw={500} c="dimmed" mb={4}>Fecha de Registro</Text>
           <Text size="sm">{formatDate(user?.createdAt)}</Text>
         </Grid.Col>
@@ -124,21 +117,21 @@ const PersonalInfoCard = () => {
 
         <Grid.Col span={6}>
           <Text size="sm" fw={500} c="dimmed" mb={4}>Celular</Text>
-          <Text size="sm">{'No disponible'}</Text>
+          <Text size="sm">{user?.cellphone || 'No disponible'}</Text>
         </Grid.Col>
 
         <Grid.Col span={6}>
           <Text size="sm" fw={500} c="dimmed" mb={4}>CI</Text>
-          <Text size="sm">{'No disponible'}</Text>
+          <Text size="sm">{user?.ci || 'No disponible'}</Text>
         </Grid.Col>
 
         <Grid.Col span={6}>
           <Text size="sm" fw={500} c="dimmed" mb={4}>Departamento</Text>
-          <Text size="sm">{'No disponible'}</Text>
+          <Text size="sm">{user?.department || 'No disponible'}</Text>
         </Grid.Col>
         <Grid.Col span={6}>
           <Text size="sm" fw={500} c="dimmed" mb={4}>Unidad/Dirección Departamental</Text>
-          <Text size="sm">{'No disponible'}</Text>
+          <Text size="sm">{user?.departmentalDirectorateUnit || 'No disponible'}</Text>
         </Grid.Col>
       </Grid>
     </Paper>

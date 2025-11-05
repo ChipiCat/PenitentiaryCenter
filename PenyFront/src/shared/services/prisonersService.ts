@@ -10,7 +10,8 @@ import type {
 import type { 
   PrisonerSearchQuery, 
   PrisonerSearchFilters,
-  PrisonerSearchResponse 
+  PrisonerSearchResponse,
+  OrderByField
 } from '../types/prisonerSearchTypes';
 
 export const prisonersService = {
@@ -78,7 +79,7 @@ export const prisonersService = {
   ): Promise<PrisonerSearchResponse> {
     try {
       // Build query parameters - NestJS requires flat structure for nested DTOs
-      const params: Record<string, any> = {
+      const params: Record<string, string | number | boolean> = {
         page: searchQuery.page || 1,
         limit: searchQuery.limit || 10,
         includeDeleted: searchQuery.includeDeleted || false,
@@ -135,7 +136,7 @@ export const prisonersService = {
         query: query.trim() || undefined,
         filters,
         includeDeleted,
-        orderBy: orderBy as any,
+        orderBy: orderBy as OrderByField,
         orderDirection,
       };
 
@@ -143,7 +144,7 @@ export const prisonersService = {
 
       // Map response - structure already matches
       return {
-        data: response.data as any as PrisionerListItem[],
+        data: response.data as unknown as PrisionerListItem[],
         pagination: response.pagination,
       } as PaginationResponse<PrisionerListItem>;
     } catch (error) {

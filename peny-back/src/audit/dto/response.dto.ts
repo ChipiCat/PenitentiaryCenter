@@ -64,6 +64,13 @@ export class ActivityLogResponseDto {
 
   // Relación con prisionero (si aplica)
   prisoner_related_id?: string;
+  prisoner_related?: {
+    id: string;
+    identity: {
+      surname: string;
+      firstName: string;
+    };
+  };
 
   // Sesión asociada
   session_log_id?: string;
