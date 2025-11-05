@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -7,6 +40,38 @@ const electron_1 = require("electron");
 const path_1 = require("path");
 const child_process_1 = require("child_process");
 const express_1 = __importDefault(require("express"));
+const fs = __importStar(require("fs"));
+// Configurar logging a archivo en producción (debe ejecutarse antes de app.whenReady)
+const originalConsoleLog = console.log;
+const originalConsoleError = console.error;
+let logStream = null;
+function setupFileLogging() {
+    try {
+        const userDataPath = electron_1.app.getPath("userData");
+        const LOG_FILE = (0, path_1.join)(userDataPath, "app.log");
+        // Crear el directorio si no existe
+        if (!fs.existsSync(userDataPath)) {
+            fs.mkdirSync(userDataPath, { recursive: true });
+        }
+        logStream = fs.createWriteStream(LOG_FILE, { flags: "a" });
+        console.log = (...args) => {
+            const message = args.map(arg => typeof arg === "object" ? JSON.stringify(arg) : arg).join(" ");
+            const timestamp = new Date().toISOString();
+            logStream?.write(`[${timestamp}] ${message}\n`);
+            originalConsoleLog.apply(console, args);
+        };
+        console.error = (...args) => {
+            const message = args.map(arg => typeof arg === "object" ? JSON.stringify(arg) : arg).join(" ");
+            const timestamp = new Date().toISOString();
+            logStream?.write(`[${timestamp}] ERROR: ${message}\n`);
+            originalConsoleError.apply(console, args);
+        };
+        console.log(`[Logging] ✓ Archivo de logs: ${LOG_FILE}`);
+    }
+    catch (error) {
+        originalConsoleError("[Logging] ✗ Error al configurar logging:", error);
+    }
+}
 const CONFIG = {
     ports: { frontend: 4321, backend: 3000 },
     memory: { maxOldSpace: 1024 },
@@ -30,10 +95,13 @@ class BackendManager {
             const backendPath = this.isDev
                 ? (0, path_1.join)(__dirname, "..", "peny-back")
                 : (0, path_1.join)(process.resourcesPath, "backend");
+            console.log(`[Backend] Path del backend: ${backendPath}`);
+            console.log(`[Backend] Modo: ${this.isDev ? "Desarrollo" : "Producción"}`);
             const command = this.isDev ? "npm" : "node";
             const args = this.isDev
                 ? ["run", "start:dev"]
                 : [(0, path_1.join)(backendPath, "dist", "main.js")];
+            console.log(`[Backend] Comando: ${command} ${args.join(" ")}`);
             this.process = (0, child_process_1.spawn)(command, args, {
                 cwd: backendPath,
                 shell: true,
@@ -100,12 +168,38 @@ class FrontendManager {
         return new Promise((resolve, reject) => {
             console.log(`[Frontend] Iniciando servidor Express en puerto ${this.port}...`);
             const app = (0, express_1.default)();
-            const distPath = (0, path_1.join)(process.resourcesPath, "app", "PenyFront", "dist");
+            // En producción, los archivos están desempaquetados en app.asar.unpacked
+            const distPath = CONFIG.isPackaged
+                ? (0, path_1.join)(process.resourcesPath, "app.asar.unpacked", "PenyFront", "dist")
+                : (0, path_1.join)(__dirname, "..", "PenyFront", "dist");
             console.log(`[Frontend] Sirviendo desde: ${distPath}`);
-            app.use(express_1.default.static(distPath));
-            app.get("*", (_, res) => {
-                res.sendFile((0, path_1.join)(distPath, "index.html"));
-            });
+            console.log(`[Frontend] __dirname: ${__dirname}`);
+            console.log(`[Frontend] process.resourcesPath: ${process.resourcesPath}`);
+            // Verificar que el directorio existe
+            if (!fs.existsSync(distPath)) {
+                console.error(`[Frontend] ✗ El directorio no existe: ${distPath}`);
+                console.error(`[Frontend] Intentando ruta alternativa...`);
+                // Intentar ruta alternativa
+                const altPath = (0, path_1.join)(__dirname, "..", "PenyFront", "dist");
+                console.log(`[Frontend] Ruta alternativa: ${altPath}`);
+                if (!fs.existsSync(altPath)) {
+                    const error = new Error(`No se encontró el directorio del frontend en ninguna ubicación`);
+                    reject(error);
+                    return;
+                }
+                console.log(`[Frontend] ✓ Usando ruta alternativa`);
+                app.use(express_1.default.static(altPath));
+                app.get("*", (_, res) => {
+                    res.sendFile((0, path_1.join)(altPath, "index.html"));
+                });
+            }
+            else {
+                console.log(`[Frontend] ✓ Directorio encontrado`);
+                app.use(express_1.default.static(distPath));
+                app.get("*", (_, res) => {
+                    res.sendFile((0, path_1.join)(distPath, "index.html"));
+                });
+            }
             this.server = app.listen(this.port, "localhost", () => {
                 console.log(`[Frontend]  Servidor iniciado en http://localhost:${this.port}`);
                 resolve();
@@ -189,17 +283,25 @@ async function initializeApp() {
     console.log("Iniciando PenitentiaryCenter");
     console.log(`Modo: ${CONFIG.isDev ? "Desarrollo" : "Producción"}`);
     console.log(`Empaquetado: ${CONFIG.isPackaged ? "Sí" : "No"}`);
+    console.log(`__dirname: ${__dirname}`);
+    console.log(`process.resourcesPath: ${process.resourcesPath}`);
     console.log("=".repeat(50));
     const backend = new BackendManager(CONFIG.ports.backend, CONFIG.isDev);
     const frontend = new FrontendManager(CONFIG.ports.frontend, CONFIG.isDev);
     try {
+        console.log("[App] Paso 1: Iniciando backend...");
         await backend.start();
         backendProcess = backend;
+        console.log("[App] ✓ Backend iniciado");
+        console.log("[App] Paso 2: Iniciando frontend...");
         await frontend.start();
         frontendServer = frontend;
+        console.log("[App] ✓ Frontend iniciado");
+        console.log("[App] Paso 3: Esperando 2 segundos...");
         await new Promise((resolve) => setTimeout(resolve, 2000));
-        console.log("[App] Creando ventana principal...");
+        console.log("[App] Paso 4: Creando ventana principal...");
         createMainWindow();
+        console.log("[App] ✓ Ventana creada");
         console.log("=".repeat(50));
         console.log(" Aplicación iniciada correctamente");
         console.log(`  Frontend: http://localhost:${CONFIG.ports.frontend}`);
@@ -207,7 +309,8 @@ async function initializeApp() {
         console.log("=".repeat(50));
     }
     catch (error) {
-        console.error("[App] Error al inicializar:", error);
+        console.error("[App] ✗ Error al inicializar:", error);
+        console.error("[App] Stack trace:", error instanceof Error ? error.stack : "N/A");
         electron_1.app.quit();
     }
 }
@@ -223,7 +326,16 @@ function cleanup() {
 electron_1.app.commandLine.appendSwitch("js-flags", `--max-old-space-size=${CONFIG.memory.maxOldSpace}`);
 electron_1.app.commandLine.appendSwitch("disable-background-timer-throttling");
 electron_1.app.commandLine.appendSwitch("disable-renderer-backgrounding");
-electron_1.app.whenReady().then(initializeApp);
+// Inicializar logging INMEDIATAMENTE (antes de app.whenReady)
+if (electron_1.app.isPackaged) {
+    setupFileLogging();
+}
+electron_1.app.whenReady().then(() => {
+    if (!electron_1.app.isPackaged) {
+        setupFileLogging(); // También en desarrollo para debug
+    }
+    initializeApp();
+});
 electron_1.app.on("window-all-closed", () => {
     cleanup();
     if (process.platform !== "darwin") {

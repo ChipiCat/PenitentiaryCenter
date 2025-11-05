@@ -3,6 +3,44 @@ import { join } from "path";
 import { spawn, ChildProcess } from "child_process";
 import express, { Express } from "express";
 import { Server } from "http";
+import * as fs from "fs";
+
+// Configurar logging a archivo en producción (debe ejecutarse antes de app.whenReady)
+const originalConsoleLog = console.log;
+const originalConsoleError = console.error;
+let logStream: fs.WriteStream | null = null;
+
+function setupFileLogging(): void {
+  try {
+    const userDataPath = app.getPath("userData");
+    const LOG_FILE = join(userDataPath, "app.log");
+    
+    // Crear el directorio si no existe
+    if (!fs.existsSync(userDataPath)) {
+      fs.mkdirSync(userDataPath, { recursive: true });
+    }
+    
+    logStream = fs.createWriteStream(LOG_FILE, { flags: "a" });
+    
+    console.log = (...args: any[]) => {
+      const message = args.map(arg => typeof arg === "object" ? JSON.stringify(arg) : arg).join(" ");
+      const timestamp = new Date().toISOString();
+      logStream?.write(`[${timestamp}] ${message}\n`);
+      originalConsoleLog.apply(console, args);
+    };
+    
+    console.error = (...args: any[]) => {
+      const message = args.map(arg => typeof arg === "object" ? JSON.stringify(arg) : arg).join(" ");
+      const timestamp = new Date().toISOString();
+      logStream?.write(`[${timestamp}] ERROR: ${message}\n`);
+      originalConsoleError.apply(console, args);
+    };
+    
+    console.log(`[Logging] ✓ Archivo de logs: ${LOG_FILE}`);
+  } catch (error) {
+    originalConsoleError("[Logging] ✗ Error al configurar logging:", error);
+  }
+}
 
 const CONFIG = {
   ports: { frontend: 4321, backend: 3000 },
@@ -33,10 +71,15 @@ class BackendManager {
         ? join(__dirname, "..", "peny-back")
         : join(process.resourcesPath, "backend");
       
+      console.log(`[Backend] Path del backend: ${backendPath}`);
+      console.log(`[Backend] Modo: ${this.isDev ? "Desarrollo" : "Producción"}`);
+      
       const command = this.isDev ? "npm" : "node";
       const args = this.isDev
         ? ["run", "start:dev"]
         : [join(backendPath, "dist", "main.js")];
+      
+      console.log(`[Backend] Comando: ${command} ${args.join(" ")}`);
       
       this.process = spawn(command, args, {
         cwd: backendPath,
@@ -113,16 +156,49 @@ class FrontendManager {
     return new Promise((resolve, reject) => {
       console.log(`[Frontend] Iniciando servidor Express en puerto ${this.port}...`);
       const app: Express = express();
-      const distPath = join(process.resourcesPath, "app", "PenyFront", "dist");
+      
+      // En producción, los archivos están desempaquetados en app.asar.unpacked
+      const distPath = CONFIG.isPackaged
+        ? join(process.resourcesPath, "app.asar.unpacked", "PenyFront", "dist")
+        : join(__dirname, "..", "PenyFront", "dist");
+      
       console.log(`[Frontend] Sirviendo desde: ${distPath}`);
-      app.use(express.static(distPath));
-      app.get("*", (_, res) => {
-        res.sendFile(join(distPath, "index.html"));
-      });
+      console.log(`[Frontend] __dirname: ${__dirname}`);
+      console.log(`[Frontend] process.resourcesPath: ${process.resourcesPath}`);
+      
+      // Verificar que el directorio existe
+      if (!fs.existsSync(distPath)) {
+        console.error(`[Frontend] ✗ El directorio no existe: ${distPath}`);
+        console.error(`[Frontend] Intentando ruta alternativa...`);
+        
+        // Intentar ruta alternativa
+        const altPath = join(__dirname, "..", "PenyFront", "dist");
+        console.log(`[Frontend] Ruta alternativa: ${altPath}`);
+        
+        if (!fs.existsSync(altPath)) {
+          const error = new Error(`No se encontró el directorio del frontend en ninguna ubicación`);
+          reject(error);
+          return;
+        }
+        
+        console.log(`[Frontend] ✓ Usando ruta alternativa`);
+        app.use(express.static(altPath));
+        app.get("*", (_, res) => {
+          res.sendFile(join(altPath, "index.html"));
+        });
+      } else {
+        console.log(`[Frontend] ✓ Directorio encontrado`);
+        app.use(express.static(distPath));
+        app.get("*", (_, res) => {
+          res.sendFile(join(distPath, "index.html"));
+        });
+      }
+      
       this.server = app.listen(this.port, "localhost", () => {
         console.log(`[Frontend]  Servidor iniciado en http://localhost:${this.port}`);
         resolve();
       });
+      
       this.server.on("error", (error: Error) => {
         console.error("[Frontend] Error al iniciar servidor:", error.message);
         reject(error);
@@ -212,26 +288,39 @@ async function initializeApp(): Promise<void> {
   console.log("Iniciando PenitentiaryCenter");
   console.log(`Modo: ${CONFIG.isDev ? "Desarrollo" : "Producción"}`);
   console.log(`Empaquetado: ${CONFIG.isPackaged ? "Sí" : "No"}`);
+  console.log(`__dirname: ${__dirname}`);
+  console.log(`process.resourcesPath: ${process.resourcesPath}`);
   console.log("=".repeat(50));
 
   const backend = new BackendManager(CONFIG.ports.backend, CONFIG.isDev);
   const frontend = new FrontendManager(CONFIG.ports.frontend, CONFIG.isDev);
 
   try {
+    console.log("[App] Paso 1: Iniciando backend...");
     await backend.start();
     backendProcess = backend as any;
+    console.log("[App] ✓ Backend iniciado");
+    
+    console.log("[App] Paso 2: Iniciando frontend...");
     await frontend.start();
     frontendServer = frontend as any;
+    console.log("[App] ✓ Frontend iniciado");
+    
+    console.log("[App] Paso 3: Esperando 2 segundos...");
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    console.log("[App] Creando ventana principal...");
+    
+    console.log("[App] Paso 4: Creando ventana principal...");
     createMainWindow();
+    console.log("[App] ✓ Ventana creada");
+    
     console.log("=".repeat(50));
     console.log(" Aplicación iniciada correctamente");
     console.log(`  Frontend: http://localhost:${CONFIG.ports.frontend}`);
     console.log(`  Backend:  http://localhost:${CONFIG.ports.backend}`);
     console.log("=".repeat(50));
   } catch (error) {
-    console.error("[App] Error al inicializar:", error);
+    console.error("[App] ✗ Error al inicializar:", error);
+    console.error("[App] Stack trace:", error instanceof Error ? error.stack : "N/A");
     app.quit();
   }
 }
@@ -250,7 +339,17 @@ app.commandLine.appendSwitch("js-flags", `--max-old-space-size=${CONFIG.memory.m
 app.commandLine.appendSwitch("disable-background-timer-throttling");
 app.commandLine.appendSwitch("disable-renderer-backgrounding");
 
-app.whenReady().then(initializeApp);
+// Inicializar logging INMEDIATAMENTE (antes de app.whenReady)
+if (app.isPackaged) {
+  setupFileLogging();
+}
+
+app.whenReady().then(() => {
+  if (!app.isPackaged) {
+    setupFileLogging(); // También en desarrollo para debug
+  }
+  initializeApp();
+});
 
 app.on("window-all-closed", () => {
   cleanup();

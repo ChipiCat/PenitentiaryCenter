@@ -1,7 +1,7 @@
 {
   "name": "penitentiary-center-root",
   "main": "electron/main.js",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "description": "Sistema de gestión penitenciaria con Electron y React.",
   "author": "Tu Nombre o Equipo",
   "private": true,
@@ -16,7 +16,7 @@
     "dev:electron": "cross-env NODE_ENV=development electron electron/main.js",
     "dev:electron:watch": "tsc -p electron/tsconfig.json --watch",
     "build:frontend": "cd PenyFront && npm run build",
-    "build:backend": "cd peny-back && npm run build",
+    "build:backend": "cd peny-back && npm run db:generate && npm run build",
     "build:electron": "tsc -p electron/tsconfig.json",
     "build": "npm run build:frontend && npm run build:backend && npm run build:electron",
     "package": "npm run build && electron-builder",
@@ -66,6 +66,11 @@
       {
         "from": "peny-back/node_modules",
         "to": "backend/node_modules",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "peny-back/generated",
+        "to": "backend/generated",
         "filter": ["**/*"]
       },
       {
