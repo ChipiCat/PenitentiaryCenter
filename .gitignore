@@ -2,3 +2,11 @@ node_modules/
 peny-back/node_modules/
 PenyFront/node_modules/
 release/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+peny-back/.env
+peny-back/.env.local
+peny-back/.env.production
