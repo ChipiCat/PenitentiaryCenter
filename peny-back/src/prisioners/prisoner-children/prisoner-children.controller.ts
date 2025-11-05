@@ -7,9 +7,7 @@ import {
   Body,
   Param,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
-import { CacheInterceptor } from '@nestjs/cache-manager';
 import {
   ApiTags,
   ApiOperation,
@@ -29,7 +27,6 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 @ApiTags('Prisoner Children')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@UseInterceptors(CacheInterceptor)
 @Controller('prisoners/:prisonerId/children')
 export class PrisonerChildrenController {
   constructor(private readonly childrenService: PrisonerChildrenService) {}

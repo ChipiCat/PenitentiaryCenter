@@ -24,6 +24,7 @@ interface BelongingsListFormProps {
     field: keyof Belonging,
     value: string | number | boolean | undefined
   ) => void;
+  onFileChange?: (index: string | number, file: File | undefined) => void;
   errors?: Record<string, string>;
   addLabel?: string;
 }
@@ -33,6 +34,7 @@ export function BelongingsListForm({
   onAdd,
   onRemove,
   onChange,
+  onFileChange,
   errors = {},
   addLabel = "Agregar pertenencia",
 }: BelongingsListFormProps) {
@@ -109,7 +111,11 @@ export function BelongingsListForm({
               <InputGroup>
                 <BelongingDropzone
                   onFile={(file) => {
-                    console.log("Archivo seleccionado para pertenencia:", file);
+                    if (onFileChange) {
+                      // Usar tempId si existe, sino usar el índice
+                      const identifier = belonging.tempId || index;
+                      onFileChange(identifier, file);
+                    }
                   }}
                 />
               </InputGroup>

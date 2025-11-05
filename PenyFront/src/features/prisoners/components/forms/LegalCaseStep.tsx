@@ -7,12 +7,14 @@ import type { CaseFormData, MandateFormData } from "../../../../shared/types/for
 interface LegalCaseStepProps {
   data: { cases: CaseFormData[] };
   onUpdate: (updates: { cases: CaseFormData[] }) => void;
+  onFileUpdate?: (fileType: string, file: File, identifier?: string | number) => void;
   errors?: Record<string, string>;
 }
 
 export const LegalCaseStep: React.FC<LegalCaseStepProps> = ({
   data,
   onUpdate,
+  onFileUpdate,
   errors = {},
 }) => {
   const cases = useMemo(() => data.cases || [], [data.cases]);
@@ -85,6 +87,14 @@ export const LegalCaseStep: React.FC<LegalCaseStepProps> = ({
     field: keyof MandateFormData,
     value: unknown
   ) => {
+    // If it's a file, route it to onFileUpdate instead of storing in form state
+    if (field === 'file' && value instanceof File) {
+      const mandate = cases[caseIndex]?.mandates[mandateIndex];
+      const identifier = mandate?.tempId || `${caseIndex}_${mandateIndex}`;
+      onFileUpdate?.('mandateFiles', value, identifier);
+      return;
+    }
+
     const updatedCases = [...cases];
     const updatedMandates = [...updatedCases[caseIndex].mandates];
     updatedMandates[mandateIndex] = {
@@ -96,7 +106,7 @@ export const LegalCaseStep: React.FC<LegalCaseStepProps> = ({
       mandates: updatedMandates,
     };
     onUpdate({ cases: updatedCases });
-  }, [cases, onUpdate]);
+  }, [cases, onUpdate, onFileUpdate]);
 
   return (
     <Stack gap="lg">

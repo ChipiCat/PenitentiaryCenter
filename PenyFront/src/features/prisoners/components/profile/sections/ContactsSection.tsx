@@ -4,6 +4,7 @@ import { User, Plus, Pencil, Trash2, Phone, Mail, MapPin } from 'lucide-react';
 import type { Contact } from '../../../../../shared/types/contactTypes';
 import { ContactFormModal } from '../modals/ContactFormModal';
 import { useContactsManager } from '../hooks/useContactsManager';
+import { useGlobalContext } from '../../../../../shared/hooks/useGlobalContext';
 
 interface ContactsSectionProps {
   prisonerId: string;
@@ -55,6 +56,8 @@ export const ContactsSection: React.FC<ContactsSectionProps> = ({
     setEditingContact(null);
   };
 
+  const { user } = useGlobalContext();
+
   return (
     <>
       <Card withBorder padding="lg" className="h-full">
@@ -68,6 +71,7 @@ export const ContactsSection: React.FC<ContactsSectionProps> = ({
               {contacts.length}
             </Badge>
           </Group>
+          {(user?.role === 'ADMIN' || user?.role === 'SECRETARY') && (
           <Button
             leftSection={<Plus size={16} />}
             variant="light"
@@ -76,6 +80,7 @@ export const ContactsSection: React.FC<ContactsSectionProps> = ({
           >
             Agregar Contacto
           </Button>
+          )}
         </Group>
 
         {contacts.length === 0 ? (
@@ -139,7 +144,7 @@ export const ContactsSection: React.FC<ContactsSectionProps> = ({
                       )}
                     </Stack>
                   </div>
-                  
+                  {(user?.role === 'ADMIN' || user?.role === 'SECRETARY') && (
                   <Group gap="xs">
                     <ActionIcon
                       variant="light"
@@ -158,6 +163,7 @@ export const ContactsSection: React.FC<ContactsSectionProps> = ({
                       <Trash2 size={16} />
                     </ActionIcon>
                   </Group>
+                  )}
                 </Group>
               </Card>
             ))}

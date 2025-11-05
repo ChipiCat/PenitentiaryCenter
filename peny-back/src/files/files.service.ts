@@ -271,11 +271,11 @@ export class FilesService {
       config = UPLOAD_CONFIG.photo;
     } else if (fieldName.includes('fingerprint')) {
       config = UPLOAD_CONFIG.fingerprint;
-    } else if (fieldName === 'medical_file') {
+    } else if (fieldName.includes('medical_file')) {
       config = UPLOAD_CONFIG.medical_file;
-    } else if (fieldName === 'inventory') {
+    } else if (fieldName.includes('inventory')) {
       config = UPLOAD_CONFIG.belonging_inventory;
-    } else if (fieldName === 'mandate_document') {
+    } else if (fieldName.includes('mandate_document')) {
       config = UPLOAD_CONFIG.mandate_document;
     } else {
       throw new BadRequestException('Invalid field name');
@@ -284,7 +284,7 @@ export class FilesService {
     // Validar tipo
     if (!config.allowedTypes.includes(file.mimetype)) {
       throw new BadRequestException(
-        `Invalid file type. Allowed: ${config.allowedTypes.join(', ')}`,
+        `Invalid file type, mimetype: ${file.mimetype}. Allowed: ${config.allowedTypes.join(', ')}`,
       );
     }
 

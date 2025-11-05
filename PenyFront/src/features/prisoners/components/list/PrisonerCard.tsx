@@ -1,5 +1,6 @@
-import { Card, Group, Avatar, Text, Badge, ActionIcon, Tooltip, Stack, Button } from '@mantine/core';
-import { FileText, Calendar, Users, Eye, Edit } from 'lucide-react';
+import React, { useMemo, useCallback } from 'react';
+import { Card, Group, Avatar, Text, Badge, Stack, Button } from '@mantine/core';
+import { FileText, Calendar, Users, Eye } from 'lucide-react';
 import type { PrisionerListItem, PrisonerBase } from '../../../../shared/types';
 
 interface PrisonerCardProps {
@@ -8,31 +9,40 @@ interface PrisonerCardProps {
   onEdit: (prisoner: PrisonerBase) => void;
 }
 
-const PrisonerCard: React.FC<PrisonerCardProps> = ({ prisoner, onViewProfile, onEdit }) => {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+// Utility functions outside component to avoid recreation
+const formatDate = (dateString: string): string => {
+  return new Date(dateString).toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+};
+
+const getStatusColor = (status: string): string => {
+  const colors: Record<string, string> = {
+    Activo: 'green',
+    Trasladado: 'blue',
+    Liberado: 'gray',
+    Archivado: 'red',
   };
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      Activo: 'green',
-      Trasladado: 'blue',
-      Liberado: 'gray',
-      Archivado: 'red',
-    };
-    return colors[status] || 'gray';
-  };
+  return colors[status] || 'gray';
+};
+
+const PrisonerCard: React.FC<PrisonerCardProps> = ({ prisoner, onViewProfile }) => {
+  const statusColor = useMemo(() => getStatusColor(prisoner.prisoner.status), [prisoner.prisoner.status]);
+  const formattedDate = useMemo(() => formatDate(prisoner.prisoner.admission_date), [prisoner.prisoner.admission_date]);
+  
+  const handleViewProfile = useCallback(() => {
+    onViewProfile(prisoner.prisoner);
+  }, [onViewProfile, prisoner.prisoner]);
+
   return (
-    <Card withBorder shadow="lg" radius="lg" padding="md" style={{ background: 'var(--mantine-color-body)', minHeight: 350 }}>
+    <Card withBorder shadow="xs" radius="lg" padding="md" style={{ background: 'var(--mantine-color-body)', minHeight: 370 }}>
       <Group gap="md" wrap="nowrap" align="flex-start">
         <Avatar
           size={64}
           radius={80}
           src={prisoner.identity?.photo_file?.url || undefined}
-        
         >
           {prisoner.identity?.first_name?.charAt(0) || "S"}
           {prisoner.identity?.surname?.charAt(0) || "N"}
@@ -42,7 +52,7 @@ const PrisonerCard: React.FC<PrisonerCardProps> = ({ prisoner, onViewProfile, on
             {prisoner.identity?.first_name || "Sin nombre"} {prisoner.identity?.surname || ""}
           </Text>
           <Group gap={6} mt={2}>
-            <Badge size="sm" color={getStatusColor(prisoner.prisoner.status)} variant="filled">
+            <Badge size="sm" color={statusColor} variant="filled">
               {prisoner.prisoner.status}
             </Badge>
             {prisoner.penitentiary?.category && (
@@ -73,7 +83,7 @@ const PrisonerCard: React.FC<PrisonerCardProps> = ({ prisoner, onViewProfile, on
         <Group gap="xs" wrap="nowrap">
           <Calendar size={16} style={{ color: 'var(--mantine-color-blue-6)', flexShrink: 0 }} />
           <Text size="sm" c="dimmed" lineClamp={1}>
-            Ingreso: {formatDate(prisoner.prisoner.admission_date)}
+            Ingreso: {formattedDate}
           </Text>
         </Group>
         {prisoner.identity?.nationality && (
@@ -122,27 +132,15 @@ const PrisonerCard: React.FC<PrisonerCardProps> = ({ prisoner, onViewProfile, on
           size="xs"
           variant="light"
           color="blue"
-          onClick={() => onViewProfile(prisoner.prisoner)}
+          onClick={handleViewProfile}
           leftSection={<Eye size={16} />}
           flex={1}
         >
           Ver Perfil
         </Button>
-
-        <Tooltip label="Editar prisionero">
-          <ActionIcon
-            variant="outline"
-            size="lg"
-            onClick={() => onEdit(prisoner.prisoner)}
-            color="gray"
-            radius="xl"
-          >
-            <Edit size={20} />
-          </ActionIcon>
-        </Tooltip>
       </Group>
     </Card>
   );
 };
 
-export default PrisonerCard;
+export default React.memo(PrisonerCard);

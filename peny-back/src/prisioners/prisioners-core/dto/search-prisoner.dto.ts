@@ -6,7 +6,6 @@ import {
   Max,
   IsEnum,
   IsDateString,
-  ValidateNested,
   IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -138,6 +137,7 @@ export class SearchFiltersDto {
 /**
  * DTO para parámetros de búsqueda de prisioneros
  * Incluye paginación, búsqueda de texto y filtros avanzados
+ * Los filtros se reciben como parámetros planos en la query string
  */
 export class SearchPrisonerQueryDto {
   @ApiPropertyOptional({
@@ -175,14 +175,103 @@ export class SearchPrisonerQueryDto {
   @IsString()
   query?: string;
 
+  // ========== FILTROS PLANOS ==========
+  // Los filtros se reciben directamente como query params
+
   @ApiPropertyOptional({
-    description: 'Filtros avanzados para refinar la búsqueda',
-    type: SearchFiltersDto,
+    enum: ['Activo', 'Trasladado', 'Liberado', 'Archivado'],
+    description: 'Filtrar por estado del prisionero',
+    example: 'Activo',
   })
   @IsOptional()
-  @ValidateNested()
-  @Type(() => SearchFiltersDto)
-  filters?: SearchFiltersDto;
+  @IsEnum(['Activo', 'Trasladado', 'Liberado', 'Archivado'])
+  status?: 'Activo' | 'Trasladado' | 'Liberado' | 'Archivado';
+
+  @ApiPropertyOptional({
+    enum: ['Masculino', 'Femenino', 'Otro'],
+    description: 'Filtrar por género',
+    example: 'Masculino',
+  })
+  @IsOptional()
+  @IsEnum(['Masculino', 'Femenino', 'Otro'])
+  gender?: 'Masculino' | 'Femenino' | 'Otro';
+
+  @ApiPropertyOptional({
+    enum: ['Soltero', 'Casado', 'Viudo', 'Divorciado'],
+    description: 'Filtrar por estado civil',
+    example: 'Soltero',
+  })
+  @IsOptional()
+  @IsEnum(['Soltero', 'Casado', 'Viudo', 'Divorciado'])
+  maritalStatus?: 'Soltero' | 'Casado' | 'Viudo' | 'Divorciado';
+
+  @ApiPropertyOptional({
+    enum: ['DerechoComun', 'PrisionPreventiva', 'PrisioneroAcusado'],
+    description: 'Filtrar por categoría penitenciaria',
+    example: 'DerechoComun',
+  })
+  @IsOptional()
+  @IsEnum(['DerechoComun', 'PrisionPreventiva', 'PrisioneroAcusado'])
+  category?: 'DerechoComun' | 'PrisionPreventiva' | 'PrisioneroAcusado';
+
+  @ApiPropertyOptional({
+    enum: ['Local', 'CiudadanoNacional', 'CiudadanoExtranjero'],
+    description: 'Filtrar por tipo de ciudadanía',
+    example: 'CiudadanoNacional',
+  })
+  @IsOptional()
+  @IsEnum(['Local', 'CiudadanoNacional', 'CiudadanoExtranjero'])
+  citizenshipType?: 'Local' | 'CiudadanoNacional' | 'CiudadanoExtranjero';
+
+  @ApiPropertyOptional({
+    description: 'Filtrar por fecha de admisión desde (ISO 8601)',
+    example: '2024-01-01',
+  })
+  @IsOptional()
+  @IsDateString()
+  admissionDateFrom?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filtrar por fecha de admisión hasta (ISO 8601)',
+    example: '2025-12-31',
+  })
+  @IsOptional()
+  @IsDateString()
+  admissionDateTo?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filtrar por número de edificio',
+    example: 'A',
+  })
+  @IsOptional()
+  @IsString()
+  buildingNumber?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filtrar por número de celda',
+    example: '101',
+  })
+  @IsOptional()
+  @IsString()
+  cellNumber?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filtrar por país de origen',
+    example: 'México',
+  })
+  @IsOptional()
+  @IsString()
+  countryOfOrigin?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filtrar por nacionalidad',
+    example: 'Mexicana',
+  })
+  @IsOptional()
+  @IsString()
+  nationality?: string;
+
+  // ========== FIN FILTROS ==========
 
   @ApiPropertyOptional({
     description: 'Incluir registros eliminados (soft delete)',

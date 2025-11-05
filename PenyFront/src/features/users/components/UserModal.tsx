@@ -88,7 +88,7 @@ export const UserModal = ({
       setPhotoFile(null);
     }
 
-  }, [opened, user]);
+  }, [opened, user, form]);
 
   const handleSubmit = async (values: CreateUserData) => {
     // Construir FormData para ambos casos (crear y editar)
@@ -104,7 +104,7 @@ export const UserModal = ({
     if (photoFile) formData.append("photo", photoFile);
     
     // Llamar a onSubmit desde la página, que maneja todo
-    onSubmit(formData as any);
+    onSubmit(formData);
   };
 
   const handleClose = () => {

@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { Card, Table, Group, Avatar, Text, Badge, ActionIcon, Tooltip, Stack, Grid } from '@mantine/core';
 import { Eye, Edit, Calendar, FileText, MapPin, Building2, Bed, Users } from 'lucide-react';
 import type { PrisionerListItem, PrisonerBase } from '../../../../shared/types';
 import PrisonerCard from './PrisonerCard';
-import { Loading } from '../../../../shared/components/Loading';
+import { PrisonersListSkeleton } from './PrisonersListSkeleton';
+import { useGlobalContext } from '../../../../shared/hooks/useGlobalContext';
 
 interface PrisonersListProps {
   prisoners: PrisionerListItem[];
@@ -13,23 +14,45 @@ interface PrisonersListProps {
   viewType?: 'table' | 'card';
 }
 
-export const PrisonersList: React.FC<PrisonersListProps> = ({
+// Utility functions outside component
+const formatDate = (dateString: string): string => {
+  return new Date(dateString).toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+};
+
+const getStatusColor = (status: string): string => {
+  const colors: Record<string, string> = {
+    Activo: 'green',
+    Trasladado: 'blue',
+    Liberado: 'gray',
+    Archivado: 'red',
+  };
+  return colors[status] || 'gray';
+};
+
+export const PrisonersList: React.FC<PrisonersListProps> = React.memo(({
   prisoners,
   onViewProfile,
   onEdit,
   loading = false,
   viewType = 'table',
 }) => {
-  useEffect(() => {
-    console.log("Renderizando lista de prisioneros. Cantidad:", prisoners?.length ?? 0);
-  }, [prisoners]);
+  if (loading) {
+    return <PrisonersListSkeleton viewType={viewType} count={12} />;
+  }
+
   return (
     <Card withBorder pos="relative">
-      {loading && <div className="!h-50 flex items-center justify-center"><Loading  /></div>}
       {viewType === 'card' ? (
         <Grid gutter="md">
           {prisoners?.map((prisoner) => (
-            <Grid.Col span={{ base: 12, sm: 6, md: 4, lg: 3 }} key={prisoner.prisoner.id}>
+            <Grid.Col
+              span={{ base: 12, sm: 6, md: 4, lg: 3 }}
+              key={prisoner.prisoner.id}
+            >
               <PrisonerCard
                 prisoner={prisoner}
                 onViewProfile={onViewProfile}
@@ -63,7 +86,7 @@ export const PrisonersList: React.FC<PrisonersListProps> = ({
       )}
     </Card>
   );
-};
+});
 
 interface PrisonerRowProps {
   prisoner: PrisionerListItem;
@@ -71,32 +94,23 @@ interface PrisonerRowProps {
   onEdit: (prisoner: PrisonerBase) => void;
 }
 
-const PrisonerRow: React.FC<PrisonerRowProps> = ({
+const PrisonerRow: React.FC<PrisonerRowProps> = React.memo(({
   prisoner,
   onViewProfile,
   onEdit,
 }) => {
+  const statusColor = useMemo(() => getStatusColor(prisoner.prisoner.status), [prisoner.prisoner.status]);
+  const formattedDate = useMemo(() => formatDate(prisoner.prisoner.admission_date), [prisoner.prisoner.admission_date]);
+  
+  const handleViewProfile = useCallback(() => {
+    onViewProfile(prisoner.prisoner);
+  }, [onViewProfile, prisoner.prisoner]);
+  
+  const handleEdit = useCallback(() => {
+    onEdit(prisoner.prisoner);
+  }, [onEdit, prisoner.prisoner]);
 
-  useEffect(() => {
-    console.log("Renderizando fila para prisionero:", prisoner.prisoner.id);
-  }, [prisoner]);
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      Activo: 'green',
-      Trasladado: 'blue',
-      Liberado: 'gray',
-      Archivado: 'red',
-    };
-    return colors[status] || 'gray';
-  };
+  const { user } = useGlobalContext();
 
   return (
     <Table.Tr>
@@ -119,7 +133,7 @@ const PrisonerRow: React.FC<PrisonerRowProps> = ({
             <Group gap={4} mt={4}>
               <Badge
                 size="xs"
-                color={getStatusColor(prisoner.prisoner.status)}
+                color={statusColor}
                 variant="light"
               >
                 {prisoner.prisoner.status}
@@ -159,7 +173,7 @@ const PrisonerRow: React.FC<PrisonerRowProps> = ({
                   Ingreso
                 </Text>
                 <Text size="xs" fw={500} lineClamp={1}>
-                  {formatDate(prisoner.prisoner.admission_date)}
+                  {formattedDate}
                 </Text>
               </div>
             </Group>
@@ -262,8 +276,6 @@ const PrisonerRow: React.FC<PrisonerRowProps> = ({
       <Table.Td>
         {prisoner.cases && prisoner.cases.length > 0 ? (
           <Stack gap={6}>
-
-
             {prisoner.cases.slice(0, 3).map((c, idx) => (
               <Badge
                 key={c.id || idx}
@@ -279,7 +291,6 @@ const PrisonerRow: React.FC<PrisonerRowProps> = ({
                 +{prisoner.cases.length - 3} más
               </Badge>
             )}
-
           </Stack>
         ) : (
           <Text size="xs" c="dimmed" fs="italic">
@@ -295,24 +306,27 @@ const PrisonerRow: React.FC<PrisonerRowProps> = ({
             <ActionIcon
               variant="light"
               size="md"
-              onClick={() => onViewProfile(prisoner.prisoner)}
+              onClick={handleViewProfile}
               color="blue"
             >
               <Eye size={18} />
             </ActionIcon>
           </Tooltip>
+        { (user?.role === 'ADMIN' || user?.role === 'SECRETARY' ) && (
           <Tooltip label="Editar prisionero">
             <ActionIcon
               variant="light"
               size="md"
-              onClick={() => onEdit(prisoner.prisoner)}
+              onClick={handleEdit}
               color="gray"
             >
               <Edit size={18} />
             </ActionIcon>
+
           </Tooltip>
+        )}
         </Group>
       </Table.Td>
     </Table.Tr>
   );
-};
+});

@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Card, Stack, Title, Group, Button, Text, ActionIcon, Badge, Modal, Tooltip } from '@mantine/core';
-import { FileDown, Plus, Pencil, Trash2, CheckCircle2, XCircle, Eye } from 'lucide-react';
+import { Card, Stack, Title, Group, Button, Text, ActionIcon, Badge, Modal } from '@mantine/core';
+import { FileDown, Plus, Pencil, Trash2, CheckCircle2, XCircle } from 'lucide-react';
 import type { Belonging } from '../../../../../shared/types/belongingTypes';
 import { BelongingFormModal } from '../modals/BelongingFormModal';
 import { useBelongingsManager } from '../hooks/useBelongingsManager';
+import { useGlobalContext } from '../../../../../shared/hooks/useGlobalContext';
+import FileView from '../../../../../shared/components/FileView';
+import { belongingsService } from '../../../../../shared/services';
 
 interface BelongingsSectionProps {
   prisonerId: string;
@@ -53,16 +56,12 @@ export const BelongingsSection: React.FC<BelongingsSectionProps> = ({
     }
   };
 
-
-
   const handleModalClose = () => {
     setIsModalOpen(false);
     setEditingBelonging(null);
   };
 
-  const handleViewFile = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
+  const { user } = useGlobalContext();
 
   return (
     <>
@@ -77,14 +76,16 @@ export const BelongingsSection: React.FC<BelongingsSectionProps> = ({
               {belongings.length}
             </Badge>
           </Group>
-          <Button
-            leftSection={<Plus size={16} />}
-            variant="light"
-            color="blue"
-            onClick={handleAdd}
-          >
-            Agregar Pertenencia
-          </Button>
+          {(user?.role === 'ADMIN' || user?.role === 'SECRETARY') && (
+            <Button
+              leftSection={<Plus size={16} />}
+              variant="light"
+              color="blue"
+              onClick={handleAdd}
+            >
+              Agregar Pertenencia
+            </Button>
+          )}
         </Group>
 
         {belongings.length === 0 ? (
@@ -125,53 +126,35 @@ export const BelongingsSection: React.FC<BelongingsSectionProps> = ({
                           Estado: <strong>{belonging.condition}</strong>
                         </Text>
                       )}
-                      {belonging.file && (
-                        <Tooltip label="Ver archivo adjunto">
-                          <ActionIcon
-                            size="sm"
-                            variant="subtle"
-                            color="blue"
-                            onClick={() => handleViewFile(belonging.file?.url || "")}
-                            disabled={!belonging.file?.url}
-                          >
-                            <Eye size={14} />
-                          </ActionIcon>
-                        </Tooltip>
-                      )}
+
                     </Group>
                   </div>
-                  <Group gap="xs">
-                    {/*!belonging.is_returned && (
-                      <Tooltip label="Marcar como devuelto">
-                        <ActionIcon
-                          variant="light"
-                          color="green"
-                          onClick={() => handleToggleReturned(belonging)}
-                          loading={isUpdating}
-                          aria-label="Marcar como devuelto"
-                        >
-                          <CheckCircle2 size={16} />
-                        </ActionIcon>
-                      </Tooltip>
-                    )*/}
-                    <ActionIcon
-                      variant="light"
-                      color="blue"
-                      onClick={() => handleEdit(belonging)}
-                      aria-label="Editar pertenencia"
-                    >
-                      <Pencil size={16} />
-                    </ActionIcon>
-                    <ActionIcon
-                      variant="light"
-                      color="red"
-                      onClick={() => handleDelete(belonging)}
-                      aria-label="Eliminar pertenencia"
-                    >
-                      <Trash2 size={16} />
-                    </ActionIcon>
-                  </Group>
+                  {user?.role === 'ADMIN' || user?.role === 'SECRETARY' ? (
+                    <Group gap="xs">
+                      <ActionIcon
+                        variant="light"
+                        color="blue"
+                        onClick={() => handleEdit(belonging)}
+                        aria-label="Editar pertenencia"
+                      >
+                        <Pencil size={16} />
+                      </ActionIcon>
+                      <ActionIcon
+                        variant="light"
+                        color="red"
+                        onClick={() => handleDelete(belonging)}
+                        aria-label="Eliminar pertenencia"
+                      >
+                        <Trash2 size={16} />
+                      </ActionIcon>
+                    </Group>
+                  ) : null}
                 </Group>
+                {belonging.file && (
+                  <div className='max-w-100'>
+                    <FileView fileInfo={belonging.file} label='Archivo pertenencia' updateFile={(file: File) => belongingsService.uploadInventory(belonging.prisoner_id, belonging.id, file)} onSuccess={onUpdate} />
+                  </div>
+                )}
               </Card>
             ))}
           </Stack>

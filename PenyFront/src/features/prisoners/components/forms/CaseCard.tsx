@@ -8,6 +8,7 @@ import { TextareaField } from "../../../../shared/components/TextareaField";
 import { MandateCard } from "./MandateCard";
 import type { CaseFormData, MandateFormData } from "../../../../shared/types/forms/legalCaseFormTypes";
 import { toDateObject, formatDateToISO } from "./utils/dateUtils";
+import { useGlobalContext } from "../../../../shared/hooks/useGlobalContext";
 
 interface CaseCardProps {
   caseData: CaseFormData;
@@ -58,6 +59,8 @@ export const CaseCard: React.FC<CaseCardProps> = React.memo(({
     }
     onChange(index, 'end_date', dateString as string | number | null | Date);
   }, [index, onChange]);
+
+  const {user} = useGlobalContext();
 
   return (
     <Card withBorder padding="lg" shadow="sm">
@@ -172,6 +175,7 @@ export const CaseCard: React.FC<CaseCardProps> = React.memo(({
           <Text size="sm" fw={600}>
             Mandatos Judiciales
           </Text>
+          {(user?.role === 'ADMIN' || user?.role === 'SECRETARY') && (
           <Button
             leftSection={<Plus size={16} />}
             variant="light"
@@ -180,6 +184,7 @@ export const CaseCard: React.FC<CaseCardProps> = React.memo(({
           >
             Agregar Mandato
           </Button>
+          )}
         </Group>
 
         {caseData.mandates.length === 0 ? (

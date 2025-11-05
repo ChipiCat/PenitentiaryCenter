@@ -153,7 +153,7 @@ export const MandateForm: React.FC<MandateFormProps> = ({
         />
 
         <Textarea
-          label="Descripción (Opcional)"
+          label="Descripción  "
           placeholder="Detalles del mandato judicial..."
           value={formData.description}
           onChange={(e) => handleChange('description', e.currentTarget.value)}

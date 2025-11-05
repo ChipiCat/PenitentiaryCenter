@@ -31,8 +31,8 @@ export const PrisonersPagination: React.FC<PrisonersPaginationProps> = ({
           value={pageSize.toString()}
           onChange={(value) => onPageSizeChange(Number(value))}
           data={[
-            { value: '10', label: '10 por página' },
-            { value: '25', label: '25 por página' },
+            { value: '12', label: '12 por página' },
+            { value: '24', label: '24 por página' },
             { value: '50', label: '50 por página' },
             { value: '100', label: '100 por página' },
           ]}

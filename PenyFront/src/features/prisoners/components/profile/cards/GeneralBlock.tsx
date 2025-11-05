@@ -19,6 +19,7 @@ import { usePenitentiaryEditor } from "../hooks/usePenitentiaryEditor";
 import { PenitentiaryEditForm } from "../forms/PenitentiaryEditForm";
 import FileView from "../../../../../shared/components/FileView";
 import { identityService } from "../../../../../shared/services";
+import { useGlobalContext } from "../../../../../shared/hooks/useGlobalContext";
 
 // Función para calcular la edad a partir de la fecha de nacimiento
 function calcularEdad(fechaNacimientoIso?: string): string {
@@ -45,6 +46,7 @@ export const GeneralBlock: React.FC<GeneralBlockProps> = ({
   profile,
   onRefresh,
 }) => {
+  const { user } = useGlobalContext();
   // ==================== HOOK DE EDICIÓN ====================
   const {
     isEditingMain,
@@ -92,6 +94,7 @@ export const GeneralBlock: React.FC<GeneralBlockProps> = ({
             icon={<UserCircle2 size={20} />}
             title="Información Principal"
             button={
+              (user?.role === 'ADMIN' || user?.role === 'SECRETARY') ? (
               <ActionIcon
                 variant="light"
                 color="blue"
@@ -101,7 +104,8 @@ export const GeneralBlock: React.FC<GeneralBlockProps> = ({
               >
                 <Edit3 size={18} />
               </ActionIcon>
-            }
+              ) : null}
+            
             fieldsLeft={[
               {
                 label: "Numero de Registro Penitenciario",
@@ -210,6 +214,7 @@ export const GeneralBlock: React.FC<GeneralBlockProps> = ({
             icon={<UserSquare size={20} />}
             title="Información Personal"
             button={
+              (user?.role === 'ADMIN' || user?.role === 'SECRETARY') ? (
               <ActionIcon
                 variant="light"
                 color="blue"
@@ -219,6 +224,7 @@ export const GeneralBlock: React.FC<GeneralBlockProps> = ({
               >
                 <Edit3 size={18} />
               </ActionIcon>
+              ) : null
             }
             fieldsLeft={[
               {
@@ -305,6 +311,7 @@ export const GeneralBlock: React.FC<GeneralBlockProps> = ({
             order={3}
             size="h4"
             button={
+              (user?.role === 'ADMIN' || user?.role === 'SECRETARY') && (
               <ActionIcon
                 variant="light"
                 color="blue"
@@ -314,6 +321,7 @@ export const GeneralBlock: React.FC<GeneralBlockProps> = ({
               >
                 <Edit3 size={18} />
               </ActionIcon>
+              )
             }
             fieldsLeft={[
               {

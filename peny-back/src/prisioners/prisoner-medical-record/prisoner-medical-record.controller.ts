@@ -11,7 +11,6 @@ import {
   UploadedFile,
   BadRequestException,
 } from '@nestjs/common';
-import { CacheInterceptor } from '@nestjs/cache-manager';
 import {
   ApiTags,
   ApiOperation,
@@ -36,7 +35,6 @@ import type { UploadedFile as UploadedFileType } from '../../files/interfaces/up
 @ApiTags('Prisoner Medical Records')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@UseInterceptors(CacheInterceptor)
 @Controller('prisoners/:prisonerId/medical-records')
 export class PrisonerMedicalRecordController {
   constructor(
