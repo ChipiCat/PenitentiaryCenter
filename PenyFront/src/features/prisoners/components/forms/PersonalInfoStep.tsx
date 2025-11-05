@@ -27,12 +27,18 @@ interface PersonalInfoStepProps {
     belongings?: Partial<Belonging>[];
     child?: Partial<Child>[];
   }) => void;
+  onFileUpdate?: (
+    fileType: string,
+    file: File | undefined,
+    index?: string | number
+  ) => void;
   errors?: Record<string, string>;
 }
 
 export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = React.memo(({
   data,
   onUpdate,
+  onFileUpdate,
   errors = {},
 }) => {
   const personal = useMemo(() => data.personal || {}, [data.personal]);
@@ -43,7 +49,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = React.memo(({
     {
       label: "Nombre Completo",
       placeholder: "Nombre completo",
-      key: "name",
+      key: "full_name",
       required: true,
     },
     {
@@ -276,6 +282,9 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = React.memo(({
         onAdd={handleAddBelonging}
         onRemove={handleRemoveBelonging}
         onChange={handleBelongingChange}
+        onFileChange={(identifier, file) => {
+          onFileUpdate?.('belongingFiles', file, identifier);
+        }}
         errors={errors}
         addLabel="Agregar pertenencia"
       />

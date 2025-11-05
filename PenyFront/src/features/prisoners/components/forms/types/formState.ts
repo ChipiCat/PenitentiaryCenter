@@ -20,13 +20,22 @@ export interface DirtyState {
 
 /**
  * Archivos para subir
- * Se usan los nombres oficiales sin sufijo "File"
+ * Estructura optimizada para manejar múltiples archivos por entidad
  */
 export interface FormFiles {
+  // Archivos de identidad
   photo?: File;
   fingerprintLeft?: File;
   fingerprintRight?: File;
+  
+  // Archivos médicos
   medicalFile?: File;
+  
+  // Archivos de pertenencias (índice por tempId o índice de array)
+  belongingFiles?: Record<string, File>;
+  
+  // Archivos de mandatos (índice por tempId o índice de array)
+  mandateFiles?: Record<string, File>;
 }
 
 /**
