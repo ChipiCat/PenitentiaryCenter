@@ -87,8 +87,7 @@ export const UserModal = ({
       }
       setPhotoFile(null);
     }
-
-  }, [opened, user, form]);
+  }, [opened, user]);
 
   const handleSubmit = async (values: CreateUserData) => {
     // Construir FormData para ambos casos (crear y editar)

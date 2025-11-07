@@ -9,7 +9,11 @@ import {
   Query,
   UseGuards,
   Request,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiTags,
   ApiOperation,
@@ -18,6 +22,7 @@ import {
   ApiQuery,
   ApiResponse,
   ApiBearerAuth,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { Request as ExpressRequest } from 'express';
@@ -29,6 +34,7 @@ import {
   CreateUserDto,
   UpdateUserDto,
   PaginationQueryDto,
+  FileResponseDto,
 } from './dto/user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -81,6 +87,34 @@ export class UserController {
     @Request() req: AuthenticatedRequest,
   ) {
     return this.userService.update(id, updateUserDto, req.user?.id);
+  }
+
+  @Post(':id/upload-photo')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload user profile photo' })
+  @ApiParam({ name: 'id', type: String, description: 'User ID' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+      },
+      required: ['file'],
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Photo uploaded successfully.', type: FileResponseDto })
+  @ApiResponse({ status: 400, description: 'Invalid file.' })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  async uploadPhoto(
+    @Param('id') id: string,
+    @UploadedFile() file: any,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+    return this.userService.uploadProfilePhoto(id, file, req.user?.id);
   }
 
   @Delete(':id')
