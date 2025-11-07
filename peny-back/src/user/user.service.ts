@@ -19,6 +19,7 @@ import { User, UserRole, Prisma } from '../../generated/prisma';
 import * as bcrypt from 'bcryptjs';
 import { AuditService } from '../audit/audit.service';
 import { MailService } from '../common/services/mail.service';
+import { FilesService } from '../files/files.service';
 
 /**
  * Interfaz para los metadatos de auditoría extraídos del request
@@ -53,6 +54,7 @@ export class UserService {
     private prisma: PrismaService,
     private auditService: AuditService,
     private mailService: MailService,
+    private filesService: FilesService,
     @Inject(REQUEST) private readonly request: Request,
   ) {}
 
@@ -461,5 +463,27 @@ export class UserService {
     });
 
     return { message: 'Password changed successfully' };
+  }
+
+  async uploadProfilePhoto(
+    id: string,
+    file: any,
+    userId?: string,
+  ): Promise<{ id: string; url: string; filename: string; originalName: string; mimeType: string; extension: string; size: number }> {
+    // Check if user exists
+    await this.findOne(id);
+
+    try {
+      const uploadedFile = await this.filesService.uploadFile(
+        file,
+        'User',
+        id,
+        'photo',
+        userId || id,
+      );
+      return uploadedFile;
+    } catch (error) {
+      throw new Error(`Error uploading photo: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 }

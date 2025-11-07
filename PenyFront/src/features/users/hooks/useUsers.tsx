@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { usersService } from "../../../shared/services/userService";
 import { register } from "../../../shared/services/authService";
 import type { User, UserStats } from "../../../shared/types";
@@ -6,51 +6,33 @@ import type { PaginationResponse } from "../../../shared/types/axiosTypes";
 import type { GetUsersParams, UpdateUserData } from "../../../shared/types/userTypes";
 import type { RegisterRequest } from "../../../shared/types/authRequest";
 
-export function useUsers(initialFilters: GetUsersParams = {}) {
-  const [filters, setFilters] = useState<GetUsersParams>(initialFilters);
+export function useUsers() {
   const [data, setData] = useState<PaginationResponse<User> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<UserStats>({ total: 0, activos: 0, inactivos: 0 });
 
-  const fetchUsers = useCallback(() => {
-    setLoading(true);
-    usersService.getUsers(filters)
-      .then((res) => {
-        setData(res);
-        const usuarios = res.data ?? [];
-        setStats({
-          total: usuarios.length,
-          activos: usuarios.filter((u: User) => !u.isDeleted).length,
-          inactivos: usuarios.filter((u: User) => u.isDeleted).length,
-        });
-      })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [filters]);
+  // Función para actualizar datos y estadísticas
+  const updateUserData = useCallback((res: PaginationResponse<User>) => {
+    setData(res);
+    const usuarios = res.data ?? [];
+    setStats({
+      total: usuarios.length,
+      activos: usuarios.filter((u: User) => !u.isDeleted).length,
+      inactivos: usuarios.filter((u: User) => u.isDeleted).length,
+    });
+  }, []);
 
-  // Nueva función para paginación controlada desde el componente
+  // Función para obtener usuarios con parámetros específicos
   const fetchUsersWithParams = useCallback((params: Partial<GetUsersParams> = {}) => {
     setLoading(true);
-    // Solo usa page y size, como espera el backend
-    const mergedFilters = { ...filters, ...params };
-    usersService.getUsers(mergedFilters)
+    usersService.getUsers(params)
       .then((res) => {
-        setData(res);
-        const usuarios = res.data ?? [];
-        setStats({
-          total: usuarios.length,
-          activos: usuarios.filter((u: User) => !u.isDeleted).length,
-          inactivos: usuarios.filter((u: User) => u.isDeleted).length,
-        });
+        updateUserData(res);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [filters]);
-
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  }, [updateUserData]);
 
   // Crear usuario
   const handleNewUser = async (data: RegisterRequest | FormData) => {
@@ -98,8 +80,7 @@ export function useUsers(initialFilters: GetUsersParams = {}) {
     loading,
     error,
     stats,
-    setFilters,
-    fetchUsers: fetchUsersWithParams, // <-- expón la función para paginación
+    fetchUsersWithParams,
     total: data?.total ?? 0,
   };
 }

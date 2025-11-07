@@ -8,14 +8,18 @@ import {
   Grid,
   Stack
 } from '@mantine/core';
+import { useState } from 'react';
 import { useGlobalContext } from '../../../shared/hooks/useGlobalContext';
 import { getRoleLabel } from '../../../shared/utils/userUtils';
 import { Edit } from 'lucide-react';
+import { EditProfileModal } from './EditProfileModal';
+import api from '../../../shared/services/api';
 
 const PersonalInfoCard = () => {
-  const { user } = useGlobalContext();
+  const { user, refetchUser } = useGlobalContext();
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Función para formatear fechas
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'No disponible';
     try {
@@ -63,11 +67,33 @@ const PersonalInfoCard = () => {
     return `@${email.split('@')[0]}`;
   };
 
+  // Manejar actualización de perfil
+  const handleUpdateProfile = async (data: Record<string, any>) => {
+    try {
+      setIsLoading(true);
+      if (!user?.id) throw new Error("User ID not found");
+      
+      await api.patch(`/users/${user.id}`, data);
+      await refetchUser();
+      setEditModalOpen(false);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Paper shadow="sm" p="lg" radius="md" h="100%">
       <Group justify="space-between" align="flex-start" mb="lg">
         <Title order={3} c="dark">Información Personal</Title>
-        <Button variant="filled" color="dark" size="sm" leftSection={<Edit size={16} />}>
+        <Button 
+          variant="filled" 
+          color="dark" 
+          size="sm" 
+          leftSection={<Edit size={16} />}
+          onClick={() => setEditModalOpen(true)}
+        >
           Editar
         </Button>
       </Group>
@@ -134,6 +160,14 @@ const PersonalInfoCard = () => {
           <Text size="sm">{user?.departmentalDirectorateUnit || 'No disponible'}</Text>
         </Grid.Col>
       </Grid>
+
+      <EditProfileModal
+        opened={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        user={user}
+        onSubmit={handleUpdateProfile}
+        isLoading={isLoading}
+      />
     </Paper>
   );
 };

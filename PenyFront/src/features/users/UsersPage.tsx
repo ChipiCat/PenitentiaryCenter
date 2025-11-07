@@ -15,7 +15,6 @@ const UsersPage = () => {
   const pageSize = 10;
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [search, setSearch] = useState("");
   const [notification, setNotification] = useState<string | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
 
@@ -24,20 +23,16 @@ const UsersPage = () => {
     handleNewUser,
     handleEditUser,
     handleDeleteUser,
-    setFilters,
-    fetchUsers,
+    fetchUsersWithParams,
     total,
     loading,
   } = useUsers();
 
-  const handleSearchChange = (value: string) => {
-    setSearch(value);
-    setFilters((prev) => ({ ...prev, search: value }));
-  };
-
+  // Cargar usuarios cuando la página cambia
   useEffect(() => {
-    fetchUsers({ page, size: pageSize });
-  }, [page, search, fetchUsers]);
+    fetchUsersWithParams({ page, size: pageSize });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, pageSize]);
 
   // Editar usuario
   const handleEditUserTable = (userId: string) => {
@@ -117,8 +112,6 @@ const UsersPage = () => {
               setEditModalOpen(true);
             setSelectedUser(null);
           }}
-          search={search}
-          onSearchChange={handleSearchChange}
         />
         <UsersTable
           users={users}
