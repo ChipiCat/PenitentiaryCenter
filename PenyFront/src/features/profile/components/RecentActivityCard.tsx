@@ -6,11 +6,11 @@ import {
   Timeline,
   Group,
   Badge,
-  Pagination,
 } from "@mantine/core";
 import api from "../../../shared/services/api";
 import { useGlobalContext } from "../../../shared/hooks/useGlobalContext";
 import { Loading } from "../../../shared/components/Loading";
+import { CustomPagination } from "../../../shared/components/CustomPagination";
 import {
   adaptActivityToActivityLog,
   translateUserAction,
@@ -50,7 +50,7 @@ const RecentActivityCard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 5;
+  const [pageSize, setPageSize] = useState(5);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -78,11 +78,16 @@ const RecentActivityCard = () => {
     return <Text c="red">{error || "Error al cargar datos"}</Text>;
 
   const { recent_activities } = stats;
-  const totalPages = Math.ceil(recent_activities.length / PAGE_SIZE);
+  const totalPages = Math.ceil(recent_activities.length / pageSize);
   const paginatedActivities = recent_activities.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE
+    (page - 1) * pageSize,
+    page * pageSize
   );
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(1); // Reset a primera página
+  };
 
   return (
     <Paper shadow="sm" p="lg" radius="md" withBorder h="100%">
@@ -128,16 +133,18 @@ const RecentActivityCard = () => {
           </Timeline.Item>
         ))}
       </Timeline>
-      <Group justify="center" mt="md">
-        <Pagination
-          total={totalPages}
-          value={page}
-          onChange={setPage}
-          size="sm"
-          radius="md"
-          color="blue"
+      
+      {totalPages > 1 && (
+        <CustomPagination
+          currentPage={page}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          total={recent_activities.length}
+          onPageChange={setPage}
+          onPageSizeChange={handlePageSizeChange}
+          pageSizeOptions={[5]}
         />
-      </Group>
+      )}
     </Paper>
   );
 };

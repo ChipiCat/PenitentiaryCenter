@@ -7,7 +7,6 @@ import { PrisonersStats } from "../components/list/PrisonersStats";
 import { PrisonersList } from "../components/list/PrisonersList";
 import { EmptyPrisonersState } from "../components/list/EmptyPrisonersState";
 import { PrisonersFilters } from "../components/list/PrisonersFilters";
-import { PrisonersPagination } from "../components/list/PrisonersPagination";
 import { ROUTES } from "../../../shared/config/routes";
 import type {
   PrisionerListItem,
@@ -17,10 +16,11 @@ import type { Statistics, Pagination } from "../../../shared/types";
 import type { PrisonerSearchFilters } from "../../../shared/types/prisonerSearchTypes";
 import { prisonersService } from "../../../shared/services/prisonersService";
 import PrisonersSearchBar from "../components/list/PrisonersSearchBar";
+import { CustomPagination } from "../../../shared/components/CustomPagination";
 
 export const PrisonersPage: React.FC = () => {
   const navigate = useNavigate();
-  
+
   // State management
   const [prisoners, setPrisoners] = useState<PrisionerListItem[]>([]);
   const [statistics, setStatistics] = useState<Statistics>({
@@ -39,12 +39,15 @@ export const PrisonersPage: React.FC = () => {
     total: 0,
     totalPages: 0,
   });
-  const [viewType, setViewType] = useState<'table' | 'cards'>('cards');
+  const [viewType, setViewType] = useState<"table" | "cards">("cards");
 
   // Memoized callback for viewing profile
-  const handleViewProfile = useCallback((prisoner: PrisonerBase) => {
-    navigate(ROUTES.PRISONER_PROFILE.replace(":id", prisoner.id));
-  }, [navigate]);
+  const handleViewProfile = useCallback(
+    (prisoner: PrisonerBase) => {
+      navigate(ROUTES.PRISONER_PROFILE.replace(":id", prisoner.id));
+    },
+    [navigate]
+  );
 
   // Load prisoners data
   const loadData = useCallback(async () => {
@@ -59,7 +62,7 @@ export const PrisonersPage: React.FC = () => {
         "admissionDate",
         "desc"
       );
-      
+
       setPrisoners(response.data);
       setPagination((prev) => ({
         ...prev,
@@ -118,10 +121,13 @@ export const PrisonersPage: React.FC = () => {
   }, []);
 
   // Filters handlers
-  const handleFiltersChange = useCallback((newFilters: PrisonerSearchFilters) => {
-    setFilters(newFilters);
-    setPagination((prev) => ({ ...prev, page: 1 }));
-  }, []);
+  const handleFiltersChange = useCallback(
+    (newFilters: PrisonerSearchFilters) => {
+      setFilters(newFilters);
+      setPagination((prev) => ({ ...prev, page: 1 }));
+    },
+    []
+  );
 
   const handleClearFilters = useCallback(() => {
     setFilters({});
@@ -167,7 +173,7 @@ export const PrisonersPage: React.FC = () => {
             onViewProfile={handleViewProfile}
             onEdit={handleEdit}
             loading={true}
-            viewType={viewType === 'cards' ? 'card' : 'table'}
+            viewType={viewType === "cards" ? "card" : "table"}
           />
         ) : prisoners?.length === 0 ? (
           <EmptyPrisonersState onCreateNew={handleCreateNew} />
@@ -178,15 +184,16 @@ export const PrisonersPage: React.FC = () => {
               onViewProfile={handleViewProfile}
               onEdit={handleEdit}
               loading={false}
-              viewType={viewType === 'cards' ? 'card' : 'table'}
+              viewType={viewType === "cards" ? "card" : "table"}
             />
-            <PrisonersPagination
+            <CustomPagination
               currentPage={pagination.page}
               totalPages={pagination.totalPages}
               pageSize={pagination.limit}
               total={pagination.total}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}
+              pageSizeOptions={[12, 24, 50, 100]}
             />
           </>
         )}

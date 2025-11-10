@@ -62,7 +62,7 @@ export function CustomHeader() {
 
   const currentPage = routeTitles[location.pathname] || {
     title: "Sistema Penitenciario",
-    description: "Centro Penitenciario Chonchocoro",
+    description: "Centro Penitenciario San Sebastian Varones",
   };
 
   const handleLogout = async () => {
