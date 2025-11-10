@@ -7,9 +7,25 @@ export function useSystemActivity() {
   const [actionFilter, setActionFilter] = useState<string>("");
   const [timeFilter, setTimeFilter] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchActivityLogs().then(setActivities);
+    const loadActivities = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchActivityLogs();
+        setActivities(data);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error al cargar actividades");
+        console.error("Error fetching activities:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadActivities();
   }, []);
 
   const filteredActivities = activities.filter(a =>
@@ -18,12 +34,15 @@ export function useSystemActivity() {
   );
 
   return {
+    activities,
     actionFilter,
     setActionFilter,
     timeFilter,
     setTimeFilter,
     searchTerm,
     setSearchTerm,
-    filteredActivities
+    filteredActivities,
+    loading,
+    error,
   };
 }

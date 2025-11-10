@@ -1,7 +1,8 @@
-import { Paper, Title, Table, Loader } from '@mantine/core';
+import { Paper, Title, Table } from '@mantine/core';
 import type { User, UserActions } from '../../../shared/types/userTypes';
 import { UserTableRow } from './UserTableRow';
 import { CustomPagination } from '../../../shared/components/CustomPagination';
+import { Loading } from '../../../shared/components/Loading';
 
 const ROLE_LABELS: Record<string, string> = {
   ADMIN: 'Administrador',
@@ -45,8 +46,7 @@ export const UsersTable = ({
       </Title>
       {loading ? (
         <div style={{ minHeight: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
-          <Loader size={48} color="blue" />
-          <div style={{ color: '#888', marginTop: 8 }}>Recargando usuarios...</div>
+          <Loading />
         </div>
       ) : (
         <>

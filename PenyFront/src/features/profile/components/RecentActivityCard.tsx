@@ -68,14 +68,22 @@ const RecentActivityCard = () => {
   }, [user?.id]);
 
   if (!user?.id) return <Loading />;
+  
   if (loading)
     return (
-      <div className="w-full h-full flex items-center justify-center">
-        <Loading />
-      </div>
+      <Paper shadow="sm" p="lg" radius="md" withBorder h="100%">
+        <div style={{ minHeight: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Loading />
+        </div>
+      </Paper>
     );
+  
   if (error || !stats)
-    return <Text c="red">{error || "Error al cargar datos"}</Text>;
+    return (
+      <Paper shadow="sm" p="lg" radius="md" withBorder h="100%">
+        <Text c="red">{error || "Error al cargar datos"}</Text>
+      </Paper>
+    );
 
   const { recent_activities } = stats;
   const totalPages = Math.ceil(recent_activities.length / pageSize);
@@ -86,7 +94,7 @@ const RecentActivityCard = () => {
 
   const handlePageSizeChange = (newSize: number) => {
     setPageSize(newSize);
-    setPage(1); // Reset a primera página
+    setPage(1);
   };
 
   return (
@@ -94,57 +102,65 @@ const RecentActivityCard = () => {
       <Title order={4} c="dark" mb="md">
         Actividad Reciente
       </Title>
-      <Timeline
-        active={paginatedActivities.length}
-        bulletSize={24}
-        lineWidth={2}
-      >
-        {paginatedActivities.map((activity) => (
-          <Timeline.Item
-            key={activity.id}
-            bullet={iconMap[activity.action] || <IconInfoCircle size={16} />}
-            color="blue"
-            title={translateUserAction(adaptActivityToActivityLog(activity))}
+      {paginatedActivities.length === 0 ? (
+        <Text c="dimmed" ta="center" py="md">
+          Sin actividad reciente
+        </Text>
+      ) : (
+        <>
+          <Timeline
+            active={paginatedActivities.length}
+            bulletSize={24}
+            lineWidth={2}
           >
-            <Group gap={8} mb={4}>
-              <Badge color="blue" size="sm">
-                {actionLabels[activity.action] || activity.action}
-              </Badge>
-              <Badge color="gray" size="sm">
-                {moduleLabels[activity.module] || activity.module}
-              </Badge>
-            </Group>
-            {activity.prisoner_related &&
-              activity.prisoner_related.identity && (
-                <Text c="dimmed" size="sm">
-                  <b>Prisionero:</b>{" "}
-                  {activity.prisoner_related.identity.firstName}{" "}
-                  {activity.prisoner_related.identity.surname}
+            {paginatedActivities.map((activity) => (
+              <Timeline.Item
+                key={activity.id}
+                bullet={iconMap[activity.action] || <IconInfoCircle size={16} />}
+                color="blue"
+                title={translateUserAction(adaptActivityToActivityLog(activity))}
+              >
+                <Group gap={8} mb={4}>
+                  <Badge color="blue" size="sm">
+                    {actionLabels[activity.action] || activity.action}
+                  </Badge>
+                  <Badge color="gray" size="sm">
+                    {moduleLabels[activity.module] || activity.module}
+                  </Badge>
+                </Group>
+                {activity.prisoner_related &&
+                  activity.prisoner_related.identity && (
+                    <Text c="dimmed" size="sm">
+                      <b>Prisionero:</b>{" "}
+                      {activity.prisoner_related.identity.firstName}{" "}
+                      {activity.prisoner_related.identity.surname}
+                    </Text>
+                  )}
+                {activity.metadata?.prisoner && (
+                  <Text c="dimmed" size="sm">
+                    <b>Prisionero extra:</b> {activity.metadata.prisoner}
+                  </Text>
+                )}
+                <Text size="xs" mt={4}>
+                  {new Date(activity.timestamp).toLocaleString()}
                 </Text>
-              )}
-            {activity.metadata?.prisoner && (
-              <Text c="dimmed" size="sm">
-                <b>Prisionero extra:</b> {activity.metadata.prisoner}
-              </Text>
-            )}
-            <Text size="xs" mt={4}>
-              {new Date(activity.timestamp).toLocaleString()}
-            </Text>
-          </Timeline.Item>
-        ))}
-      </Timeline>
-      
-      {totalPages > 1 && (
-        <CustomPagination
-          currentPage={page}
-          totalPages={totalPages}
-          pageSize={pageSize}
-          total={recent_activities.length}
-          onPageChange={setPage}
-          onPageSizeChange={handlePageSizeChange}
-          pageSizeOptions={[5]}
-          showStats={false}
-        />
+              </Timeline.Item>
+            ))}
+          </Timeline>
+          
+          {totalPages > 1 && (
+            <CustomPagination
+              currentPage={page}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              total={recent_activities.length}
+              onPageChange={setPage}
+              onPageSizeChange={handlePageSizeChange}
+              pageSizeOptions={[5]}
+              showStats={false}
+            />
+          )}
+        </>
       )}
     </Paper>
   );

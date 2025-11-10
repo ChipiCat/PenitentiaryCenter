@@ -91,7 +91,7 @@ export const GeneralBlock: React.FC<GeneralBlockProps> = ({
           />
         ) : (
           <GenericInfoSection
-            icon={<UserCircle2 size={20} />}
+            icon={<UserCircle2 size={20} color="blue" />}
             title="Información Principal"
             button={
               (user?.role === 'ADMIN' || user?.role === 'SECRETARY') ? (
@@ -193,10 +193,6 @@ export const GeneralBlock: React.FC<GeneralBlockProps> = ({
                 acceptPdf={false}
               />
             )}
-
-                
-            
-
           </div>
         )}
 
@@ -211,7 +207,7 @@ export const GeneralBlock: React.FC<GeneralBlockProps> = ({
           />
         ) : (
           <GenericInfoSection
-            icon={<UserSquare size={20} />}
+            icon={<UserSquare size={20} color="blue" />}
             title="Información Personal"
             button={
               (user?.role === 'ADMIN' || user?.role === 'SECRETARY') ? (

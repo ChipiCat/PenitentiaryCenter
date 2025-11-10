@@ -15,6 +15,7 @@ import {
 import { Link } from "react-router-dom";
 import { useSystemActivity } from "./hooks/useSystemActivity";
 import { CustomPagination } from "../../shared/components/CustomPagination";
+import { Loading } from "../../shared/components/Loading";
 import {
   severityLabels,
   statusLabels,
@@ -26,6 +27,7 @@ import { getActivityIcon, translateUserAction, translateLogout } from "../../sha
 const ActivityPage = () => {
   const {
     filteredActivities,
+    loading,  // Agrega esto si el hook lo retorna
   } = useSystemActivity();
 
   const [page, setPage] = useState(1);
@@ -40,7 +42,7 @@ const ActivityPage = () => {
 
   const handlePageSizeChange = (newSize: number) => {
     setPageSize(newSize);
-    setPage(1); // Reset to first page when changing page size
+    setPage(1);
   };
 
   return (
@@ -65,8 +67,12 @@ const ActivityPage = () => {
         />
 
         <Stack gap="md">
-          {paginatedActivities.length === 0 ? (
-            <Text c="dimmed" ta="center">
+          {loading ? (
+            <div style={{ minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Loading />
+            </div>
+          ) : paginatedActivities.length === 0 ? (
+            <Text c="dimmed" ta="center" py="xl">
               No hay actividades para mostrar.
             </Text>
           ) : (
