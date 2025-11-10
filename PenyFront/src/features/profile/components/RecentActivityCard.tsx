@@ -143,6 +143,7 @@ const RecentActivityCard = () => {
           onPageChange={setPage}
           onPageSizeChange={handlePageSizeChange}
           pageSizeOptions={[5]}
+          showStats={false}
         />
       )}
     </Paper>
