@@ -6,7 +6,8 @@ import {
   Avatar,
   Button,
   Grid,
-  Stack
+  Stack,
+  Skeleton,
 } from '@mantine/core';
 import { useState } from 'react';
 import { useGlobalContext } from '../../../shared/hooks/useGlobalContext';
@@ -33,7 +34,6 @@ const PersonalInfoCard = () => {
     }
   };
 
-  // Función para formatear fecha y hora
   const formatDateTime = (dateString: string | undefined) => {
     if (!dateString) return 'No disponible';
     try {
@@ -50,7 +50,6 @@ const PersonalInfoCard = () => {
     }
   };
 
-  // Obtener iniciales del nombre
   const getInitials = (name: string | undefined) => {
     if (!name) return 'U';
     return name
@@ -61,13 +60,11 @@ const PersonalInfoCard = () => {
       .slice(0, 2);
   };
 
-  // Generar username desde email
   const generateUsername = (email: string | undefined) => {
     if (!email) return '@usuario';
     return `@${email.split('@')[0]}`;
   };
 
-  // Manejar actualización de perfil
   const handleUpdateProfile = async (data: Record<string, string>) => {
     try {
       setIsLoading(true);
@@ -81,6 +78,13 @@ const PersonalInfoCard = () => {
     }
   };
 
+  if (!user) {
+    return (
+      <Paper shadow="sm" p="lg" radius="md" h="100%">
+        <Skeleton height={200} />
+      </Paper>
+    );
+  }
 
   return (
     <Paper shadow="sm" p="lg" radius="md" h="100%">

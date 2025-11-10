@@ -72,7 +72,6 @@ export const MainInfoEditForm: React.FC<MainInfoEditFormProps> = ({
     }
   };
 
-  // ==================== RENDERIZADO ====================
   return (
     <Stack gap="md">
       <Card withBorder padding="lg" className="relative">

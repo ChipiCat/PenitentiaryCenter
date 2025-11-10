@@ -8,12 +8,12 @@ import {
   Card,
   Badge,
   Divider,
-  Loader,
   Grid,
 } from '@mantine/core';
 import { IconUser, IconListCheck, IconRepeat, IconDatabase } from '@tabler/icons-react';
 import api from '../../../shared/services/api';
 import { useGlobalContext } from '../../../shared/hooks/useGlobalContext';
+import { Loading } from '../../../shared/components/Loading';
 
 interface UserStats {
   overview: {
@@ -53,9 +53,23 @@ const UsageStatsCard = () => {
       });
   }, [user?.id]);
 
-  if (!user?.id) return <Loader />;
-  if (loading) return <Loader />;
-  if (error || !stats) return <Text c="red">{error || 'Error al cargar datos'}</Text>;
+  if (!user?.id) return <Loading />;
+  
+  if (loading) 
+    return (
+      <Paper shadow="sm" p="lg" radius="md">
+        <div style={{ minHeight: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Loading />
+        </div>
+      </Paper>
+    );
+  
+  if (error || !stats) 
+    return (
+      <Paper shadow="sm" p="lg" radius="md">
+        <Text c="red">{error || 'Error al cargar datos'}</Text>
+      </Paper>
+    );
 
   const { overview, trends, sessions_summary } = stats;
 
@@ -117,9 +131,8 @@ const UsageStatsCard = () => {
       </Group>     
       <Divider label="Sesiones" my="sm" />
       <Group gap="md" mb="md">
-        <Badge color="green">Último login: {new Date(sessions_summary.last_login).toLocaleString()}</Badge>
-        <Badge color="blue">Total logins: {sessions_summary.total_login_count}</Badge>
-        <Badge color="gray">IP más usada: {sessions_summary.most_used_ip}</Badge>
+        <Badge color="green">Último inicio de sesión: {new Date(sessions_summary.last_login).toLocaleString()}</Badge>
+        <Badge color="blue">Total inicios de sesión: {sessions_summary.total_login_count}</Badge>
       </Group>
     </Paper>
   );
