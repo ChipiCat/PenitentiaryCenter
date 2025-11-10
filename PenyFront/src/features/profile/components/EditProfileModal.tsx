@@ -23,11 +23,25 @@ const roleOptions = [
   { value: "SECRETARY", label: "Secretario" },
 ];
 
+interface ProfileFormValues {
+  name: string;
+  email: string;
+  role: string;
+  cellphone: string;
+  ci: string;
+  department: string;
+  departmentalDirectorateUnit: string;
+}
+
+interface FileUploadResponse {
+  id: string;
+}
+
 interface EditProfileModalProps {
   opened: boolean;
   onClose: () => void;
   user: User | null;
-  onSubmit: (data: Record<string, any>) => Promise<void>;
+  onSubmit: (data: Record<string, string>) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -44,7 +58,7 @@ export const EditProfileModal = ({
   } | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
-  const form = useForm({
+  const form = useForm<ProfileFormValues>({
     initialValues: {
       name: "",
       email: "",
@@ -84,7 +98,7 @@ export const EditProfileModal = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opened, user]);
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: ProfileFormValues) => {
     try {
       let photoFileId: string | undefined = undefined;
 
@@ -92,7 +106,7 @@ export const EditProfileModal = ({
       if (photoFile) {
         const formData = new FormData();
         formData.append("file", photoFile);
-        const uploadResponse = await api.post<{ id: string }>(
+        const uploadResponse = await api.post<FileUploadResponse>(
           `/users/${user?.id}/upload-photo`,
           formData,
           {
@@ -103,7 +117,7 @@ export const EditProfileModal = ({
       }
 
       // Prepare the update data
-      const updateData: Record<string, any> = {
+      const updateData: Record<string, string> = {
         name: values.name,
         email: values.email,
         role: values.role,

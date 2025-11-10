@@ -68,7 +68,7 @@ const PersonalInfoCard = () => {
   };
 
   // Manejar actualización de perfil
-  const handleUpdateProfile = async (data: Record<string, any>) => {
+  const handleUpdateProfile = async (data: Record<string, string>) => {
     try {
       setIsLoading(true);
       if (!user?.id) throw new Error("User ID not found");
@@ -76,12 +76,11 @@ const PersonalInfoCard = () => {
       await api.patch(`/users/${user.id}`, data);
       await refetchUser();
       setEditModalOpen(false);
-    } catch (error) {
-      throw error;
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <Paper shadow="sm" p="lg" radius="md" h="100%">
