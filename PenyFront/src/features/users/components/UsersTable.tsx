@@ -1,6 +1,7 @@
-import { Paper, Title, Table, Pagination, Group, Loader } from '@mantine/core';
+import { Paper, Title, Table, Loader } from '@mantine/core';
 import type { User, UserActions } from '../../../shared/types/userTypes';
 import { UserTableRow } from './UserTableRow';
+import { CustomPagination } from '../../../shared/components/CustomPagination';
 
 const ROLE_LABELS: Record<string, string> = {
   ADMIN: 'Administrador',
@@ -15,11 +16,27 @@ interface UsersTableProps {
   total: number;
   pageSize?: number;
   onPageChange: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
   loading?: boolean;
 }
 
-export const UsersTable = ({ users, actions, page, total, pageSize = 10, onPageChange, loading }: UsersTableProps) => {
+export const UsersTable = ({ 
+  users, 
+  actions, 
+  page, 
+  total, 
+  pageSize = 10, 
+  onPageChange,
+  onPageSizeChange,
+  loading 
+}: UsersTableProps) => {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  const handlePageSizeChange = (newSize: number) => {
+    if (onPageSizeChange) {
+      onPageSizeChange(newSize);
+    }
+  };
 
   return (
     <Paper p="md" withBorder>
@@ -54,16 +71,18 @@ export const UsersTable = ({ users, actions, page, total, pageSize = 10, onPageC
               ))}
             </Table.Tbody>
           </Table>
-          <Group justify="center" mt="md">
-            <Pagination
-              total={totalPages}
-              value={page}
-              onChange={onPageChange}
-              size="sm"
-              radius="md"
-              color="blue"
+
+          {totalPages > 0 && (
+            <CustomPagination
+              currentPage={page}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              total={total}
+              onPageChange={onPageChange}
+              onPageSizeChange={handlePageSizeChange}
+              pageSizeOptions={[5, 10, 20, 50]}
             />
-          </Group>
+          )}
         </>
       )}
     </Paper>
