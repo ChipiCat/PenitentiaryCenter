@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuditModule } from '../audit/audit.module';
 import { FilesModule } from '../files/files.module';
+import { MailModule } from 'src/common/services/mail.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { FilesModule } from '../files/files.module';
     }),
     forwardRef(() => AuditModule),
     FilesModule,
+    MailModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

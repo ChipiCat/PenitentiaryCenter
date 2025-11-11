@@ -23,6 +23,7 @@ import * as bcrypt from 'bcryptjs';
 import { UserRole, LogoutReason } from '../../generated/prisma';
 import { AuditService } from '../audit/audit.service';
 import { UploadedFile } from '../files/interfaces/uploaded-file.interface';
+import { MailService } from 'src/common/services/mail.service';
 
 /**
  * Interfaz para los metadatos de auditoría extraídos del request
@@ -49,6 +50,7 @@ export class AuthService {
     private jwtService: JwtService,
     private auditService: AuditService,
     private filesService: FilesService,
+    private mailService: MailService,
     @Inject(REQUEST) private readonly request: Request,
   ) {}
 
@@ -162,6 +164,15 @@ export class AuthService {
       userAgent,
     );
 
+    try {
+      await this.mailService.sendUserCredentials(
+        result.email,
+        password,
+        result.name,
+      );
+    } catch (mailError) {
+      console.error('⚠️ Error enviando email:', mailError);
+    }
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
