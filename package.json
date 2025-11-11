@@ -17,11 +17,13 @@
     "dev:electron:watch": "tsc -p electron/tsconfig.json --watch",
     "kill-ports": "powershell -ExecutionPolicy Bypass -File ./kill-ports.ps1",
     "build:frontend": "cd PenyFront && npm run build",
-    "build:backend": "cd peny-back && npm run db:generate && npm run build",
+    "build:backend": "cd peny-back && npm run build:prod",
+    "build:backend:dev": "cd peny-back && npm run build",
     "build:electron": "tsc -p electron/tsconfig.json",
     "build": "npm run build:frontend && npm run build:backend && npm run build:electron",
     "package": "npm run build && electron-builder",
-    "package:win": "npm run build && electron-builder --win",
+    "package:win": "npm run build && electron-builder --win --x64",
+    "package:win:portable": "npm run build && electron-builder --win portable --x64",
     "package:linux": "npm run build && electron-builder --linux",
     "package:mac": "npm run build && electron-builder --mac",
     "dist": "npm run package",
@@ -45,16 +47,26 @@
     "appId": "com.penitentiary.center",
     "productName": "SIGEPEN",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "assets"
     },
+    "compression": "maximum",
+    "removePackageScripts": true,
+    "npmRebuild": false,
+    "buildDependenciesFromSource": false,
     "files": [
       "electron/main.js",
       "electron/preload.js",
       "PenyFront/dist/**/*",
       "node_modules/**/*",
       "!node_modules/**/test/**/*",
+      "!node_modules/**/tests/**/*",
       "!node_modules/**/*.md",
-      "!node_modules/**/@types/**/*"
+      "!node_modules/**/@types/**/*",
+      "!node_modules/**/README*",
+      "!node_modules/**/LICENSE*",
+      "!node_modules/**/*.map",
+      "!node_modules/**/.*"
     ],
     "asarUnpack": [
       "PenyFront/dist/**/*"
@@ -66,8 +78,33 @@
         "filter": ["**/*"]
       },
       {
-        "from": "peny-back/node_modules",
-        "to": "backend/node_modules",
+        "from": "peny-back/node_modules/@prisma",
+        "to": "backend/node_modules/@prisma",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "peny-back/node_modules/.prisma",
+        "to": "backend/node_modules/.prisma",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "peny-back/node_modules/class-transformer",
+        "to": "backend/node_modules/class-transformer",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "peny-back/node_modules/@aws-sdk",
+        "to": "backend/node_modules/@aws-sdk",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "peny-back/node_modules/@smithy",
+        "to": "backend/node_modules/@smithy",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "peny-back/node_modules/@aws-crypto",
+        "to": "backend/node_modules/@aws-crypto",
         "filter": ["**/*"]
       },
       {
@@ -107,7 +144,8 @@
         }
       ],
       "requestedExecutionLevel": "asInvoker",
-      "artifactName": "${productName}-${version}-${arch}.${ext}"
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "compression": "maximum"
     },
     "nsis": {
       "oneClick": false,

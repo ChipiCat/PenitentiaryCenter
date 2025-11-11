@@ -75,12 +75,37 @@ class BackendManager {
       console.log(`[Backend] Path del backend: ${backendPath}`);
       console.log(`[Backend] Modo: ${this.isDev ? "Desarrollo" : "Producción"}`);
       
+      // Verificar que el path existe
+      if (!fs.existsSync(backendPath)) {
+        const error = `[Backend] ERROR: El directorio no existe: ${backendPath}`;
+        console.error(error);
+        reject(new Error(error));
+        return;
+      }
+      
       const command = this.isDev ? "npm" : "node";
+      const mainJsPath = join(backendPath, "dist", "main.js");
       const args = this.isDev
         ? ["run", "start:dev"]
-        : [join(backendPath, "dist", "main.js")];
+        : [mainJsPath];
+      
+      // Verificar que main.js existe en producción
+      if (!this.isDev && !fs.existsSync(mainJsPath)) {
+        const error = `[Backend] ERROR: No se encontró main.js en: ${mainJsPath}`;
+        console.error(error);
+        console.error(`[Backend] Contenido de ${backendPath}:`);
+        try {
+          const files = fs.readdirSync(backendPath);
+          console.error(`[Backend] Archivos: ${files.join(", ")}`);
+        } catch (e) {
+          console.error(`[Backend] Error listando archivos: ${e}`);
+        }
+        reject(new Error(error));
+        return;
+      }
       
       console.log(`[Backend] Comando: ${command} ${args.join(" ")}`);
+      console.log(`[Backend] CWD: ${backendPath}`);
       
       this.process = spawn(command, args, {
         cwd: backendPath,
@@ -89,38 +114,57 @@ class BackendManager {
           ...process.env,
           PORT: this.port.toString(),
           NODE_ENV: this.isDev ? "development" : "production",
+          NODE_PATH: join(backendPath, "node_modules"),
         },
       });
+      
+      let hasResolved = false;
       
       this.process.stdout?.on("data", (data: Buffer) => {
         const output = data.toString();
         console.log(`[Backend] ${output}`);
-        if (output.includes("Application is running")) {
-          console.log("[Backend]  Iniciado correctamente");
+        if (!hasResolved && (output.includes("Application is running") || output.includes("Nest application successfully started"))) {
+          console.log("[Backend] ✓ Iniciado correctamente");
+          hasResolved = true;
           resolve();
         }
       });
       
       this.process.stderr?.on("data", (data: Buffer) => {
-        console.error(`[Backend Error] ${data.toString()}`);
+        const errorOutput = data.toString();
+        console.error(`[Backend Error] ${errorOutput}`);
+        // Si el error contiene "Cannot find module", rechazar inmediatamente
+        if (errorOutput.includes("Cannot find module") && !hasResolved) {
+          hasResolved = true;
+          reject(new Error(`Backend error: ${errorOutput}`));
+        }
       });
       
       this.process.on("error", (error: Error) => {
-        console.error("[Backend] Error al iniciar:", error.message);
-        reject(error);
+        console.error("[Backend] Error al iniciar proceso:", error.message);
+        console.error("[Backend] Stack:", error.stack);
+        if (!hasResolved) {
+          hasResolved = true;
+          reject(error);
+        }
       });
       
-      this.process.on("exit", (code: number | null) => {
-        console.log(`[Backend] Proceso terminado con código ${code}`);
+      this.process.on("exit", (code: number | null, signal: string | null) => {
+        console.log(`[Backend] Proceso terminado con código ${code}, señal: ${signal}`);
+        if (code !== 0 && code !== null && !hasResolved) {
+          hasResolved = true;
+          reject(new Error(`Backend exit with code ${code}`));
+        }
         this.process = null;
       });
       
       setTimeout(() => {
-        if (this.process && !this.process.killed) {
-          console.log("[Backend]  Timeout alcanzado, asumiendo inicio exitoso");
+        if (this.process && !this.process.killed && !hasResolved) {
+          console.log("[Backend] ⚠ Timeout alcanzado, asumiendo inicio exitoso");
+          hasResolved = true;
           resolve();
         }
-      }, 30000);
+      }, this.isDev ? 30000 : 15000);
     });
   }
 
