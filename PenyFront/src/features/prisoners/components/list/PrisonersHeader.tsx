@@ -93,9 +93,6 @@ export const PrisonersHeader: React.FC<PrisonersHeaderProps> = ({ viewType, onVi
                 minWidth: 110,
                 background: 'transparent',
                 color: '#868e96',
-                '&[data-active]': {
-                  color: '#fff',
-                },
               },
             }}
           />

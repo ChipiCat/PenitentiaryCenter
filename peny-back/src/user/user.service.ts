@@ -159,8 +159,6 @@ export class UserService {
       userAgent,
     );
 
-    await this.mailService.sendUserCredentials(result.email, password, name);
-
     return result;
   }
 
